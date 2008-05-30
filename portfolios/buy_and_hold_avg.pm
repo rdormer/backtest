@@ -69,6 +69,7 @@ sub update_positions {
 
     if(++$update_count > $update_threshold) {
 	$current_cash += $update_deposit;
+	$starting_cash += $update_deposit;
 	$update_count = 0;
     }
 
@@ -126,19 +127,21 @@ sub bywhen {
 
 sub print_portfolio_state {
 
-#    foreach (keys %positions) {
-#	print "\n$_\t$positions{$_}{'shares'}\t$positions{$_}{'sdate'}\t$positions{$_}{'start'}\t(open)";
-#    }
-
+    $final_day = get_date();
     foreach (@positions) {
 	my %t = %$_;
 	print "\n$t{'ticker'}\t$t{'shares'}\t$t{'sdate'}\t$t{'start'}";
-    }
+	
+	$final = get_price_at_date($t{'ticker'}, $final_day);
+	$ret = (($final - $t{'start'}) / $t{'start'}) * 100;
 
+	print"\t$final\t$ret";
+	
+    }
 
     $total = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
-    print "\n\ntotal: $total (return $ret)";
+    print "\n\nstart\\total: $starting_cash\\$total (return $ret)";
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
     
