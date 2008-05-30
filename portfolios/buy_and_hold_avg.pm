@@ -53,7 +53,7 @@ sub add_positions {
 	    $temp{'ticker'} = $ticker;
 	    $temp{'sdate'} = get_exit_date();
 	    $temp{'shares'} = $sharecount;
-	    $temp{'start'} = $price;
+	    $temp{'start'} = get_splitadj_at_date($ticker, $temp{'sdate'});
 
 	    push @positions, \%temp;
 
@@ -108,9 +108,8 @@ sub get_total_equity {
 
     foreach (@positions) {
 	my %t = %$_;
-	pull_ticker_history($_);
-	$total_equity += (fetch_close_at($index) * $positions{$_}{'shares'});
-
+	pull_ticker_history($t{'ticker'});
+	$total_equity += (fetch_close_at($index) * $t{'shares'});
     }
 
     return $total_equity;
@@ -132,7 +131,7 @@ sub print_portfolio_state {
 	my %t = %$_;
 	print "\n$t{'ticker'}\t$t{'shares'}\t$t{'sdate'}\t$t{'start'}";
 	
-	$final = get_price_at_date($t{'ticker'}, $final_day);
+	$final = get_splitadj_at_date($t{'ticker'}, $final_day);
 	$ret = (($final - $t{'start'}) / $t{'start'}) * 100;
 
 	print"\t$final\t$ret";

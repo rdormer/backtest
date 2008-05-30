@@ -168,6 +168,15 @@ sub get_price_at_date {
     return $t[0];
 }
 
+sub get_splitadj_at_date {
+
+    my $ticker = shift;
+    my $date = shift;
+    my @t = $dbh->selectrow_array("select splitadj from historical where ticker='$ticker' and date='$date'");
+
+    return $t[0];
+}
+
 sub add_fundamental {
 
     if(! $pull_fundamentals) {
