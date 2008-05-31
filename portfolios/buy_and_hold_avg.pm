@@ -144,7 +144,7 @@ sub print_portfolio_state {
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
     
-    if(scalar @trade_history > 0) {
+    if(scalar @positions > 0) {
 
 	print "\n" . scalar @trade_history . " trades";
 	print "\n$max_drawdown maximum drawdown";
