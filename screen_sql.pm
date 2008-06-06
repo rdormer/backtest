@@ -177,6 +177,16 @@ sub get_splitadj_at_date {
     return $t[0];
 }
 
+sub change_over_period {
+
+    my $ticker = shift;
+    my $start = get_splitadj_at_date($ticker, $date_range[0]);
+    my $end = get_splitadj_at_date($ticker, $date_range[@date_range - 1]);
+
+    return (($end - $start) / $start) * 100;
+}
+
+
 sub add_fundamental {
 
     if(! $pull_fundamentals) {
