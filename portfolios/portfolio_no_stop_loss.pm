@@ -203,6 +203,7 @@ sub print_portfolio_state {
     $total = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
     print "\n\ntotal: $total (return $ret)";
+    print "\nQQQQ buy and hold: " . change_over_period("QQQQ");
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
     
