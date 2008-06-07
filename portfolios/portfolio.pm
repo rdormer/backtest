@@ -76,6 +76,7 @@ sub add_positions {
 		$positions{$ticker}{'sdate'} = get_exit_date();
 		$positions{$ticker}{'shares'} = $sharecount;
 		$positions{$ticker}{'start'} = $price;
+		$positions{$ticker}{'mae'} = $price;
 
 		$current_cash -= $sharecount * $price;
 	    }
@@ -105,6 +106,7 @@ sub update_positions {
 
 	pull_ticker_history($_);
 	$low = fetch_low_at(current_index());
+	$positions{$_}{'mae'} = $low if $low < $positions{$_}{'mae'};
 	stop_position($_) if $positions{$_}{'stop'} >= $low;
     }
 
@@ -152,6 +154,7 @@ sub end_position {
     $positions{$target}{'return'} = $ret * 100;
     $positions{$target}{'ticker'} = $target;
 
+    delete $positions{$target}{'mae'} if $ret <= 0;
     $current_cash += $positions{$target}{'shares'} * $price;
 
     push @trade_history, $positions{$target};
@@ -187,15 +190,19 @@ sub print_portfolio_state {
     my $losing_trades = 0;
     my $sum_losses = 0;
     my $sum_wins = 0;
-    
+    my $max_adverse = 0;
+
     foreach (sort bywhen @trade_history) {
 
 	my %trade = %$_;
+
 	print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t$trade{'return'}";
-	
+
 	if($trade{'return'} > 0) {
 	    $winning_trades++;
 	    $sum_wins = $trade{'return'};
+	    $excursion = (($trade{'start'} - $trade{'mae'}) / $trade{'start'}) * 100;
+	    $max_adverse = $excursion if $excursion > $max_adverse;
 	} else {
 	    $losing_trades++;
 	    $sum_losses = $trade{'return'};
@@ -226,9 +233,10 @@ sub print_portfolio_state {
 	print "\n$max_drawdown maximum drawdown";
 	print "\n$max_drawdown_len days longest drawdown";
 	print "\n$win_ratio win ratio";
+	print "\n$max_adverse max adverse excursion";
 	
 	$expectancy = ($win_ratio * $avg_win) + ((1 - $win_ratio) * $avg_loss);
-	print " expectancy $expectancy";
+	print "\nExpectancy $expectancy";
 
     }
     
