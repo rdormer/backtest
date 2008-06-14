@@ -186,19 +186,20 @@ sub array_exponential_avg {
     my $n = "$index$limit" . "eavg";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    my $t = truncate_current_prices($limit, $limit*2);
+    #first compute the moving average of the first $limit days
+    my $t = truncate_current_prices($limit, $limit *2);
     my $previous_avg = array_avg($limit, $index);
     $current_prices = $t;
     %value_cache = ();
 
+    #now apply the exponential average calculation to the remaining $limit days
     for($i = $limit - 1; $i >= 0; $i--) {
 	@t = @$current_prices[$i];
-	$cur_avg = ($t[0][$index] * $weight) + ($previous_avg * (1 - $weight));
+	$cur_avg = (($t[0][$index] - $previous_avg) * $weight) + $previous_avg;
 	$previous_avg = $cur_avg;
     }
 
 
-#    print "\nvalue for exp avg is $cur_avg";
     $value_cache{$n} = $cur_avg;
     return $value_cache{$n};
 }
@@ -238,8 +239,6 @@ sub compute_macd {
 
     my $first_avg = shift;
     my $second_avg = shift;
-
-    print "\nmacd: " . (exp_avg_close($first_avg) - exp_avg_close($second_avg));
     return exp_avg_close($first_avg) - exp_avg_close($second_avg);
 }
 
@@ -259,20 +258,19 @@ sub compute_macd_signal {
     }
 
     my $sum = 0;
-    for(my $i = @macd_history; $i >= $count; $i--) {
+    for(my $i = 0; $i < $count; $i++) {
 	$sum += $macd_history[$i];
     }
     
     my $prev_avg = $sum / $count;
     my $weight = 2 / ($count + 1);
 
-    for(my $i = $count; $i >= 0; $i--) {
+    for(my $i = $count; $i <= @macd_history; $i++) {
 	$cur_avg = ($macd_history[$i] * $weight) + ($prev_avg * (1 - $weight));
 	$prev_avg = $cur_avg;
     }
 
 
-    print "\navg: $prev_avg";
     return $prev_avg;
 }
 

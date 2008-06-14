@@ -213,9 +213,15 @@ sub expand_data_expression {
 	return "fetch_volatility($1)";
     }
 
-    if($exp =~ /(MACD[S]*)([\d,]+[\d])/) {
+    if($exp =~ /(MACD)([\d,]+[\d])/) {
 
 	set_pull_limit(args_max($2) * 2);
+	return $table{$1} . "($2)";
+    }
+
+    if($exp =~ /(MACD[S])([\d,]+[\d])/) {
+
+	set_pull_limit(args_max($2) * 3);
 	return $table{$1} . "($2)";
     }
 

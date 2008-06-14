@@ -80,8 +80,6 @@ sub pull_ticker_history {
 
     $current_ticker = shift;
 
-#    print "\npulling $current_ticker";
-
     if(exists $history_cache{$current_ticker}) {
 	pull_from_cache($current_ticker);
     } else {
