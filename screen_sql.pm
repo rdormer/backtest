@@ -7,6 +7,9 @@ use Date::Manip;
 #recent day, and incrementing the index decrements the day - in other words
 #going forward through the array goes backwards through time
 
+my $history_table = "historical";
+my $fundamental_table = "fundamentals";
+
 $current_prices;
 %value_cache;
 %current_fundamentals;
@@ -70,10 +73,14 @@ sub get_date {
 
 sub set_date_range {
 
-    my $sdate = shift;
-    my $edate = shift;
-    my $query = "select date from historical where ticker='IBM' and date >= '$sdate' and date <= '$edate'";
-    @date_range = map {$_->[0]} @{$dbh->selectall_arrayref($query)};
+    my $date = ParseDate(shift);
+    my $end_date = ParseDate(shift);
+
+    while($date <= $end_date) {
+
+	push @date_range, UnixDate($date, "%Y-%m-%d") if Date_IsWorkDay($date);
+	$date = Date_NextWorkDay($date,1);
+    }
 }
 
 sub pull_ticker_history {
@@ -84,7 +91,7 @@ sub pull_ticker_history {
 	pull_from_cache($current_ticker);
     } else {
 	$maximum = $max_limit + 1;
-	$pull_sql = $dbh->prepare("select * from historical where ticker=? and date <= ? order by date desc limit ?");
+	$pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date <= ? order by date desc limit ?");
 	$pull_sql->execute($current_ticker, $current_date, $maximum);
 	$current_prices = $pull_sql->fetchall_arrayref();
 	pull_fundamental();
@@ -112,7 +119,7 @@ sub pull_from_cache {
 sub cache_ticker_history {
 
     $ticker = shift;
-    $pull_sql = $dbh->prepare("select * from historical where ticker=? and date >= ? and date <= ? order by date desc");
+    $pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date >= ? and date <= ? order by date desc");
     $pull_sql->execute($ticker, $current_date, $date_range[@date_range - 1]);
     $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
@@ -161,7 +168,7 @@ sub get_price_at_date {
 
     my $ticker = shift;
     my $date = shift;
-    my @t = $dbh->selectrow_array("select open from historical where ticker='$ticker' and date='$date'");
+    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date='$date'");
 
     return $t[0];
 }
@@ -170,7 +177,7 @@ sub get_splitadj_at_date {
 
     my $ticker = shift;
     my $date = shift;
-    my @t = $dbh->selectrow_array("select splitadj from historical where ticker='$ticker' and date='$date'");
+    my @t = $dbh->selectrow_array("select splitadj from $history_table where ticker='$ticker' and date='$date'");
 
     return $t[0];
 }
@@ -188,7 +195,7 @@ sub change_over_period {
 sub add_fundamental {
 
     if(! $pull_fundamentals) {
-	$pull_fundamentals = $dbh->prepare("select * from fundamentals where ticker=?");
+	$pull_fundamentals = $dbh->prepare("select * from $fundamental_table where ticker=?");
     }
 }
 
@@ -208,7 +215,7 @@ sub add_sweep_clause {
     my %field_tables = (
 	 "position" => "relative_strength",
 	 "earnings" => "earnings",
-	 "eps" => "fundamentals"
+	 "eps" => "$fundamental_table"
 	 );
 
     $table = $field_tables{$field};
