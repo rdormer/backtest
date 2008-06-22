@@ -1,14 +1,14 @@
 use DBI;
 use Date::Manip;
 
+my $history_table = "historical";
+my $fundamental_table = "fundamentals";
+
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensinoal
 #array containing the price data for the current ticker - index 0 is the most
 #recent day, and incrementing the index decrements the day - in other words
 #going forward through the array goes backwards through time
-
-my $history_table = "historical";
-my $fundamental_table = "fundamentals";
 
 $current_prices;
 %value_cache;
