@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(AND OR NOT \+ - \* / MIN[VOHLC][\d]+ MAX[VOHLC][\d]+ AVG[VOHLC][\d]+ [VOHLC][\d]*
 		MACD[S]*[\d,]+[\d] VALUE[\d,]+[\d] [MBK] ABS <= >= < > ; = [\s]*[-]?[\d]+ [(|)] ROE 
-		EPS MCAP PEG FLOAT EARNINGS_GROWTH STRENGTH[\d]+ VOLATILITY[\d]+);
+		EPS MCAP PEG FLOAT EARNINGS_GROWTH STRENGTH[\d]+ VOLATILITY[\d]+ SAR[\d,]+[\d]);
 
 my @action_list;
 my @result_list;
@@ -145,7 +145,7 @@ sub parse_var {
 	$current_action .= $fund_table{$token} . "()";
 
     } elsif($token =~ /[MAX|MIN|AVG]+[VOHLC][\d]*/ || $token =~ /STRENGTH[\d]+/ 
-       || $token =~ /[VOHLC][\d]*/ || $token =~ /MACD[S][\d,]+[\d]/) 
+       || $token =~ /[VOHLC][\d]*/ || $token =~ /MACD[S][\d,]+[\d]/ || $token =~ /SAR[\d,]+[\d]/) 
     {
 	$current_action .= expand_data_expression($token);
     
@@ -195,13 +195,15 @@ sub expand_data_expression {
 	"MAXV" => "max_volume",
         "MAXO" => "max_open",
 	"MINC" => "min_close",
+	"MAXH" => "max_high",
         "MINV" => "min_volume",
 	"AVGC" => "avg_close",
 	"AVGV" => "avg_volume",
 	"DAYMAXC" => "index_max_close",
         "DAYMINC" => "index_min_close",	 
 	"MACD" => "compute_macd",
-	"MACDS" => "compute_macd_signal"
+	"MACDS" => "compute_macd_signal",
+	"SAR" =>  "calculate_parabolic_sar"
 	);
 
 
@@ -222,6 +224,12 @@ sub expand_data_expression {
     if($exp =~ /(MACD[S])([\d,]+[\d])/) {
 
 	set_pull_limit(args_max($2) * 3);
+	return $table{$1} . "($2)";
+    }
+
+    if($exp =~ /(SAR)([\d,]+[\d])/) {
+
+	set_pull_limit(50);
 	return $table{$1} . "($2)";
     }
 
