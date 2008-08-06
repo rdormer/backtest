@@ -36,10 +36,13 @@ while(<INFILE>) {
     print "\n$_";
 }
 
+holiday_list();
+
 
 store \%start_table, 'sdates.svar';
 store \%seglengths, 'lengths.svar';
 store \%ticker_handles, 'handles.svar';
+store \@holidays, 'holidays.svar';
 
 print "\n";
 
@@ -51,5 +54,30 @@ sub pack_row {
 
 sub holiday_list {
 
+    $earliest = ParseDate("today");
+    $tdate = UnixDate($earliest, "%Y-%m-%d");
 
+    foreach (keys %start_table) {
+	$cur = ParseDate($start_table{$_});
+	$earliest = $cur if Date_Cmp($earliest, $cur) > 0;
+    }
+
+    $sdate = UnixDate($earliest, "%Y-%m-%d");
+
+    #christmas, new year's, fourth of july
+    push @t, ParseRecur("1*12:0:25:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*7:0:4:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*1:0:1:0:0:0***$sdate*$tdate");
+
+    #thanksgiving, memorial day, MLK day, President's day, labor day 
+    push @t, ParseRecur("1*11:4:4:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*5:-1:1:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*1:3:1:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*2:3:1:0:0:0***$sdate*$tdate");
+    push @t, ParseRecur("1*9:1:1:0:0:0***$sdate*$tdate");
+
+    foreach (sort { Date_Cmp($a, $b) } @t) {
+	push @holidays, UnixDate($_, "%Y%m%d");
+    }
 }
+

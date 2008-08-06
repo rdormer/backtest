@@ -9,7 +9,7 @@ sub fetch_high_at { return array_fetch(shift, 3); }
 sub fetch_low_at { return array_fetch(shift, 4); }
 sub fetch_close_at { return array_fetch(shift, 5); }
 sub fetch_volume_at { return array_fetch(shift, 7); }
-sub fetch_date_at { return array_fetch(shift, 0); }
+sub fetch_date_at { return array_fetch(shift, 1); }
 
 sub max_open { return array_max(shift, 2); }
 sub max_high { return array_max(shift, 3); }
@@ -48,7 +48,7 @@ sub compute_macd_signal { indicator_macd_signal(\@current_prices, shift); }
 
 sub array_fetch {
 
-#    print "\n-- $_[0] $_[1] ";
+    print "\n-- $_[0] $_[1] ";
     return $current_prices->[shift][shift];
 }
 
@@ -73,7 +73,7 @@ sub array_max {
 	scan_array_max($total, $in);
     }
 
-    print "\narray max is " . $value_cache{$n};
+#    print "\narray max is " . $value_cache{$n};
     return $value_cache{$n};
 }
 
@@ -135,6 +135,7 @@ sub scan_array_max {
 
     $value_cache{"$index$limit" . "max"} = $max;
     $value_cache{"$index$limit" . "maxin"} = $loc;
+    print "\narray max is $max";
 }
 
 sub scan_array_min {
@@ -174,7 +175,7 @@ sub array_avg {
     }
 
     $value_cache{$n} = ($total / $limit);
-    print "\narray avg is " . $value_cache{$n};
+#    print "\narray avg is " . $value_cache{$n};
     return $value_cache{$n};
 }
 

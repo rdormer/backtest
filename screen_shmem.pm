@@ -6,6 +6,7 @@ use Date::Business;
 %start_dates;
 %ticker_handles;
 %segment_lengths;
+@trading_holidays;
 
 my $history_table = "historical";
 my $fundamental_table = "fundamentals";
@@ -49,6 +50,12 @@ sub init_sql() {
 
     $t = retrieve('handles.svar');
     %ticker_handles = %$t;
+
+    #precompute trading holidays
+    $t = retrieve('holidays.svar');
+    foreach (@$t) {
+	push @trading_holidays, new Date::Business(DATE => $_);
+    }
 }
 
 sub set_ticker_list {
@@ -115,6 +122,8 @@ sub pull_ticker_history {
     }
 
     %value_cache = ();
+#    print "\nVALUE " . @$current_prices;
+    return @$current_prices;
 }    
 
 sub pull_from_cache {
@@ -304,29 +313,33 @@ my $ROWSIZE = 34;
 
 sub pull_from_shmem {
 
+#    print "\n-------------------";
+
     my $ticker = shift;
     my $enddate = shift;
     my $pull_size = shift;
     my @ticker_data;
 
+#    print "\npulling $pull_size rows";
     $pull_size *= $ROWSIZE;
 
     #if the start date is before the current ticker's data 
     #starts, then we have nothing to return
 
     ($ed, $sd) = parse_two_dates($enddate, $start_dates{$ticker});
+    return null if $sd->gt($ed);
 
-    if($sd->gt($ed)) {
-	return null;
-    }
+#    print "\nstart date is $start_dates{$ticker} end is $enddate";
+#    print "\nwhich is a pull size of $pull_size";
+
 
     #if we got here, go ahead and pull
 
     $tmp = "";
     $end_offset = locate_date($ticker, $enddate);
-    shmread($ticker_handles{$ticker}, $tmp, $end_offset - $pull_size, $pull_size);
+    shmread($ticker_handles{$ticker}, $tmp, $segment_lengths{$ticker} - $end_offset, $pull_size);
 
-    print "\nfrom offset $end_offset (out of $segment_lengths{$ticker}) for $pull_size read " . length $tmp;
+#    print "\nactually pulled " . length $tmp;
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
 
@@ -335,6 +348,9 @@ sub pull_from_shmem {
 	push @ticker_data, [ @cur_row ];
     }
 
+#    print "\n$ticker_data[0][1] $ticker_data[@ticker_data - 1][1]";
+
+#    print "\n-------------------";
     return \@ticker_data;
 }
 
@@ -344,9 +360,16 @@ sub locate_date {
     my $target_date = shift;
 
     ($ed, $sd) = parse_two_dates($target_date, $start_dates{$ticker});
-    $dif = $ed->diffb($sd);
 
-    print "\n$dif days";
+    my $holidays = 0;
+    foreach (@trading_holidays) {
+	$holidays++ if $_->lt($ed) && $_->gt($sd);
+    }
+
+    $dif = $ed->diffb($sd);
+    $dif -= $holidays;
+
+ #   print "\n$dif days with $holidays holidays between $start_dates{$ticker} and $target_date";
 
     return $dif * $ROWSIZE;
 }
