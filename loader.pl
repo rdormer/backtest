@@ -76,6 +76,15 @@ sub holiday_list {
     push @t, ParseRecur("1*2:3:1:0:0:0***$sdate*$tdate");
     push @t, ParseRecur("1*9:1:1:0:0:0***$sdate*$tdate");
 
+    #good fridays
+    $easterrecur = "*" . UnixDate($earliest, "%Y") . "-" . UnixDate(ParseDate("today"), "%Y");
+    $easterrecur .= ":0:0:0:0:0:0*EASTER,BW1";
+    push @t, ParseRecur($easterrecur);
+
+    #september 11th attacks closed markets for 4 days
+    push @t, ("20010911", "20010912", "20010913", "20010914", "20010917");
+
+
     foreach (sort { Date_Cmp($a, $b) } @t) {
 	push @holidays, UnixDate($_, "%Y%m%d");
     }
