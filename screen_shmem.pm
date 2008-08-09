@@ -95,16 +95,21 @@ sub get_date {
 sub set_date_range {
 
     ($date, $end_date) = parse_two_dates(shift, shift);
+    $date->prevb();
+    
+  DATELOOP:
     while($date->lt($end_date)) {
 
+	$date->nextb();
 	$d = $date->image();
+
+	foreach (@trading_holidays) {
+	    next DATELOOP if $_->image() eq $d;
+	}
 
 	substr $d, 4, 0, "-";
 	substr $d, 7, 0, "-";
 	push @date_range, $d;
-
-#	print "\n$d";
-	$date->nextb();
     }
 }
 
@@ -129,6 +134,8 @@ sub pull_ticker_history {
 sub pull_from_cache {
 
     my $ticker = shift;
+    print "\npulling $ticker from cache";
+
     $current_prices = $history_cache{$ticker};
 
     my $i = @$current_prices - 1;
@@ -143,9 +150,21 @@ sub cache_ticker_history {
 
     $ticker = shift;
 
+    print "\ncaching history for $ticker";
+    
+
     $end_date = $date_range[@date_range - 1];
     ($cur, $end) = parse_two_dates($current_date, $end_date);
     $dif = $end->diffb($cur);
+
+#    my $holidays = 0;
+#    foreach (@trading_holidays) {
+#	$holidays++ if $_->lt($end) && $_->gt($cur);
+#    }
+
+#    $dif -= $holidays;
+
+#    print "\n$holidays holidays";
 
     $history_cache{$ticker} = pull_from_shmem($ticker, $end_date, $dif); 
 
@@ -313,14 +332,14 @@ my $ROWSIZE = 34;
 
 sub pull_from_shmem {
 
-#    print "\n-------------------";
+    print "\n-------------------";
 
     my $ticker = shift;
     my $enddate = shift;
     my $pull_size = shift;
     my @ticker_data;
 
-#    print "\npulling $pull_size rows";
+    print "\npulling $pull_size rows";
     $pull_size *= $ROWSIZE;
 
     #if the start date is before the current ticker's data 
@@ -329,8 +348,8 @@ sub pull_from_shmem {
     ($ed, $sd) = parse_two_dates($enddate, $start_dates{$ticker});
     return null if $sd->gt($ed);
 
-#    print "\nstart date is $start_dates{$ticker} end is $enddate";
-#    print "\nwhich is a pull size of $pull_size";
+    print "\nstart date is $start_dates{$ticker} end is $enddate";
+    print "\nwhich is a pull size of $pull_size";
 
 
     #if we got here, go ahead and pull
@@ -339,7 +358,8 @@ sub pull_from_shmem {
     $end_offset = locate_date($ticker, $enddate);
     shmread($ticker_handles{$ticker}, $tmp, $segment_lengths{$ticker} - $end_offset, $pull_size);
 
-#    print "\nactually pulled " . length $tmp;
+    print "\nat offset " . ($segment_lengths{$ticker} - $end_offset);
+    print "\nactually pulled " . length $tmp;
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
 
@@ -350,7 +370,7 @@ sub pull_from_shmem {
 
 #    print "\n$ticker_data[0][1] $ticker_data[@ticker_data - 1][1]";
 
-#    print "\n-------------------";
+    print "\n-------------------";
     return \@ticker_data;
 }
 
@@ -369,7 +389,7 @@ sub locate_date {
     $dif = $ed->diffb($sd);
     $dif -= $holidays;
 
- #   print "\n$dif days with $holidays holidays between $start_dates{$ticker} and $target_date";
+    print "\n$dif days with $holidays holidays between $start_dates{$ticker} and $target_date";
 
     return $dif * $ROWSIZE;
 }
