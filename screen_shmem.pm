@@ -140,6 +140,7 @@ sub pull_from_cache {
 
     my $i = @$current_prices - 1;
     $i-- while $i > 0 and fetch_date_at($i) ne $current_date;
+#    print "\nfor $ticker we found at $i out of " . @$current_prices;   
 
     my @array = @$current_prices;
     @array = @array[$i..@array-1];
@@ -150,7 +151,7 @@ sub cache_ticker_history {
 
     $ticker = shift;
 
- #   print "\ncaching history for $ticker";
+    print "\ncaching history for $ticker";
     
 
     $end_date = $date_range[@date_range - 1];
@@ -182,7 +183,7 @@ sub current_index {
     my $i = 0;
 
     ($target, $current) = parse_two_dates($current_date, fetch_date_at($i));
-    while($target->lt($current) && $i < @$current_prices) {
+    while($target->lt($current) && $i < @$current_prices - 1) {
 
 	$i++;
 	$cur = fetch_date_at($i);
@@ -215,20 +216,27 @@ sub get_exit_date {
 
 sub get_price_at_date {
 
-    my $ticker = shift;
-    my $date = shift;
-    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date='$date'");
+#    my $ticker = shift;
+#    my $date = shift;
+#    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date='$date'");
 
-    return $t[0];
+    $t = pull_from_shmem(shift, shift, 1);
+
+    return $t->[0][2];
 }
 
 sub get_splitadj_at_date {
 
-    my $ticker = shift;
-    my $date = shift;
-    my @t = $dbh->selectrow_array("select splitadj from $history_table where ticker='$ticker' and date='$date'");
+#    my $ticker = shift;
+#    my $date = shift;
+#    my @t = $dbh->selectrow_array("select splitadj from $history_table where ticker='$ticker' and date='$date'");
 
-    return $t[0];
+    $t = pull_from_shmem(shift, shift, 1);
+
+    return $t->[0][6];
+
+
+#    return $t[0];
 }
 
 sub change_over_period {
@@ -356,9 +364,11 @@ sub pull_from_shmem {
 
     $tmp = "";
     $end_offset = locate_date($ticker, $enddate);
+    $end_offset = $segment_lengths{$ticker} if $end_offset > $segment_lengths{$ticker};
     shmread($ticker_handles{$ticker}, $tmp, $segment_lengths{$ticker} - $end_offset, $pull_size);
 
 #    print "\nat offset " . ($segment_lengths{$ticker} - $end_offset);
+#    print " out of $segment_lengths{$ticker} bytes end offset $end_offset";
 #    print "\nactually pulled " . length $tmp;
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
@@ -368,9 +378,7 @@ sub pull_from_shmem {
 	push @ticker_data, [ @cur_row ];
     }
 
-#    print "\n$ticker_data[0][1] $ticker_data[@ticker_data - 1][1]";
-
-#    print "\n-------------------";
+#    print "\n-------------------\n";
     return \@ticker_data;
 }
 
@@ -393,7 +401,6 @@ sub locate_date {
 
     return $dif * $ROWSIZE;
 }
-
 
 sub parse_two_dates {
 
