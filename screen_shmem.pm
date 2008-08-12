@@ -340,14 +340,11 @@ my $ROWSIZE = 34;
 
 sub pull_from_shmem {
 
-#    print "\n-------------------";
-
     my $ticker = shift;
     my $enddate = shift;
     my $pull_size = shift;
     my @ticker_data;
 
-#    print "\npulling $pull_size rows";
     $pull_size *= $ROWSIZE;
 
     #if the start date is before the current ticker's data 
@@ -355,9 +352,6 @@ sub pull_from_shmem {
 
     ($ed, $sd) = parse_two_dates($enddate, $start_dates{$ticker});
     return null if $sd->gt($ed);
-
-#    print "\nstart date is $start_dates{$ticker} end is $enddate";
-#    print "\nwhich is a pull size of $pull_size";
 
 
     #if we got here, go ahead and pull
@@ -367,10 +361,6 @@ sub pull_from_shmem {
     $end_offset = $segment_lengths{$ticker} if $end_offset > $segment_lengths{$ticker};
     shmread($ticker_handles{$ticker}, $tmp, $segment_lengths{$ticker} - $end_offset, $pull_size);
 
-#    print "\nat offset " . ($segment_lengths{$ticker} - $end_offset);
-#    print " out of $segment_lengths{$ticker} bytes end offset $end_offset";
-#    print "\nactually pulled " . length $tmp;
-
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
 
 	@cur_row = unpack "A10fffffL", substr $tmp, $i, $ROWSIZE;
@@ -378,7 +368,6 @@ sub pull_from_shmem {
 	push @ticker_data, [ @cur_row ];
     }
 
-#    print "\n-------------------\n";
     return \@ticker_data;
 }
 
@@ -401,6 +390,7 @@ sub locate_date {
 
     return $dif * $ROWSIZE;
 }
+
 
 sub parse_two_dates {
 
