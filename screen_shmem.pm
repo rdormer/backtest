@@ -358,8 +358,7 @@ sub pull_from_shmem {
 
     $tmp = "";
     $end_offset = locate_date($ticker, $enddate);
-    $end_offset = $segment_lengths{$ticker} if $end_offset > $segment_lengths{$ticker};
-    shmread($ticker_handles{$ticker}, $tmp, $segment_lengths{$ticker} - $end_offset, $pull_size);
+    shmread($ticker_handles{$ticker}, $tmp, $end_offset, $pull_size);
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
 
@@ -368,28 +367,31 @@ sub pull_from_shmem {
 	push @ticker_data, [ @cur_row ];
     }
 
+
+#    print "\n$end_offset --> $ticker_data[0][0] $ticker_data[0][1] $ticker_data[0][2]";
     return \@ticker_data;
 }
 
 sub locate_date {
 
     my $ticker = shift;
-    my $target_date = shift;
+    my $enddate = shift;
 
-    ($ed, $sd) = parse_two_dates($target_date, $start_dates{$ticker});
+    $buf = "";
+    shmread($ticker_handles{$ticker}, $buf, 0, $segment_lengths{$ticker});
 
-    my $holidays = 0;
-    foreach (@trading_holidays) {
-	$holidays++ if $_->lt($ed) && $_->gt($sd);
+    my $i;
+    for($i = 0; $i < length $buf; $i += $ROWSIZE) {
+
+	@cur_row = unpack "A10", substr $buf, $i, 10;
+	last if $cur_row[0] eq $enddate;
     }
 
-    $dif = $ed->diffb($sd);
-    $dif -= $holidays;
+    $i = -1 if $i > $segment_lengths{$ticker};
 
-#    print "\n$dif days with $holidays holidays between $start_dates{$ticker} and $target_date";
-
-    return $dif * $ROWSIZE;
+    return $i;
 }
+
 
 
 sub parse_two_dates {
