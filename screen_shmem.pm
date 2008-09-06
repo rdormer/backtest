@@ -127,20 +127,16 @@ sub pull_ticker_history {
     }
 
     %value_cache = ();
-#    print "\nVALUE " . @$current_prices;
     return @$current_prices;
 }    
 
 sub pull_from_cache {
 
     my $ticker = shift;
- #   print "\npulling $ticker from cache";
-
     $current_prices = $history_cache{$ticker};
 
     my $i = @$current_prices - 1;
     $i-- while $i > 0 and fetch_date_at($i) ne $current_date;
-#    print "\nfor $ticker we found at $i out of " . @$current_prices;   
 
     my @array = @$current_prices;
     @array = @array[$i..@array-1];
@@ -150,9 +146,6 @@ sub pull_from_cache {
 sub cache_ticker_history {
 
     $ticker = shift;
-
-    print "\ncaching history for $ticker";
-    
 
     $end_date = $date_range[@date_range - 1];
     ($cur, $end) = parse_two_dates($current_date, $end_date);
@@ -167,7 +160,9 @@ sub cache_ticker_history {
 
 #    print "\n$holidays holidays";
 
-    $history_cache{$ticker} = pull_from_shmem($ticker, $end_date, $dif); 
+
+    $hist = pull_from_shmem($ticker, $end_date, $dif); 
+    $history_cache{$ticker} = $hist;
 
 #    $pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date >= ? and date <= ? order by date desc");
 #    $pull_sql->execute($ticker, $current_date, $date_range[@date_range - 1]);
@@ -353,22 +348,33 @@ sub pull_from_shmem {
     ($ed, $sd) = parse_two_dates($enddate, $start_dates{$ticker});
     return null if $sd->gt($ed);
 
-
     #if we got here, go ahead and pull
 
     $tmp = "";
     $end_offset = locate_date($ticker, $enddate);
-    shmread($ticker_handles{$ticker}, $tmp, $end_offset, $pull_size);
+    $ret = shmread($ticker_handles{$ticker}, $tmp, $end_offset, $pull_size);
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
 
 	@cur_row = unpack "A10fffffL", substr $tmp, $i, $ROWSIZE;
+
 	unshift @cur_row, $ticker;
+
+	$cur_row[2] = sprintf("%.2f", $cur_row[2]);
+	$cur_row[3] = sprintf("%.2f", $cur_row[3]);
+	$cur_row[4] = sprintf("%.2f", $cur_row[4]);
+	$cur_row[5] = sprintf("%.2f", $cur_row[5]);
+	$cur_row[6] = sprintf("%.2f", $cur_row[6]);
+
+#	@cur_rowrr = map {sprintf("%.2f", $_) } @cur_row[2..6];
+#	unshift @cur_rowrr, $cur_row[0];
+#	unshift @cur_rowrr, $ticker;
+
+
 	push @ticker_data, [ @cur_row ];
     }
 
 
-#    print "\n$end_offset --> $ticker_data[0][0] $ticker_data[0][1] $ticker_data[0][2]";
     return \@ticker_data;
 }
 
