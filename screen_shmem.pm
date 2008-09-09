@@ -151,22 +151,8 @@ sub cache_ticker_history {
     ($cur, $end) = parse_two_dates($current_date, $end_date);
     $dif = $end->diffb($cur);
 
-#    my $holidays = 0;
-#    foreach (@trading_holidays) {
-#	$holidays++ if $_->lt($end) && $_->gt($cur);
-#    }
-
-#    $dif -= $holidays;
-
-#    print "\n$holidays holidays";
-
-
     $hist = pull_from_shmem($ticker, $end_date, $dif); 
     $history_cache{$ticker} = $hist;
-
-#    $pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date >= ? and date <= ? order by date desc");
-#    $pull_sql->execute($ticker, $current_date, $date_range[@date_range - 1]);
-#    $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
 
 sub clear_history_cache {
@@ -211,27 +197,14 @@ sub get_exit_date {
 
 sub get_price_at_date {
 
-#    my $ticker = shift;
-#    my $date = shift;
-#    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date='$date'");
-
     $t = pull_from_shmem(shift, shift, 1);
-
     return $t->[0][2];
 }
 
 sub get_splitadj_at_date {
 
-#    my $ticker = shift;
-#    my $date = shift;
-#    my @t = $dbh->selectrow_array("select splitadj from $history_table where ticker='$ticker' and date='$date'");
-
     $t = pull_from_shmem(shift, shift, 1);
-
     return $t->[0][6];
-
-
-#    return $t[0];
 }
 
 sub change_over_period {
