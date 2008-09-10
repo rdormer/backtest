@@ -151,7 +151,8 @@ sub cache_ticker_history {
     ($cur, $end) = parse_two_dates($current_date, $end_date);
     $dif = $end->diffb($cur);
 
-    $hist = pull_from_shmem($ticker, $end_date, $dif); 
+#    $hist = cache_from_shmem($ticker, $dif); 
+    $hist = pull_from_shmem($ticker, $end_date, $dif);
     $history_cache{$ticker} = $hist;
 }    
 
@@ -325,6 +326,12 @@ sub pull_from_shmem {
 
     $tmp = "";
     $end_offset = locate_date($ticker, $enddate);
+
+    if ($end_offset == $segment_lengths{$ticker}) {
+	$end_offset = 0;
+    }
+
+
     $ret = shmread($ticker_handles{$ticker}, $tmp, $end_offset, $pull_size);
 
     for($i = 0; $i < length $tmp; $i += $ROWSIZE) {
