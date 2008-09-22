@@ -119,8 +119,9 @@ sub pull_from_cache {
 sub cache_ticker_history {
 
     $ticker = shift;
+    $sdate = DateCalc($current_date, "-$max_limit business days");
     $pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date >= ? and date <= ? order by date desc");
-    $pull_sql->execute($ticker, $current_date, $date_range[@date_range - 1]);
+    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $date_range[@date_range - 1]);
     $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
 
