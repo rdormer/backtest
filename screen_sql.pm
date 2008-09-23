@@ -104,11 +104,9 @@ sub pull_from_cache {
 
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
-    
-    my $i = 0;
-    $i++ while fetch_date_at($i) ne $current_date and $i < @$current_prices;
 
-#    return if $i >= @$current_prices;
+    my $i = @$current_prices - 1;
+    $i-- while $i > 0 and fetch_date_at($i) ne $current_date;
 
     my @array = @$current_prices;
     @array = @array[$i..@array-1];
