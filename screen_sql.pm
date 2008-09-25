@@ -98,6 +98,7 @@ sub pull_ticker_history {
     }
 
     %value_cache = ();
+    return scalar @$current_prices;
 }    
 
 sub pull_from_cache {

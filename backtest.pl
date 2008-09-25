@@ -41,8 +41,7 @@ sub run_screen_loop() {
     init_filter();
 
     foreach $ticker (@ticker_list) {
-	pull_ticker_history($ticker);
-	filter_results($ticker);
+	filter_results($ticker) if pull_ticker_history($ticker);
 	break if @result_list >= positions_available();
     }
 
