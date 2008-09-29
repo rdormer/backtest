@@ -168,7 +168,7 @@ sub get_price_at_date {
 
     my $ticker = shift;
     my $date = shift;
-    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date='$date'");
+    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date >= '$date' order by date asc limit 1");
 
     return $t[0];
 }
