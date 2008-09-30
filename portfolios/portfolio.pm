@@ -101,15 +101,22 @@ sub update_positions {
 	sell_position($target);
     }
 
+
+    my $equity = 0;
     foreach (keys %positions) {
 
 	pull_ticker_history($_);
 	$low = fetch_low_at(current_index());
 	$positions{$_}{'mae'} = $low if $low < $positions{$_}{'mae'};
-	stop_position($_) if $positions{$_}{'stop'} >= $low;
+
+	if($positions{$_}{'stop'} >= $low) {
+	    stop_position($_);
+	} else {
+	    $equity += (fetch_close_at($index) * $positions{$_}{'shares'});
+	} 
     }
 
-    $equity = get_total_equity();
+    $equity += $current_cash;
     push @equity_curve,$equity;
 
     if($equity > $max_equity) {
