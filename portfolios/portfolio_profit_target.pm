@@ -70,7 +70,6 @@ sub add_positions {
 	    next if $price <= 0;
 
 	    cache_ticker_history($ticker);
-	    pull_ticker_history($ticker);
 
 	    my $sharecount = int($position_size / $price);
 
