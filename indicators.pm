@@ -9,7 +9,7 @@ sub fetch_high_at { return array_fetch(shift, 3); }
 sub fetch_low_at { return array_fetch(shift, 4); }
 sub fetch_close_at { return array_fetch(shift, 5); }
 sub fetch_volume_at { return array_fetch(shift, 7); }
-sub fetch_date_at { return array_fetch(shift, 0); }
+sub fetch_date_at { return array_fetch(shift, 1); }
 
 sub max_open { return array_max(shift, 2); }
 sub max_high { return array_max(shift, 3); }
@@ -48,8 +48,9 @@ sub compute_macd_signal { indicator_macd_signal(\@current_prices, shift); }
 
 sub array_fetch {
 
-    @t = @$current_prices[shift];
-    return $t[0][shift];
+#    @t = @$current_prices[shift];
+#    return $t[0][shift];
+    return $current_prices->[shift][shift];
 }
 
 sub truncate_current_prices {
@@ -297,6 +298,72 @@ sub indicator_dcf_valuation {
     return $dcf;
 }
 
+sub calculate_parabolic_sar {
 
+
+    my $evt, $sar, $prev_sar;
+    my $init_alpha = shift;
+    my $alpha_max = shift;
+    my $step = shift;
+   
+    $init_alpha = 0.02;
+    $alpha = 0.02;
+    $step = 0.02;
+    $alpha_max = .2;
+
+    my $islong = 0;
+
+    # The first SAR value is calculated by taking the difference between
+    # the high price and the low price and multiplying the difference by
+    # the initial acceleration factor.
+
+    @t = @$current_prices[@$current_prices - 1];
+    $next_sar = ($t[0][3] - $t[0][4]) * $init_alpha;
+    $evt = $t[0][4] if ! $long;
+    $evt = $t[0][5] if $long;
+
+
+    for($i = @$current_prices - 2; $i >= 0; $i--) {
+
+	@t = @$current_prices[$i];
+	$cur_price = $t[0][5];
+
+	#if sar pierces the price low for it's day
+	#then a new trend is signaled, which means
+
+	# 1 - the first sar for new trend is the last evt value
+	# 2 - the acceleration factor is reset to it's initial value
+	# 3 - $long = ! $long
+	if($next_sar > $t[0][4]) {
+	    $prev_sar = $evt;
+	    $alpha = $init_alpha;
+	    $islong = ! $islong;
+	}
+
+	if($islong && $cur_price > $evt) {
+	    $evt = $cur_price;
+	    $alpha += $step if $alpha < $alpha_max;
+	}
+
+
+	if(! $islong && $cur_price < $evt) {
+	    $evt = $cur_price;
+	    $alpha += $step if $alpha < $alpha_max;
+	}
+
+	$sar = $next_sar;
+	$next_sar = $prev_sar + $alpha * ($evt - $prev_sar);
+	$prev_sar = $sar;
+
+	#if tommorrow's sar pierces the price low for today or yesterday
+	#then we must set it to the lowest low of the last two days
+	$next_sar = $t[0][4] if $next_sar > $t[0][4];
+	@t = @$current_prices[$i + 1];
+	$next_sar = $t[0][4] if $next_sar > $t[0][4];
+    }
+
+    print "\n$sar";
+    return $next_sar;
+}
 
 1;

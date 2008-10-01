@@ -4,6 +4,10 @@ use Date::Manip;
 my $history_table = "historical";
 my $fundamental_table = "fundamentals";
 
+my $pull_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
+
+my $cache_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
+
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensinoal
 #array containing the price data for the current ticker - index 0 is the most
@@ -91,7 +95,7 @@ sub pull_ticker_history {
 	pull_from_cache($current_ticker);
     } else {
 	$maximum = $max_limit + 1;
-	$pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date <= ? order by date desc limit ?");
+	$pull_sql = $dbh->prepare($pull_cmd);
 	$pull_sql->execute($current_ticker, $current_date, $maximum);
 	$current_prices = $pull_sql->fetchall_arrayref();
 	pull_fundamental();
@@ -119,7 +123,7 @@ sub cache_ticker_history {
 
     $ticker = shift;
     $sdate = DateCalc($current_date, "-$max_limit business days");
-    $pull_sql = $dbh->prepare("select * from $history_table where ticker=? and date >= ? and date <= ? order by date desc");
+    $pull_sql = $dbh->prepare($cache_cmd);
     $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $date_range[@date_range - 1]);
     $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
