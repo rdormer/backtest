@@ -1,4 +1,5 @@
 use screen_sql;
+use screen_compile;
 use Charting;
 use Date::Manip;
 use POSIX;
@@ -92,17 +93,21 @@ sub update_positions {
     @tlist = @ {set_ticker_list(\@temp)};
     @tact = @ {set_actions(\@actions)};
 
-    @results = run_screen_loop();
+
+    init_filter();
+
+    my $equity = 0;
+    foreach $ticker (@temp) {
+	if(pull_ticker_history($ticker)) {
+	    if(filter_results($ticker)) {
+		sell_position($ticker);
+	    } 
+	}
+    }
 
     set_ticker_list(\@tlist);
     set_actions(\@tact);
 
-    foreach $target (@results) {
-	sell_position($target);
-    }
-
-
-    my $equity = 0;
     foreach (keys %positions) {
 
 	pull_ticker_history($_);
