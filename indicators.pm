@@ -4,12 +4,12 @@ use screen_sql;
 sub fetch_strength { return relative_strength(current_ticker(), shift); }
 sub fetch_volatility { return statistical_volatility(shift); }
 
-sub fetch_open_at { return array_fetch(shift, 2); }
-sub fetch_high_at { return array_fetch(shift, 3); }
-sub fetch_low_at { return array_fetch(shift, 4); }
-sub fetch_close_at { return array_fetch(shift, 5); }
-sub fetch_volume_at { return array_fetch(shift, 7); }
-sub fetch_date_at { return array_fetch(shift, 1); }
+sub fetch_open_at { return $current_prices->[shift][2]; }
+sub fetch_high_at { return $current_prices->[shift][3]; }
+sub fetch_low_at { return $current_prices->[shift][4]; }
+sub fetch_close_at { return $current_prices->[shift][5]; }
+sub fetch_volume_at { return $current_prices->[shift][7]; }
+sub fetch_date_at { return $current_prices->[shift][1]; }
 
 sub max_open { return array_max(shift, 2); }
 sub max_high { return array_max(shift, 3); }
@@ -45,13 +45,6 @@ sub fundamental_float { return $current_fundamentals{'total_float'}; };
 sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'}; }
 
 sub compute_macd_signal { indicator_macd_signal(\@current_prices, shift); }
-
-sub array_fetch {
-
-#    @t = @$current_prices[shift];
-#    return $t[0][shift];
-    return $current_prices->[shift][shift];
-}
 
 sub truncate_current_prices {
 
