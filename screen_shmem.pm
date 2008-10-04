@@ -362,23 +362,29 @@ sub locate_date {
 
     my $ticker = shift;
     my $enddate = shift;
+    
+    $enddate =~ s/-//g;
 
-    $buf = "";
-    shmread($ticker_handles{$ticker}, $buf, 0, $segment_lengths{$ticker});
+    my $buf = "";
+    my $low = 0;
+    my $high = $segment_lengths{$ticker} / $ROWSIZE;
 
-    my $i;
-    for($i = 0; $i < length $buf; $i += $ROWSIZE) {
+    while($low < $high) {
 
-	@cur_row = unpack "A10", substr $buf, $i, 10;
-	last if $cur_row[0] eq $enddate;
+	$mid = int(($low + $high) / 2);
+	shmread($ticker_handles{$ticker}, $buf, $mid * $ROWSIZE, 10);
+	
+	$buf =~ s/-//g;
+
+	if($buf gt $enddate) {
+	    $low = $mid + 1;
+	} else {
+	    $high = $mid;
+	}
     }
 
-    $i = -1 if $i > $segment_lengths{$ticker};
-
-    return $i;
+    return $low * $ROWSIZE;
 }
-
-
 
 sub parse_two_dates {
 
