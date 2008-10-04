@@ -156,9 +156,8 @@ sub pull_from_cache {
 
     $low = 0 if fetch_date_at($low) ne $current_date;
 
-    my @array = @$current_prices;
-    @array = @array[$low..@array-1];
-    $current_prices = \@array;
+    $len = @$current_prices - 1;
+    $current_prices = [ @$current_prices[$low..$len] ];
 }
 
 sub cache_ticker_history {
