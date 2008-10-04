@@ -132,6 +132,7 @@ sub pull_ticker_history {
 
 sub pull_from_cache {
 
+    my $ticker = shift;
     $current_prices = $history_cache{$ticker};
     $enddate = $current_date;
     $enddate =~ s/-//g;
