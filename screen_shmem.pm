@@ -181,13 +181,10 @@ sub current_index {
 
     my $i = 0;
 
-    ($target, $current) = parse_two_dates($current_date, fetch_date_at($i));
-    while($target->lt($current) && $i < @$current_prices - 1) {
-
+    my $current = fetch_date_at($i);
+    while($current_date lt $current && $i < @$current_prices - 1) {
 	$i++;
-	$cur = fetch_date_at($i);
-	$cur =~ s/-//g;
-	$current = new Date::Business(DATE => $cur);
+	$current = fetch_date_at($i);
     }
 
     return $i;
