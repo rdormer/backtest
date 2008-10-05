@@ -134,8 +134,6 @@ sub pull_from_cache {
 
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
-    $enddate = $current_date;
-    $enddate =~ s/-//g;
 
     my $low = 0;
     my $high = @$current_prices - 1;
@@ -145,9 +143,8 @@ sub pull_from_cache {
 	$mid = int(($low + $high) / 2);
 
 	$buf = fetch_date_at($mid);
-	$buf =~ s/-//g;
 
-	if($buf gt $enddate) {
+	if($buf gt $current_date) {
 	    $low = $mid + 1;
 	} else {
 	    $high = $mid;
