@@ -336,8 +336,12 @@ sub pull_from_shmem {
     #if the start date is before the current ticker's data 
     #starts, then we have nothing to return
 
-    ($ed, $sd) = parse_two_dates($enddate, $start_dates{$ticker});
-    return null if $sd->gt($ed);
+    $ed = $enddate;
+    $sd = $start_dates{$ticker};
+    $ed =~ s/-//g;
+    $sd =~ s/-//g;
+    return null if $sd gt $ed;
+
 
     #if we got here, go ahead and pull
 
