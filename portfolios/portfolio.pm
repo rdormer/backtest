@@ -35,6 +35,10 @@ sub init_portfolio {
 
     $t = screen_from_file(shift);
     @actions = @$t;
+
+    open(OUT1, ">out1.txt");
+    open(OUT2, ">out2.txt");
+
 }
 
 
@@ -101,24 +105,18 @@ sub update_positions {
 	if(pull_ticker_history($ticker)) {
 	    if(filter_results($ticker)) {
 		sell_position($ticker);
-	    } 
+	    } else {
+
+		$low = fetch_low_at(current_index());
+		$positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
+
+		if($positions{$ticker}{'stop'} >= $low) {
+		    stop_position($ticker);
+		} else {
+		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
+		} 
+	    }
 	}
-    }
-
-    set_ticker_list(\@tlist);
-    set_actions(\@tact);
-
-    foreach (keys %positions) {
-
-	pull_ticker_history($_);
-	$low = fetch_low_at(current_index());
-	$positions{$_}{'mae'} = $low if $low < $positions{$_}{'mae'};
-
-	if($positions{$_}{'stop'} >= $low) {
-	    stop_position($_);
-	} else {
-	    $equity += (fetch_close_at($index) * $positions{$_}{'shares'});
-	} 
     }
 
     $equity += $current_cash;
@@ -134,6 +132,9 @@ sub update_positions {
 	$max_drawdown = $drawdown if $drawdown > $max_drawdown;
 	$drawdown_days++;
     }
+
+    set_ticker_list(\@tlist);
+    set_actions(\@tact);
 }
 
 sub sell_position {
