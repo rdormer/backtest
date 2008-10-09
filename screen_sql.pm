@@ -121,12 +121,26 @@ sub pull_from_cache {
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
 
-    my $i = @$current_prices - 1;
-    $i-- while $i > 0 and fetch_date_at($i) ne $current_date;
+    my $low = 0;
+    my $high = @$current_prices - 1;
 
-    my @array = @$current_prices;
-    @array = @array[$i..@array-1];
-    $current_prices = \@array;
+    while($low < $high) {
+
+	$mid = int(($low + $high) / 2);
+
+	$buf = fetch_date_at($mid);
+
+	if($buf gt $current_date) {
+	    $low = $mid + 1;
+	} else {
+	    $high = $mid;
+	}
+    }
+
+    $low = 0 if fetch_date_at($low) ne $current_date;
+
+    $len = @$current_prices - 1;
+    $current_prices = [ @$current_prices[$low..$len] ];
 }
 
 
