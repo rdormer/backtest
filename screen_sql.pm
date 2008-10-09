@@ -1,5 +1,7 @@
 use DBI;
 use Date::Manip;
+use Date::Business;
+
 
 my $history_table = "historical";
 my $fundamental_table = "fundamentals";
@@ -77,13 +79,22 @@ sub get_date {
 
 sub set_date_range {
 
-    my $date = ParseDate(shift);
-    my $end_date = ParseDate(shift);
+    ($date, $end_date) = parse_two_dates(shift, shift);
+    $date->prevb();
 
-    while($date <= $end_date) {
+  DATELOOP:
+    while($date->lt($end_date)) {
 
-	push @date_range, UnixDate($date, "%Y-%m-%d") if Date_IsWorkDay($date);
-	$date = Date_NextWorkDay($date,1);
+	$date->nextb();
+	$d = $date->image();
+
+#	foreach (@trading_holidays) {
+#	    next DATELOOP if $_->eq($date) == 0;
+#	}
+
+	substr $d, 4, 0, "-";
+	substr $d, 7, 0, "-";
+	push @date_range, $d;
     }
 }
 
@@ -135,14 +146,11 @@ sub clear_history_cache {
 sub current_index {
 
     my $i = 0;
-#    $i++ while fetch_date_at($i) ne $current_date;
 
-    $d1 = ParseDate($current_date);
-    while($i < @$current_prices) {
-
-	$d2 = ParseDate(fetch_date_at($i));
-	return $i if Date_Cmp($d2, $d1) <= 0;
+    my $current = fetch_date_at($i);
+    while($current_date lt $current && $i < @$current_prices - 1) {
 	$i++;
+	$current = fetch_date_at($i);
     }
 
     return $i;
@@ -280,6 +288,21 @@ sub set_pull_limit {
 
     $lim = shift;
     $max_limit = $lim if $lim > $max_limit;
+}
+
+
+sub parse_two_dates {
+
+    my $d1 = shift;
+    my $d2 = shift;
+
+    $d1 =~ s/-//g;
+    $d2 =~ s/-//g;
+
+    $date1 = new Date::Business(DATE => $d1);
+    $date2 = new Date::Business(DATE => $d2);
+
+    return ($date1, $date2);
 }
 
 1;
