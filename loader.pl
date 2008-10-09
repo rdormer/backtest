@@ -17,21 +17,21 @@ open(INFILE, $ARGV[0]);
 while(<INFILE>) {
 
     chomp;
-    $pull->execute($_);
-    $data = $pull->fetchall_arrayref();
+    $pull->execute($_) or die "couldn't pull data for $_";
+    $data = $pull->fetchall_arrayref() or die "fetchall_arrayref failed for $_";
 
     @t = @$data;
     $start_table{$_} = $t[@t - 1][0];
 
     $tdata = "";
     foreach (@$data) {
-	$tdata .= pack_row(@$_);
+	$tdata .= pack("A10fffffL", @$_);
     }
 
 
     $seglengths{$_} = length $tdata;
     $ticker_handles{$_} = shmget(IPC_PRIVATE, $seglengths{$_}, IPC_CREAT | IPC_EXL | 0777 );
-    die "couldn't allocate shared memory block" if $ticker_handles{$_} eq 0;
+    die "couldn't allocate shared memory block" if $ticker_handles{$_} eq 0 or $ticker_handles{$_} eq null;
     shmwrite($ticker_handles{$_}, $tdata, 0, $seglengths{$_});
     print "\n$_";
 }
@@ -45,12 +45,6 @@ store \%ticker_handles, 'handles.svar';
 store \@holidays, 'holidays.svar';
 
 print "\n";
-
-sub pack_row {
-    $foo = pack("A10fffffL", @_);
-#    print "\n" . length $foo;
-    return $foo;
-}
 
 sub holiday_list {
 
