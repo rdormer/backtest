@@ -361,21 +361,15 @@ sub pull_from_shmem {
     my $pull_size = shift;
     my @ticker_data;
 
-    $pull_size *= $ROWSIZE;
-
     #if the start date is before the current ticker's data 
     #starts, then we have nothing to return
 
-    $ed = $enddate;
-    $sd = $start_dates{$ticker};
-    $ed =~ s/-//g;
-    $sd =~ s/-//g;
-    return null if $sd gt $ed;
-
+    return null if $start_dates{$ticker} gt $enddate;
 
     #if we got here, go ahead and pull
 
     $tmp = "";
+    $pull_size *= $ROWSIZE;
     $end_offset = locate_date($ticker_handles{$ticker}, $segment_lengths{$ticker}, $enddate);
 
     if ($end_offset == $segment_lengths{$ticker}) {
