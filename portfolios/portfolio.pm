@@ -208,7 +208,7 @@ sub print_portfolio_state {
 
 	my %trade = %$_;
 
-	print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t$trade{'return'}";
+	print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t" . sprintf("%.3f", $trade{'return'}) . "%";
 
 	if($trade{'return'} > 0) {
 	    $winning_trades++;
