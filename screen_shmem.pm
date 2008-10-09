@@ -358,15 +358,12 @@ sub pull_from_shmem {
 
     my $ticker = shift;
     my $enddate = shift;
-    my $pull_size = shift;
-    my @ticker_data;
-
-    #if the start date is before the current ticker's data 
-    #starts, then we have nothing to return
 
     return null if $start_dates{$ticker} gt $enddate;
 
-    #if we got here, go ahead and pull
+    my $pull_size = shift;
+    my @ticker_data;
+
 
     $tmp = "";
     $pull_size *= $ROWSIZE;
