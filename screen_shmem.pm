@@ -36,6 +36,42 @@ my $pull_fundamentals;
 
 @ticker_list;
 
+
+use Inline C => <<'END_INLINE';
+
+#define SHMEM_ROWSIZE 34
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <perl.h>
+
+SV* locate_date(int handle, int seglen, char *enddate) {
+
+     void* memseg = shmat(handle, NULL, 0);
+
+     char curdate[11]; 
+     curdate[10] = '\0';
+
+     int low = 0;
+     int hi = seglen / SHMEM_ROWSIZE;
+
+     while(low < hi) {
+	 int mid = (low + hi) / 2;
+	 strncpy(curdate, (char*)(memseg + (mid * SHMEM_ROWSIZE)), 10);
+	 if(strcmp(curdate, enddate) > 0) 
+	     low = mid + 1;
+	 else
+	     hi = mid; 
+    }
+
+     shmdt(memseg);
+     SV* ret = newSViv(low * SHMEM_ROWSIZE);
+     return ret;
+}
+
+END_INLINE
+
+
 sub init_sql() {
     
     $dbh = DBI->connect("DBI:mysql:finance", "perldb");
@@ -340,12 +376,11 @@ sub pull_from_shmem {
     #if we got here, go ahead and pull
 
     $tmp = "";
-    $end_offset = locate_date($ticker, $enddate);
+    $end_offset = locate_date($ticker_handles{$ticker}, $segment_lengths{$ticker}, $enddate);
 
     if ($end_offset == $segment_lengths{$ticker}) {
 	$end_offset = 0;
     }
-
 
     $ret = shmread($ticker_handles{$ticker}, $tmp, $end_offset, $pull_size);
 
@@ -355,16 +390,11 @@ sub pull_from_shmem {
 
 	unshift @cur_row, $ticker;
 
-	$cur_row[2] = sprintf("%.2f", $cur_row[2]);
-	$cur_row[3] = sprintf("%.2f", $cur_row[3]);
-	$cur_row[4] = sprintf("%.2f", $cur_row[4]);
-	$cur_row[5] = sprintf("%.2f", $cur_row[5]);
-	$cur_row[6] = sprintf("%.2f", $cur_row[6]);
-
-#	@cur_rowrr = map {sprintf("%.2f", $_) } @cur_row[2..6];
-#	unshift @cur_rowrr, $cur_row[0];
-#	unshift @cur_rowrr, $ticker;
-
+	$cur_row[2] = truncate_double($cur_row[2]);
+	$cur_row[3] = truncate_double($cur_row[3]);
+	$cur_row[4] = truncate_double($cur_row[4]);
+	$cur_row[5] = truncate_double($cur_row[5]);
+	$cur_row[6] = truncate_double($cur_row[6]);
 
 	push @ticker_data, [ @cur_row ];
     }
@@ -373,32 +403,11 @@ sub pull_from_shmem {
     return \@ticker_data;
 }
 
-sub locate_date {
-
-    my $ticker = shift;
-    my $enddate = shift;
-    
-    $enddate =~ s/-//g;
-
-    my $buf = "";
-    my $low = 0;
-    my $high = $segment_lengths{$ticker} / $ROWSIZE;
-
-    while($low < $high) {
-
-	$mid = int(($low + $high) / 2);
-	shmread($ticker_handles{$ticker}, $buf, $mid * $ROWSIZE, 10);
-	
-	$buf =~ s/-//g;
-
-	if($buf gt $enddate) {
-	    $low = $mid + 1;
-	} else {
-	    $high = $mid;
-	}
-    }
-
-    return $low * $ROWSIZE;
+sub truncate_double {
+    $_[0] *= 100;
+    $_[0] += 0.5;
+    $t = int($_[0]);
+    return $t / 100;
 }
 
 sub parse_two_dates {
@@ -415,4 +424,6 @@ sub parse_two_dates {
     return ($date1, $date2);
 }
 
+
 1;
+
