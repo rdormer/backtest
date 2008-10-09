@@ -383,29 +383,23 @@ sub pull_from_shmem {
 
 	$cur_row[2] *= 100;
 	$cur_row[2] += 0.5;
-	$t = int($cur_row[2]);
-	$cur_row[2] = $t /100;
+	$cur_row[2] = int($cur_row[2]) /100;
 
 	$cur_row[3] *= 100;
 	$cur_row[3] += 0.5;
-	$t = int($cur_row[3]);
-	$cur_row[3] = $t /100;
+	$cur_row[3] = int($cur_row[3]) /100;
 
 	$cur_row[4] *= 100;
 	$cur_row[4] += 0.5;
-	$t = int($cur_row[4]);
-	$cur_row[4] = $t /100;
+	$cur_row[4] = int($cur_row[4]) /100;
 
 	$cur_row[5] *= 100;
 	$cur_row[5] += 0.5;
-	$t = int($cur_row[5]);
-	$cur_row[5] = $t /100;
+	$cur_row[5] = int($cur_row[5]) /100;
 
 	$cur_row[6] *= 100;
 	$cur_row[6] += 0.5;
-	$t = int($cur_row[6]);
-	$cur_row[6] = $t /100;
-
+	$cur_row[6] = int($cur_row[6]) /100;
 
 	push @ticker_data, [ @cur_row ];
     }
