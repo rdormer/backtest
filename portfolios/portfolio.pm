@@ -35,10 +35,6 @@ sub init_portfolio {
 
     $t = screen_from_file(shift);
     @actions = @$t;
-
-    open(OUT1, ">out1.txt");
-    open(OUT2, ">out2.txt");
-
 }
 
 
@@ -189,11 +185,7 @@ sub get_total_equity {
 
 
 sub bywhen { 
-
-    $d1 = $$a{'sdate'};
-    $d2 = $$b{'sdate'};
-
-    return Date_Cmp($d1, $d2);
+    return $$a{'sdate'} gt $$b{'sdate'};
 }
 
 sub print_portfolio_state {
