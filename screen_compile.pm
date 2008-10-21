@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(AND OR NOT \+ - \* / MIN[VOHLC][\d]+ MAX[VOHLC][\d]+ AVG[VOHLC][\d]+ [VOHLC][\d]*
 		MACD[S]*[\d,]+[\d] VALUE[\d,]+[\d] [MBK] ABS <= >= < > ; = [\s]*[-]?[\d]+ [(|)] ROE 
-		EPS MCAP PEG FLOAT EARNINGS_GROWTH STRENGTH[\d]+ VOLATILITY[\d]+ SAR[\d,]+[\d]);
+		EPS MCAP PEG FLOAT DCF EARNINGS_GROWTH STRENGTH[\d]+ VOLATILITY[\d]+ SAR[\d,]+[\d]);
 
 my @action_list;
 my @result_list;
@@ -136,7 +136,9 @@ sub parse_var {
 		      "ROE" => "fundamental_roe",
 		      "MCAP" => "fundamental_mcap",
 		      "FLOAT" => "fundamental_float",
-		      "EARNINGS_GROWTH" => "fundamental_egrowth"
+		      "EARNINGS_GROWTH" => "fundamental_egrowth",
+		      "DCF" => "fundamental_dcf"
+
 		  );
 
     if($fund_table{$token}) {
