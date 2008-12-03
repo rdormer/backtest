@@ -15,7 +15,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 
 
 my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_eps()", "MCAP" => "fundamental_mcap()",     
-		    "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", 
+		    "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", "OR" => "||", "AND" => "&&",
 );
 
 my @action_list;
@@ -137,7 +137,7 @@ sub capture_args {
 	$arg = next_token();
     }
 
-    set_pull_limit($max * 2);
+    set_pull_limit($max);
 
     $current_action .= ")" if $count > 0;
     $current_action .= "0)" if $count == 0;
