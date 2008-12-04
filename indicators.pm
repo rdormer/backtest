@@ -43,6 +43,7 @@ sub fundamental_roe { return $current_fundamentals{'return_on_equity'}; }
 sub fundamental_mcap { return $current_fundamentals{'mcap'}; }
 sub fundamental_float { return $current_fundamentals{'total_float'}; };
 sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'}; }
+sub fundamental_current_ratio { return $current_fundamentals{'current_ratio'}; }
 
 sub fundamental_dcf { return indicator_dcf_valuation($current_fundamentals{'eps'}, 0, 1, 7); }
 
