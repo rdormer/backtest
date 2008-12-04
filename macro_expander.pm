@@ -66,11 +66,6 @@ sub tokenize {
 sub next_token {
 
     my $token = shift @token_list;
-    while($token =~ /[()]+/) {
-	$current_action .= $token;
-	$token = shift @token_list;
-    }
-
     return $token;
 }
 
