@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 
 use screen_sql;
-use screen_compile;
+use macro_expander;
 
 $modname = "portfolio";
 $modname = $ARGV[5] if $ARGV[5];

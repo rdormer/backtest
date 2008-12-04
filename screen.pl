@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 
 use screen_sql;
-use screen_compile;
+use macro_expander;
 
 if($ARGV[2]) {
     set_date($ARGV[2]);
