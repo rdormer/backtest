@@ -325,5 +325,22 @@ sub compute_rsi {
     return $value_cache{$n};
 }
 
+sub compute_atr {
+
+    my $period = shift;
+
+    my $n = "atr$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+
+    $len = @closes - 1;
+
+    my ($rcode, $start, $atr) = TA_ATR(0, $len, \@highs, \@lows, \@closes, $period);
+    $value_cache{$n} = $atr->[0];
+    return $value_cache{$n};
+}
 
 1;
