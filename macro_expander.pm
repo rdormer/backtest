@@ -12,7 +12,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"AVGH" => "avg_high", "AVGL" => "avg_low", "AVGC" => "avg_close", "H" => "fetch_high_at",
 			"MACD" => "compute_macd", "STRENGTH" => "fetch_strength", "WILLIAMS_R" => "compute_williams_r",
 			"BOLLINGER_UPPER" => "compute_upper_bollinger", "BOLLINGER_LOWER" => "compute_lower_bollinger",
-			"RSI" => "compute_rsi", 
+			"RSI" => "compute_rsi", "EMAC" => "exp_avg_close", "EMAO" => "exp_avg_open", "EMAH" => "exp_avg_high",
+			"EMAL" => "exp_avg_low", "EMAV" => "exp_avg_volume",
 );
 
 

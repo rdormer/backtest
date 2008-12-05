@@ -172,35 +172,6 @@ sub array_avg {
     return $value_cache{$n};
 }
 
-sub array_exponential_avg {
-
-    my $limit = shift;
-    my $index = shift;
-    my $weight = 2 / ($limit + 1);
-    my $total = 0;
-
-    my $n = "$index$limit" . "eavg";
-    return $value_cache{$n} if exists $value_cache{$n};
-
-    #first compute the moving average of the first $limit days
-    my $t = truncate_current_prices($limit, $limit *2);
-    my $previous_avg = array_avg($limit, $index);
-    $current_prices = $t;
-    %value_cache = ();
-
-    #now apply the exponential average calculation to the remaining $limit days
-    for($i = $limit - 1; $i >= 0; $i--) {
-	@t = @$current_prices[$i];
-	$cur_avg = (($t[0][$index] - $previous_avg) * $weight) + $previous_avg;
-	$previous_avg = $cur_avg;
-    }
-
-
-    $value_cache{$n} = $cur_avg;
-    return $value_cache{$n};
-}
-
-
 #uses the optionvue "extreme value" method to compute the
 #statistical volatility of an issue.  This is the repetition, for
 #each trading day, of the equation 0.627 * sqrt(365.25) * ln(daily high / daily low)
@@ -251,6 +222,30 @@ sub indicator_dcf_valuation {
     }
 
     return $dcf;
+}
+
+
+#######
+# All of the functions from here on are basically
+# wrappers for the TA-LIB calls
+#######
+
+
+sub array_exponential_avg {
+
+    my $period = shift;
+    my $index = shift;
+
+    my $n = "ema$index$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @series = map @$_->[$index], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
+
+    $value_cache{$n} = $ema->[0];
+    return $value_cache{$n};
 }
 
 sub compute_upper_bollinger {
@@ -329,5 +324,6 @@ sub compute_rsi {
     $value_cache{$n} = $rsi->[0];
     return $value_cache{$n};
 }
+
 
 1;
