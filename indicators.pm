@@ -225,10 +225,10 @@ sub indicator_dcf_valuation {
 }
 
 
-#######
+########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls
-#######
+########
 
 
 sub array_exponential_avg {
@@ -341,6 +341,63 @@ sub compute_atr {
     my ($rcode, $start, $atr) = TA_ATR(0, $len, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
     return $value_cache{$n};
+}
+
+sub compute_macd_signal {
+
+    my $slow = shift;
+    my $fast = shift;
+    my $sig = shift;
+    
+    my $n = "$slow$fast$sig" . "macds";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_macd_values($slow, $fast, $sig);
+    return $value_cache{$n};
+}
+
+sub compute_macd_hist {
+
+    my $slow = shift;
+    my $fast = shift;
+    my $sig = shift;
+
+    my $n = "$slow$fast$sig" . "macdh";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_macd_values($slow, $fast, $sig);
+    return $value_cache{$n};
+}
+
+
+sub compute_macd {
+
+    my $slow = shift;
+    my $fast = shift;
+    my $sig = shift;    
+
+    my $n = "$slow$fast$sig" . "macd";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_macd_values($slow, $fast, $sig);
+    return $value_cache{$n};
+}
+
+sub compute_macd_values {
+
+    my $slow = shift;
+    my $fast = shift;
+    my $sig = shift;    
+
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $macd, $sig, $hist) = TA_MACD(0, $len, \@closes, $fast, $slow, $signal);
+
+    my $base = "$slow$fast$sig";
+    $value_cache{$base . "macds"} = $sig->[0];
+    $value_cache{$base . "macdh"} = $hist->[0];
+    $value_cache{$base . "macd"} = $macd->[0];
 }
 
 1;
