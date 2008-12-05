@@ -400,4 +400,21 @@ sub compute_macd_values {
     $value_cache{$base . "macd"} = $macd->[0];
 }
 
+sub compute_momentum {
+
+    my $period = shift;
+
+    my $n = "mom$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @closes = map @$_->[5], @$current_prices;
+
+    $len = @closes - 1;
+
+    my ($rcode, $start, $mom) = TA_MOM(0, $len, \@closes, $period);
+
+    $value_cache{$n} = $mom->[0];
+    return $value_cache{$n};
+}
+
 1;
