@@ -1,5 +1,6 @@
 use rstrength;
 use screen_sql;
+use Finance::TA;
 
 sub fetch_strength { return relative_strength(current_ticker(), shift); }
 sub fetch_volatility { return statistical_volatility(shift); }
@@ -46,8 +47,6 @@ sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'};
 sub fundamental_current_ratio { return $current_fundamentals{'current_ratio'}; }
 
 sub fundamental_dcf { return indicator_dcf_valuation($current_fundamentals{'eps'}, 0, 1, 7); }
-
-sub compute_macd_signal { indicator_macd_signal(\@current_prices, shift); }
 
 sub truncate_current_prices {
 
@@ -232,46 +231,6 @@ sub statistical_volatility {
     return ($num / $dnm);
 }
 
-sub compute_macd {
-
-    my $first_avg = shift;
-    my $second_avg = shift;
-    return exp_avg_close($first_avg) - exp_avg_close($second_avg);
-}
-
-sub compute_macd_signal {
-
-    my $count = shift;
-    my $avg_1 = shift;
-    my $avg_2 = shift;
-    my @macd_history;
-
-    for(my $i = $count * 2; $i >= 0; $i--) {
-
-	my $len = @$current_prices;
-	my $t = truncate_current_prices($i, $len);
-	push @macd_history, compute_macd($avg_2, $avg_1);
-	$current_prices = $t;
-    }
-
-    my $sum = 0;
-    for(my $i = 0; $i < $count; $i++) {
-	$sum += $macd_history[$i];
-    }
-    
-    my $prev_avg = $sum / $count;
-    my $weight = 2 / ($count + 1);
-
-    for(my $i = $count; $i <= @macd_history; $i++) {
-	$cur_avg = ($macd_history[$i] * $weight) + ($prev_avg * (1 - $weight));
-	$prev_avg = $cur_avg;
-    }
-
-
-    return $prev_avg;
-}
-
-
 sub indicator_dcf_valuation {
 
     my $eps = shift;
@@ -294,72 +253,44 @@ sub indicator_dcf_valuation {
     return $dcf;
 }
 
-sub calculate_parabolic_sar {
+sub compute_upper_bollinger {
 
+    my $period = shift;
+    my $deviation = shift;
+    
+    my $n = "$period$deviation" . "bbandu";
+    return $value_cache{$n} if exists $value_cache{$n};
 
-    my $evt, $sar, $prev_sar;
-    my $init_alpha = shift;
-    my $alpha_max = shift;
-    my $step = shift;
-   
-    $init_alpha = 0.02;
-    $alpha = 0.02;
-    $step = 0.02;
-    $alpha_max = .2;
-
-    my $islong = 0;
-
-    # The first SAR value is calculated by taking the difference between
-    # the high price and the low price and multiplying the difference by
-    # the initial acceleration factor.
-
-    @t = @$current_prices[@$current_prices - 1];
-    $next_sar = ($t[0][3] - $t[0][4]) * $init_alpha;
-    $evt = $t[0][4] if ! $long;
-    $evt = $t[0][5] if $long;
-
-
-    for($i = @$current_prices - 2; $i >= 0; $i--) {
-
-	@t = @$current_prices[$i];
-	$cur_price = $t[0][5];
-
-	#if sar pierces the price low for it's day
-	#then a new trend is signaled, which means
-
-	# 1 - the first sar for new trend is the last evt value
-	# 2 - the acceleration factor is reset to it's initial value
-	# 3 - $long = ! $long
-	if($next_sar > $t[0][4]) {
-	    $prev_sar = $evt;
-	    $alpha = $init_alpha;
-	    $islong = ! $islong;
-	}
-
-	if($islong && $cur_price > $evt) {
-	    $evt = $cur_price;
-	    $alpha += $step if $alpha < $alpha_max;
-	}
-
-
-	if(! $islong && $cur_price < $evt) {
-	    $evt = $cur_price;
-	    $alpha += $step if $alpha < $alpha_max;
-	}
-
-	$sar = $next_sar;
-	$next_sar = $prev_sar + $alpha * ($evt - $prev_sar);
-	$prev_sar = $sar;
-
-	#if tommorrow's sar pierces the price low for today or yesterday
-	#then we must set it to the lowest low of the last two days
-	$next_sar = $t[0][4] if $next_sar > $t[0][4];
-	@t = @$current_prices[$i + 1];
-	$next_sar = $t[0][4] if $next_sar > $t[0][4];
-    }
-
-    print "\n$sar";
-    return $next_sar;
+    compute_bollinger_bands($period, $deviation);
+    return $value_cache{$n};
 }
+
+
+sub compute_lower_bollinger {
+
+    my $period = shift;
+    my $deviation = shift;
+    
+    my $n = "$period$deviation" . "bbandl";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_bollinger_bands($period, $deviation);
+    return $value_cache{$n};
+}
+
+sub compute_bollinger_bands {
+
+    my $per = shift;
+    my $dev = shift;
+    my @upper, @middle, @lower;
+
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    print "\n$len $per $dev";
+
+    my ($retCode, $begIdx, $outMAMA, $outFAMA) = TA_BBANDS(0, $len, @closes, $per, $dev, $dev, TA_MAType_SMA);
+}
+
 
 1;
