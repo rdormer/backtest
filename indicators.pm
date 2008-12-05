@@ -287,10 +287,18 @@ sub compute_bollinger_bands {
     @closes = map @$_->[5], @$current_prices;
     $len = @closes - 1;
 
-    print "\n$len $per $dev";
+    my ($rcode, $start, $uband, $midband, $lband) = TA_BBANDS(0, $len, \@closes, $per, $dev, $dev, $TA_MAType_SMA);
 
-    my ($retCode, $begIdx, $outMAMA, $outFAMA) = TA_BBANDS(0, $len, @closes, $per, $dev, $dev, TA_MAType_SMA);
+    my $base = "$per$dev";
+    $value_cache{$base . "bbandl"} = $lband->[0];
+    $value_cache{$base . "bbandm"} = $mband->[0];
+    $value_cache{$base . "bbandu"} = $uband->[0];
 }
 
+sub compute_williams_r {
+
+
+
+}
 
 1;
