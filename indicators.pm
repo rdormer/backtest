@@ -297,8 +297,37 @@ sub compute_bollinger_bands {
 
 sub compute_williams_r {
 
+    my $period = shift;
+
+    my $n = "willr$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+
+    $len = @closes - 1;
+
+    my ($rcode, $start, $willr) = TA_WILLR(0, $len, \@highs, \@lows, \@closes, $period);
+    $value_cache{$n} = $willr->[0];
+    return $value_cache{$n};
+}
 
 
+sub compute_rsi {
+
+    my $period = shift;
+
+    my $n = "rsi$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
+    $value_cache{$n} = $rsi->[0];
+    return $value_cache{$n};
 }
 
 1;
