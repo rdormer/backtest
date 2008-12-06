@@ -240,12 +240,12 @@ sub array_exponential_avg {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @series = map @$_->[$index], @$current_prices;
-    $len = @closes - 1;
+    $len = @series - 1;
 
     my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
 
     $value_cache{$n} = $ema->[0];
-    return $value_cache{$n};
+    return $ema->[0];
 }
 
 sub compute_upper_bollinger {
@@ -305,7 +305,7 @@ sub compute_williams_r {
 
     my ($rcode, $start, $willr) = TA_WILLR(0, $len, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $willr->[0];
-    return $value_cache{$n};
+    return $willr->[0];
 }
 
 
@@ -322,7 +322,7 @@ sub compute_rsi {
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
     $value_cache{$n} = $rsi->[0];
-    return $value_cache{$n};
+    return $rsi->[0];
 }
 
 sub compute_atr {
@@ -340,7 +340,7 @@ sub compute_atr {
 
     my ($rcode, $start, $atr) = TA_ATR(0, $len, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
-    return $value_cache{$n};
+    return $atr->[0];
 }
 
 sub compute_macd_signal {
@@ -414,7 +414,25 @@ sub compute_momentum {
     my ($rcode, $start, $mom) = TA_MOM(0, $len, \@closes, $period);
 
     $value_cache{$n} = $mom->[0];
-    return $value_cache{$n};
+    return $mom->[0];
+}
+
+sub compute_sar {
+
+    my $stepval = shift;
+    my $maxval = shift;
+
+    my $n = "sar$stepval$maxval";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    $len = @highs - 1;
+
+    my ($rcode, $start, $count, $sar) = TA_SAR(0, $len, \@highs, \@lows, $stepval, $maxval);
+    
+    $value_cache{$n} = $sar->[0];
+    return $sar->[0];
 }
 
 1;
