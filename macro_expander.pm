@@ -27,6 +27,10 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 		    "AND" => "&&", "BOP" => "compute_bop()"
 );
 
+my %lookback_table = ( "BOLLINGER_UPPER" => "TA_BBANDS", "BOLLINGER_LOWER" => "TA_BBANDS", "WILLIAMS_R" => "TA_WILLR",
+		       "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR",
+);
+
 my @action_list;
 my @result_list;
 my $current_action;
@@ -110,7 +114,7 @@ sub parse_scan {
 	    add_fundamental($token);
 	} elsif(exists $arg_macro_table{$token}) {
 	    $current_action .= "$arg_macro_table{$token}(";
-	    capture_args();
+	    capture_args($token);
 	} else {
 	    $current_action .= " $token";
 	}
@@ -129,22 +133,29 @@ sub capture_args {
     my $max = 0;
     my $count = 0;
     my $arg = next_token();
-
+    my $arglist;
 
     while($arg =~ /[0-9]+(\.){0,1}[0-9]*/ || $arg eq ",") {
 	
 	$max = $arg if $arg > $max;
 
-	$current_action .= "$arg";
+	$arglist .= "$arg";
 	$count++;
 	
 	$arg = next_token();
     }
 
-    set_pull_limit($max);
+    $arglist .= ")" if $count > 0;
+    $arglist .= "0)" if $count == 0;
+    $current_action .= $arglist;
 
-    $current_action .= ")" if $count > 0;
-    $current_action .= "0)" if $count == 0;
+    my $ltoken = shift;
+    if(exists $lookback_table{$ltoken}) {
+	$lcall = $lookback_table{$ltoken} . "_Lookback($arglist";
+	set_pull_limit(eval($lcall));
+    } else {
+	set_pull_limit($max);
+    }
 
     unshift @token_list, $arg;
 }
