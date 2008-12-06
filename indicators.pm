@@ -408,7 +408,6 @@ sub compute_momentum {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = map @$_->[5], @$current_prices;
-
     $len = @closes - 1;
 
     my ($rcode, $start, $mom) = TA_MOM(0, $len, \@closes, $period);
@@ -433,6 +432,22 @@ sub compute_sar {
     
     $value_cache{$n} = $sar->[0];
     return $sar->[0];
+}
+
+sub compute_roc {
+
+    my $period = shift;
+
+    my $n = "roc$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $roc) = TA_ROC(0, $len, \@closes, $period);
+
+    $value_cache{$n} = $roc->[0];
+    return $roc->[0];
 }
 
 1;
