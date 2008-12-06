@@ -297,15 +297,15 @@ sub compute_williams_r {
     my $n = "willr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
 
     $len = @closes - 1;
 
-    my ($rcode, $start, $willr) = TA_WILLR(0, $len, \@highs, \@lows, \@closes, $period);
-    $value_cache{$n} = $willr->[0];
-    return $willr->[0];
+    my ($rcode, $start, $willr) = TA_WILLR(1, $len, \@highs, \@lows, \@closes, $period);
+    $value_cache{$n} = $willr->[1];
+    return $willr->[1];
 }
 
 
@@ -316,11 +316,12 @@ sub compute_rsi {
     my $n = "rsi$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-
-    @closes = map @$_->[5], @$current_prices;
-    $len = @closes - 1;
+    @closes = reverse map @$_->[5], @$current_prices;
+    @dates = reverse map @$_->[1], @$current_prices;
+    $len = @closes;
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
+
     $value_cache{$n} = $rsi->[0];
     return $rsi->[0];
 }
@@ -332,9 +333,9 @@ sub compute_atr {
     my $n = "atr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
 
     $len = @closes - 1;
 
@@ -389,7 +390,7 @@ sub compute_macd_values {
     my $fast = shift;
     my $sig = shift;    
 
-    @closes = map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
     $len = @closes - 1;
 
     my ($rcode, $start, $macd, $sig, $hist) = TA_MACD(0, $len, \@closes, $fast, $slow, $signal);
@@ -399,6 +400,10 @@ sub compute_macd_values {
     $value_cache{$base . "macdh"} = $hist->[0];
     $value_cache{$base . "macd"} = $macd->[0];
 }
+
+#in keeping with the spirit of not calling reverse on the map
+#unless necessary, here we just multiply the momentum by -1
+#to get the same result faster
 
 sub compute_momentum {
 
@@ -412,8 +417,8 @@ sub compute_momentum {
 
     my ($rcode, $start, $mom) = TA_MOM(0, $len, \@closes, $period);
 
-    $value_cache{$n} = $mom->[0];
-    return $mom->[0];
+    $value_cache{$n} = $mom->[0] * -1;
+    return $mom->[0] * -1;
 }
 
 sub compute_sar {
@@ -441,7 +446,7 @@ sub compute_roc {
     my $n = "roc$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @closes = map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
     $len = @closes - 1;
 
     my ($rcode, $start, $roc) = TA_ROC(0, $len, \@closes, $period);
