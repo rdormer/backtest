@@ -429,12 +429,12 @@ sub compute_sar {
     my $n = "sar$stepval$maxval";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
     $len = @highs - 1;
 
-    my ($rcode, $start, $count, $sar) = TA_SAR(0, $len, \@highs, \@lows, $stepval, $maxval);
-    
+    my ($rcode, $start, $sar) = TA_SAR(1, $len, \@highs, \@lows, $stepval, $maxval);
+
     $value_cache{$n} = $sar->[0];
     return $sar->[0];
 }
@@ -505,7 +505,7 @@ sub compute_adx {
 
     my ($rcode, $start, $adx) = TA_ADX(0, $len, \@highs, \@lows, \@closes, $period);
 
-    print "\n$rcode $start $adx $adx->[0]";
+    print "\n$current_prices->[0][0] $adx->[0]";
 
     $value_cache{$n} = $adx->[0];
     return $adx->[0];
@@ -515,18 +515,16 @@ sub compute_adx {
 sub compute_adx_r {
 
     my $period = shift;
-
+    
     my $n = "adxr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
     $len = @closes - 1;
 
     my ($rcode, $start, $adxr) = TA_ADXR(0, $len, \@highs, \@lows, \@closes, $period);
-
-    print "\nadxr $rcode $start $adxr $adxr->[0]";
 
     $value_cache{$n} = $adxr->[0];
     return $adxr->[0];

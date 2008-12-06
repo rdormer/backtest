@@ -18,6 +18,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"MACDS" => "compute_macd_signal", "MACDH" => "compute_macd_hist", "MOMENTUM" => "compute_momentum",
 			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX[^A-Z]" => "compute_adx", "ADXR" => "compute_adx_r",
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
+			"SAR" => "compute_sar",
 );
 
 
