@@ -474,7 +474,6 @@ sub compute_bop {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @opens = map @$_->[2], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
     @highs = map @$_->[3], @$current_prices;
     @lows = map @$_->[4], @$current_prices;
     @closes = map @$_->[5], @$current_prices;
@@ -484,6 +483,27 @@ sub compute_bop {
 
     $value_cache{$n} = $bop->[0];
     return $bop->[0];
+}
+
+
+sub compute_adx {
+
+    my $period = shift;
+
+    my $n = "adx$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $adx) = TA_ADX(0, $len, \@highs, \@lows, \@closes, $period);
+
+    print "\n$rcode $start $adx $adx->[0]";
+
+    $value_cache{$n} = $adx->[0];
+    return $adx->[0];
 }
 
 1;
