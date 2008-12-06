@@ -225,10 +225,10 @@ sub indicator_dcf_valuation {
 }
 
 
-########
+###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls
-########
+###########
 
 
 sub array_exponential_avg {
@@ -525,6 +525,48 @@ sub compute_adx_r {
 
     $value_cache{$n} = $adxr->[0];
     return $adxr->[0];
+}
+
+sub compute_upper_accband {
+
+    my $period = shift;
+    
+    my $n = "$period" . "accbandu";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_acceleration_bands($period);
+    return $value_cache{$n};
+}
+
+
+sub compute_lower_accband {
+
+    my $period = shift;
+    
+    my $n = "$period" . "accbandl";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_acceleration_bands($period);
+    return $value_cache{$n};
+}
+
+sub compute_acceleration_bands {
+
+    my $per = shift;
+    my @upper, @middle, @lower;
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+    my $len = @closes - 1;
+
+    my ($rcode, $start, $uband, $midband, $lband) = TA_ACCBANDS(0, $len, \@highs, \@lows, \@closes, $per);
+
+    "\n$len $uband->[0] $midband->[0] $lband->[0]";
+
+    $value_cache{$per . "accbandl"} = $lband->[0];
+    $value_cache{$per . "accbandm"} = $midband->[0];
+    $value_cache{$per . "accbandu"} = $uband->[0];
 }
 
 1;
