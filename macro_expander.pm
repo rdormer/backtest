@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC]
                 ROE EPS MACD[^A-Z] SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS 
-		MACDH MOMENTUM ROC BOP ADX);
+		MACDH MOMENTUM ROC BOP ADX[^A-Z] ADXR);
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -16,7 +16,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"RSI" => "compute_rsi", "EMAC" => "exp_avg_close", "EMAO" => "exp_avg_open", "EMAH" => "exp_avg_high",
 			"EMAL" => "exp_avg_low", "EMAV" => "exp_avg_volume", "ATR" => "compute_atr", "MACD[^A-Z]" => "compute_macd",
 			"MACDS" => "compute_macd_signal", "MACDH" => "compute_macd_hist", "MOMENTUM" => "compute_momentum",
-			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX" => "compute_adx"
+			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX[^A-Z]" => "compute_adx", "ADXR" => "compute_adx_r",
 );
 
 

@@ -506,4 +506,25 @@ sub compute_adx {
     return $adx->[0];
 }
 
+
+sub compute_adx_r {
+
+    my $period = shift;
+
+    my $n = "adxr$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $adxr) = TA_ADXR(0, $len, \@highs, \@lows, \@closes, $period);
+
+    print "\nadxr $rcode $start $adxr $adxr->[0]";
+
+    $value_cache{$n} = $adxr->[0];
+    return $adxr->[0];
+}
+
 1;
