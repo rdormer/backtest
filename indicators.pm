@@ -450,4 +450,22 @@ sub compute_roc {
     return $roc->[0];
 }
 
+sub compute_obv {
+
+    my $period = shift;
+
+    my $n = "obv$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @closes = map @$_->[5], @$current_prices;
+    @volume = map @$_->[7], @$current_prices;
+
+    my ($rcode, $start, $count, $obv) = TA_OBV(0, $period, \@closes, \@volume);
+
+    print "\n$rcode $start $count $obv";
+
+    $value_cache{$n} = $obv->[0];
+    return $obv->[0];
+}
+
 1;
