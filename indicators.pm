@@ -468,4 +468,22 @@ sub compute_obv {
     return $obv->[0];
 }
 
+sub compute_bop {
+
+    my $n = "bop";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @opens = map @$_->[2], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+    @highs = map @$_->[3], @$current_prices;
+    @lows = map @$_->[4], @$current_prices;
+    @closes = map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $bop) = TA_BOP(0, $len, \@opens, \@highs, \@lows, \@closes);
+
+    $value_cache{$n} = $bop->[0];
+    return $bop->[0];
+}
+
 1;
