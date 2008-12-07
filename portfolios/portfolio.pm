@@ -221,6 +221,7 @@ sub print_portfolio_state {
     $total = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
     print "\n\ntotal: $total (return $ret)";
+    
     print "\nQQQQ buy and hold: " . change_over_period("QQQQ");
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
@@ -228,8 +229,8 @@ sub print_portfolio_state {
     if(scalar @trade_history > 0) {
 
 	$win_ratio = $winning_trades / (scalar @trade_history);
-	$avg_win = $sum_wins / $winning_trades;
-	$avg_loss = $sum_losses / $losing_trades;
+	$avg_win = $sum_wins / $winning_trades if $winning_trades > 0;
+	$avg_loss = $sum_losses / $losing_trades if $losing_trades > 0;
 
 	print "\n" . scalar @trade_history . " trades";
 	print "\n$losing_trades losing trades (avg loss $avg_loss)";
@@ -246,7 +247,7 @@ sub print_portfolio_state {
     
     print "\n";
 
-    draw_line_chart(\@equity_curve);
+    charting::draw_line_chart(\@equity_curve);
 }
 
 

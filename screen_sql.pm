@@ -214,7 +214,11 @@ sub change_over_period {
     my $start = get_splitadj_at_date($ticker, $date_range[0]);
     my $end = get_splitadj_at_date($ticker, $date_range[@date_range - 1]);
 
-    return (($end - $start) / $start) * 100;
+    if($start > 0) {
+	return (($end - $start) / $start) * 100;
+    }
+
+    return -100;
 }
 
 

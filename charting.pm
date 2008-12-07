@@ -1,4 +1,11 @@
+package charting;
+require Exporter;
 use Chart::Lines;
+
+use vars qw/@ISA @EXPORT $VERSION/;
+@EXPORT = qw/draw_line_chart/;
+@ISA = qw/Exporter/;
+$VERSION = 1.0;
 
 sub draw_line_chart {
 

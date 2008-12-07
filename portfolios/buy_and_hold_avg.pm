@@ -153,7 +153,7 @@ sub print_portfolio_state {
     
     print "\n";
 
-    draw_line_chart(\@equity_curve);
+    charting::draw_line_chart(\@equity_curve);
 }
 
 
