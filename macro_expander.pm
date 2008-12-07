@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
 		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACD 
-		MACDH MOMENTUM ROC BOP ADX[^A-Z] ADXR ACCELERATION_UPPER ACCELERATION_LOWER );
+		MACDH MOMENTUM ROC BOP ADX[^A-Z] ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC );
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -18,7 +18,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"MACDS" => "compute_macd_signal", "MACDH" => "compute_macd_hist", "MOMENTUM" => "compute_momentum",
 			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX[^A-Z]" => "compute_adx", "ADXR" => "compute_adx_r",
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
-			"SAR" => "compute_sar",
+			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc"
 );
 
 
@@ -28,7 +28,7 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 );
 
 my %lookback_table = ( "BOLLINGER_UPPER" => "TA_BBANDS", "BOLLINGER_LOWER" => "TA_BBANDS", "WILLIAMS_R" => "TA_WILLR",
-		       "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR",
+		       "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
 );
 
 my @action_list;

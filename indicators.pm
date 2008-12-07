@@ -530,6 +530,26 @@ sub compute_adx_r {
     return $adxr->[0];
 }
 
+sub compute_ultosc {
+
+    my $period1 = shift;
+    my $period2 = shift;
+    my $period3 = shift;
+
+    my $n = "ultosc$period1$period2$period3";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs =  reverse map @$_->[3], @$current_prices;
+    @lows =  reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $ultosc) = TA_ULTOSC(0, $len, \@highs, \@lows, \@closes, $period1, $period2, $period3);
+
+    $value_cache{$n} = $ultosc->[0];
+    return $ultosc->[0];
+}
+
 sub compute_upper_accband {
 
     my $period = shift;
