@@ -2,17 +2,20 @@
 
 use screen_sql;
 use macro_expander;
+use conf;
 
-if($ARGV[2]) {
-    set_date($ARGV[2]);
+conf::process_commandline(@ARGV);
+
+if(conf::date()) {
+    set_date(conf::date());
 } else {
     set_date(`date "+%Y-%m-%d"`);
 }
 
 init_sql();
-parse_screen($ARGV[0]);
+parse_screen(conf::screen());
 
-do_initial_sweep($ARGV[1]);
+do_initial_sweep(conf::list());
 @results = run_screen_loop();
 
 foreach $ticker (sort @results) {
