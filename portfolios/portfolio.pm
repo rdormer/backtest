@@ -3,6 +3,7 @@ use screen_sql;
 use Charting;
 use Date::Manip;
 use POSIX;
+use conf;
 
 
 my %positions;
@@ -25,9 +26,9 @@ my $drawdown_days;
 
 sub init_portfolio {
 
-    $starting_cash= 5000;
+    $risk_percent = conf::risk_percent();
+    $starting_cash = conf::startwith();
     $current_cash = $starting_cash;
-    $risk_percent = .01;
     $stop_loss = 10;
 
     calculate_position_count();

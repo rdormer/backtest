@@ -4,12 +4,9 @@ use screen_sql;
 use macro_expander;
 use conf;
 
+eval "use portfolios::" . conf::portfolio();
+
 conf::process_commandline(@ARGV);
-
-$modname = "portfolio";
-$modname = conf::portfolio() if conf::portfolio();
-eval "use portfolios::$modname";
-
 $SIG{INT} = \&salvage_interrupt;
 
 init_sql();
