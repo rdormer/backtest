@@ -27,8 +27,7 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 		    "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()",
 );
 
-my %lookback_table = ( "BOLLINGER_UPPER" => "TA_BBANDS", "BOLLINGER_LOWER" => "TA_BBANDS", "WILLIAMS_R" => "TA_WILLR",
-		       "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
+my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
 );
 
 my @action_list;
