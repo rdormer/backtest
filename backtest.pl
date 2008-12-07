@@ -1,12 +1,11 @@
 #! /usr/bin/perl
 
+use conf;
 use screen_sql;
 use macro_expander;
-use conf;
-
-eval "use portfolios::" . conf::portfolio();
 
 conf::process_commandline(@ARGV);
+eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
 
 init_sql();
