@@ -21,8 +21,11 @@ sub process_commandline {
 
 sub date() { return $configure_info{'-date'}; }
 sub screen() { return $configure_info{'-screen'}; }
-sub list() {return $configure_info{'-list'}; }
-
-
+sub list() { return $configure_info{'-list'}; }
+sub portfolio() { return $configure_info{'-portfolio'}; }
+sub enter_sig() { return $configure_info{'-entry'}; }
+sub exit_sig() { return $configure_info{'-exit'}; }
+sub start() { return $configure_info{'-start'}; }
+sub finish() { return $configure_info{'-finish'}; }
 
 1;

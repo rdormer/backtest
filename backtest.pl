@@ -2,18 +2,21 @@
 
 use screen_sql;
 use macro_expander;
+use conf;
+
+conf::process_commandline(@ARGV);
 
 $modname = "portfolio";
-$modname = $ARGV[5] if $ARGV[5];
+$modname = conf::portfolio() if conf::portfolio();
 eval "use portfolios::$modname";
 
 $SIG{INT} = \&salvage_interrupt;
 
 init_sql();
-parse_screen($ARGV[0]);
-init_portfolio($ARGV[1]);
-do_initial_sweep($ARGV[2]);
-set_date_range($ARGV[3], $ARGV[4]);
+parse_screen(conf::enter_sig());
+init_portfolio(conf::exit_sig());
+do_initial_sweep(conf::list());
+set_date_range(conf::start(), conf::finish());
 
 while(next_test_day()) {
 
