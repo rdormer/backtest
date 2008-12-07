@@ -2,8 +2,8 @@ use screen_sql;
 use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
-		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACD 
-		MACDH MOMENTUM ROC BOP ADX[^A-Z] ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC );
+		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH 
+		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX);
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -16,7 +16,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"RSI" => "compute_rsi", "EMAC" => "exp_avg_close", "EMAO" => "exp_avg_open", "EMAH" => "exp_avg_high",
 			"EMAL" => "exp_avg_low", "EMAV" => "exp_avg_volume", "ATR" => "compute_atr", "MACD" => "compute_macd",
 			"MACDS" => "compute_macd_signal", "MACDH" => "compute_macd_hist", "MOMENTUM" => "compute_momentum",
-			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX[^A-Z]" => "compute_adx", "ADXR" => "compute_adx_r",
+			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX" => "compute_adx", "ADXR" => "compute_adx_r",
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc"
 );
@@ -28,6 +28,8 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
+		       "MACD" => "TA_MACD", "MACDS" => "TA_MACD", "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "EMA[VOHLC]" => "TA_EMA",
+		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS"
 );
 
 my @action_list;

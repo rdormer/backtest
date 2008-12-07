@@ -239,12 +239,13 @@ sub array_exponential_avg {
     my $n = "ema$index$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @series = map @$_->[$index], @$current_prices;
+    @series = reverse map @$_->[$index], @$current_prices;
     $len = @series - 1;
 
     my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
 
     $value_cache{$n} = $ema->[0];
+    print "\n$current_prices->[0][0] $ema->[0] $ema->[1] $ema->[3]";
     return $ema->[0];
 }
 
@@ -317,8 +318,7 @@ sub compute_rsi {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @dates = reverse map @$_->[1], @$current_prices;
-    $len = @closes;
+    $len = @closes - 1;
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
 
@@ -346,59 +346,66 @@ sub compute_atr {
 
 sub compute_macd_signal {
 
-    my $slow = shift;
     my $fast = shift;
+    my $slow = shift;
     my $sig = shift;
     
     my $n = "$slow$fast$sig" . "macds";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    compute_macd_values($slow, $fast, $sig);
+    compute_macd_values($fast, $slow, $sig);
     return $value_cache{$n};
 }
 
 sub compute_macd_hist {
 
-    my $slow = shift;
     my $fast = shift;
+    my $slow = shift;
     my $sig = shift;
 
     my $n = "$slow$fast$sig" . "macdh";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    compute_macd_values($slow, $fast, $sig);
+    compute_macd_values($fast, $slow, $sig);
     return $value_cache{$n};
 }
 
 
 sub compute_macd {
 
-    my $slow = shift;
     my $fast = shift;
+    my $slow = shift;
     my $sig = shift;    
 
     my $n = "$slow$fast$sig" . "macd";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    compute_macd_values($slow, $fast, $sig);
+    compute_macd_values($fast, $slow, $sig);
     return $value_cache{$n};
 }
 
 sub compute_macd_values {
 
-    my $slow = shift;
     my $fast = shift;
+    my $slow = shift;
     my $sig = shift;    
 
     @closes = reverse map @$_->[5], @$current_prices;
+    @dates = reverse map @$_->[1], @$current_prices;
     $len = @closes - 1;
 
-    my ($rcode, $start, $macd, $sig, $hist) = TA_MACD(0, $len, \@closes, $fast, $slow, $signal);
+#    for($i = 0; $i < $len; $i++) {
+#	print "\n$i: $dates[$i]";
+#    }
+
+    my ($rcode, $count, $macd, $sig, $hist) = TA_MACD(0, $len, \@closes, $fast, $slow, $signal);
 
     my $base = "$slow$fast$sig";
     $value_cache{$base . "macds"} = $sig->[0];
     $value_cache{$base . "macdh"} = $hist->[0];
     $value_cache{$base . "macd"} = $macd->[0];
+
+    print "\n$current_prices->[0][0] sig $sig->[0] macd $macd->[0]";
 }
 
 #in keeping with the spirit of not calling reverse on the map
@@ -498,14 +505,16 @@ sub compute_adx {
     my $n = "adx$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
     $len = @closes - 1;
 
     my ($rcode, $start, $adx) = TA_ADX(0, $len, \@highs, \@lows, \@closes, $period);
 
-    print "\n$current_prices->[0][0] $adx->[0]";
+    $olen = @$adx;
+    print "\n$rcode $start $adx retlen $olen";
+    print "\n$current_prices->[0][0] adx is $adx->[0]";
 
     $value_cache{$n} = $adx->[0];
     return $adx->[0];
@@ -575,12 +584,14 @@ sub compute_lower_accband {
 
 sub compute_acceleration_bands {
 
+    print "\ncall compute";
+
     my $per = shift;
     my @upper, @middle, @lower;
 
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
     my $len = @closes - 1;
 
     my ($rcode, $start, $uband, $midband, $lband) = TA_ACCBANDS(0, $len, \@highs, \@lows, \@closes, $per);
