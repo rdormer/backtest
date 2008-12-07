@@ -5,6 +5,7 @@ use Date::Manip;
 use POSIX;
 use conf;
 
+eval "use strategies::" . conf::strategy();
 
 my %positions;
 my @trade_history;
@@ -17,7 +18,6 @@ my $current_cash;
 my $position_count;
 my $position_size;
 my $risk_percent;
-my $stop_loss;
 
 my $max_equity;
 my $max_drawdown;
@@ -29,7 +29,6 @@ sub init_portfolio {
     $risk_percent = conf::risk_percent();
     $starting_cash = conf::startwith();
     $current_cash = $starting_cash;
-    $stop_loss = 10;
 
     calculate_position_count();
     calculate_position_size($current_cash);
@@ -54,7 +53,7 @@ sub calculate_position_count {
     #notional % of a $100,000 portfolio
 
     $atrisk = 100000 * $risk_percent;
-    $percentof = $atrisk / ($stop_loss / 100);
+    $percentof = $atrisk / (10 / 100);
     $position_count = int(100000 / $percentof);
 }
 
@@ -73,7 +72,7 @@ sub add_positions {
 
 	    if($sharecount >= 1) {
 
-		$positions{$ticker}{'stop'} = $price * (1 - ($stop_loss/100));
+		$positions{$ticker}{'stop'} = initial_stop($price);
 		$positions{$ticker}{'sdate'} = get_exit_date();
 		$positions{$ticker}{'shares'} = $sharecount;
 		$positions{$ticker}{'start'} = $price;
@@ -104,13 +103,14 @@ sub update_positions {
 		sell_position($ticker);
 	    } else {
 
+		update_stop(\%positions, $ticker);
 		$low = fetch_low_at(current_index());
-		$positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 
 		if($positions{$ticker}{'stop'} >= $low) {
 		    stop_position($ticker);
 		} else {
 		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
+		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
 	    }
 	}

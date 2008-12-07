@@ -32,6 +32,11 @@ sub portfolio() {
     return "portfolio";
 }
 
+sub strategy() { 
+    return $configure_info{'-strategy'} if exists $configure_info{'-strategy'};
+    return "default";
+}
+
 sub startwith() {
 
     return $configure_info{'-startwith'} if exists $configure_info{'-startwith'};
