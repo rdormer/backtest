@@ -157,6 +157,12 @@ sub end_position {
     my $price = shift;
     my $edate = shift;
 
+    if($edate eq $positions{$target}{'sdate'} && $price == $positions{$target}{'start'}) {
+	$current_cash += $positions{$target}{'shares'} * $price;
+	delete $positions{$target};
+	return;
+    }
+
     $positions{$target}{'end'} = $price;
     $positions{$target}{'edate'} = $edate;
     $ret = ($positions{$target}{'end'} - $positions{$target}{'start'}) / $positions{$target}{'start'};
