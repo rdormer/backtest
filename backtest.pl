@@ -5,6 +5,8 @@ use screen_sql;
 use macro_expander;
 
 conf::process_commandline(@ARGV);
+conf::check_backtest_args();
+
 eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
 
@@ -33,7 +35,6 @@ sub salvage_interrupt {
     print "\n";
     exit();
 }
-
 
 sub run_screen_loop() {
 

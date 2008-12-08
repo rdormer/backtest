@@ -49,4 +49,12 @@ sub risk_percent {
     return 0.01;
 }
 
+sub check_backtest_args {
+
+    die "missing -list (ticker list file)" if not exists $configure_info{'-list'};
+    die "missing -start (start date)" if not exists $configure_info{'-start'};
+    die "missing -entry (entry signal)" if not exists $configure_info{'-entry'};
+    die "missing -exit (exit signal)" if not exists $configure_info{'-exit'};
+}
+
 1;
