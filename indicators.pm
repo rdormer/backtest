@@ -243,10 +243,8 @@ sub array_exponential_avg {
     $len = @series - 1;
 
     my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
-
-    $value_cache{$n} = $ema->[0];
-    print "\n$current_prices->[0][0] $ema->[0] $ema->[1] $ema->[3]";
-    return $ema->[0];
+    $value_cache{$n} = $ema->[@$ema - 1];
+    return $ema->[@$ema - 1];
 }
 
 sub compute_upper_bollinger {
@@ -301,12 +299,11 @@ sub compute_williams_r {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-
     $len = @closes - 1;
 
     my ($rcode, $start, $willr) = TA_WILLR(1, $len, \@highs, \@lows, \@closes, $period);
-    $value_cache{$n} = $willr->[1];
-    return $willr->[1];
+    $value_cache{$n} = $willr->[0];
+    return $willr->[0];
 }
 
 
@@ -321,8 +318,8 @@ sub compute_rsi {
     $len = @closes - 1;
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
-
     $value_cache{$n} = $rsi->[0];
+    print "\n$rsi->[0]";
     return $rsi->[0];
 }
 
@@ -336,7 +333,6 @@ sub compute_atr {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-
     $len = @closes - 1;
 
     my ($rcode, $start, $atr) = TA_ATR(0, $len, \@highs, \@lows, \@closes, $period);

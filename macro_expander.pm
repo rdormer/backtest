@@ -28,8 +28,8 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
-		       "MACD" => "TA_MACD", "MACDS" => "TA_MACD", "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "EMA[VOHLC]" => "TA_EMA",
-		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS"
+		       "MACD" => "TA_MACD", "MACDS" => "TA_MACD", "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
+		       "ACCELERATION_LOWER" => "TA_ACCBANDS", 
 );
 
 my @action_list;
@@ -155,11 +155,28 @@ sub capture_args {
 	$lcall = $lookback_table{$ltoken} . "_Lookback($arglist";
 	set_pull_limit(eval($lcall));
     } else {
-	set_pull_limit($max);
+	lookback_custom($ltoken, $arglist, $max);
     }
 
     unshift @token_list, $arg;
 }
+
+sub lookback_custom {
+
+    my $ctoken = shift;
+    my $alist = shift;
+    my $maxval = shift;
+
+    my $pullval = $maxval;
+
+    if($ctoken =~ /EMA[VOHLC]/ && $alist =~ /([0-9]+)\)/) {
+	$pullval = int(3.45 * ($1 + 1));
+    }
+
+
+    set_pull_limit($pullval);
+}
+
 
 sub init_filter {
     @result_list = ();
