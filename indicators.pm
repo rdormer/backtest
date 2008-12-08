@@ -419,9 +419,7 @@ sub compute_momentum {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = map @$_->[5], @$current_prices;
-    $len = @closes - 1;
-
-    my ($rcode, $start, $mom) = TA_MOM(0, $len, \@closes, $period);
+    my ($rcode, $start, $mom) = TA_MOM(0, $period, \@closes, $period);
 
     $value_cache{$n} = $mom->[0] * -1;
     return $mom->[0] * -1;
@@ -453,10 +451,9 @@ sub compute_roc {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
+    @closes = splice @closes, -($period + 1);
 
-    my ($rcode, $start, $roc) = TA_ROC(0, $len, \@closes, $period);
-
+    my ($rcode, $start, $roc) = TA_ROC(0, $period, \@closes, $period);
     $value_cache{$n} = $roc->[0];
     return $roc->[0];
 }
@@ -550,9 +547,12 @@ sub compute_ultosc {
     @highs =  reverse map @$_->[3], @$current_prices;
     @lows =  reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
 
-    my ($rcode, $start, $ultosc) = TA_ULTOSC(0, $len, \@highs, \@lows, \@closes, $period1, $period2, $period3);
+    @highs = splice @highs, -($period3 + 1);
+    @lows = splice @lows, -($period3 + 1);
+    @closes = splice @closes, -($period3 + 1);
+
+    my ($rcode, $start, $ultosc) = TA_ULTOSC(0, $period3, \@highs, \@lows, \@closes, $period1, $period2, $period3);
 
     $value_cache{$n} = $ultosc->[0];
     return $ultosc->[0];
