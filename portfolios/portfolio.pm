@@ -24,6 +24,8 @@ my $max_drawdown;
 my $max_drawdown_len;
 my $drawdown_days;
 
+my $discards;
+
 sub init_portfolio {
 
     $risk_percent = conf::risk_percent();
@@ -160,6 +162,7 @@ sub end_position {
     if($edate eq $positions{$target}{'sdate'} && $price == $positions{$target}{'start'}) {
 	$current_cash += $positions{$target}{'shares'} * $price;
 	delete $positions{$target};
+	$discards++;
 	return;
     }
 
@@ -240,6 +243,7 @@ sub print_portfolio_state {
 	$avg_loss = $sum_losses / $losing_trades if $losing_trades > 0;
 
 	print "\n" . scalar @trade_history . " trades";
+	print "  (discarded $discards trades)" if $discards > 0;
 	print "\n$losing_trades losing trades (avg loss $avg_loss)";
 	print "\n$winning_trades wining trades (avg win $avg_win)";
 	print "\n$max_drawdown maximum drawdown";
