@@ -315,11 +315,11 @@ sub compute_rsi {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
+    @closes = splice @closes, -($period + 1);
     $len = @closes - 1;
 
-    my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
+    my ($rcode, $start, $rsi) = TA_RSI(0, $period, \@closes, $period);
     $value_cache{$n} = $rsi->[0];
-    print "\n$rsi->[0]";
     return $rsi->[0];
 }
 
