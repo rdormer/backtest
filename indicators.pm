@@ -299,9 +299,12 @@ sub compute_williams_r {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
+    
+    @highs = splice @highs, -($period);
+    @lows = splice @lows, -($period);
+    @closes = splice @closes, -($period);
 
-    my ($rcode, $start, $willr) = TA_WILLR(1, $len, \@highs, \@lows, \@closes, $period);
+    my ($rcode, $start, $willr) = TA_WILLR(0, $period, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $willr->[0];
     return $willr->[0];
 }
