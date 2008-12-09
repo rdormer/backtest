@@ -244,6 +244,7 @@ sub array_exponential_avg {
 
     my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
     $value_cache{$n} = $ema->[@$ema - 1];
+    
     return $ema->[@$ema - 1];
 }
 
@@ -317,12 +318,12 @@ sub compute_rsi {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @closes = splice @closes, -($period + 1);
+    @closes = splice @closes, -($period * 4);
     $len = @closes - 1;
 
-    my ($rcode, $start, $rsi) = TA_RSI(0, $period, \@closes, $period);
-    $value_cache{$n} = $rsi->[0];
-    return $rsi->[0];
+    my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
+    $value_cache{$n} = $rsi->[@$rsi - 1];
+    return $rsi->[@$rsi - 1];
 }
 
 sub compute_atr {
@@ -335,9 +336,12 @@ sub compute_atr {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
+    
+    @highs = splice @highs, -($period + 1);
+    @lows = splice @lows, -($period + 1);
+    @closes = splice @closes, -($period + 1);
 
-    my ($rcode, $start, $atr) = TA_ATR(0, $len, \@highs, \@lows, \@closes, $period);
+    my ($rcode, $start, $atr) = TA_ATR(0, $period, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
     return $atr->[0];
 }

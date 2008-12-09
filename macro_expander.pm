@@ -27,7 +27,7 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 		    "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()",
 );
 
-my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "RSI" => "TA_RSI", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
+my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
 		       "MACD" => "TA_MACD", "MACDS" => "TA_MACD", "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
 		       "ACCELERATION_LOWER" => "TA_ACCBANDS", 
 );
@@ -170,7 +170,11 @@ sub lookback_custom {
     my $pullval = $maxval;
 
     if($ctoken =~ /EMA[VOHLC]/ && $alist =~ /([0-9]+)\)/) {
-	$pullval = int(3.45 * ($1 + 1));
+	$pullval = 4 * ($1 + 1);
+    }
+
+    if($ctoken =~ /RSI/ && $alist =~ /([0-9]+)\)/) {
+	$pullval = 4 * $1;
     }
 
 
