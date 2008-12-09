@@ -440,9 +440,10 @@ sub compute_sar {
     @lows = reverse map @$_->[4], @$current_prices;
     $len = @highs - 1;
 
-    my ($rcode, $start, $sar) = TA_SAR(1, $len, \@highs, \@lows, $stepval, $maxval);
+    my ($rcode, $start, $sar) = TA_SAR(0, $len, \@highs, \@lows, $stepval, $maxval);
 
-    $value_cache{$n} = $sar->[0];
+    $value_cache{$n} = $sar->[@$sar - 1];
+    print "\n$current_prices->[0][0] $value_cache{$n}";
     return $sar->[0];
 }
 
@@ -603,6 +604,48 @@ sub compute_acceleration_bands {
     $value_cache{$per . "accbandl"} = $lband->[0];
     $value_cache{$per . "accbandm"} = $midband->[0];
     $value_cache{$per . "accbandu"} = $uband->[0];
+}
+
+sub compute_fast_stoch_d {
+
+    my $period = shift;
+
+    my $n = "faststochd$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_fast_stoch($period, $period);
+    return $value_cache{$n};
+}
+
+sub compute_fast_stoch_k {
+
+    my $period = shift;
+
+    my $n = "faststochk$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_fast_stoch($period, $period);
+    return $value_cache{$n};
+}
+
+sub compute_fast_stoch {
+
+    my $d_period = shift;
+    my $k_period = shift;
+
+    my $n = "fastoch$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+    @closes = reverse map @$_->[5], @$current_prices;
+    $len = @closes - 1;
+
+    my ($rcode, $start, $fast_k, $fast_d) = TA_STOCHF(0, $len, \@highs, \@lows, \@closes, $k_period, $d_period, $TA_MAType_SMA);
+
+    $len = @$fast_d - 1;
+    $value_cache{"faststochk$k_period"} = $fast_k->[$len];
+    $value_cache{"faststochd$d_period"} = $fast_d->[$len];
 }
 
 1;

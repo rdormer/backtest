@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
 		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH 
-		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX);
+		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] );
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -18,13 +18,14 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"MACDS" => "compute_macd_signal", "MACDH" => "compute_macd_hist", "MOMENTUM" => "compute_momentum",
 			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX" => "compute_adx", "ADXR" => "compute_adx_r",
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
-			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc"
+			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
+			"STOCH_FAST_K" => "compute_fast_stoch_k",
 );
 
 
 my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_eps()", "MCAP" => "fundamental_mcap()",     
-		    "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", "OR" => "||", 
-		    "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()",
+			  "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", "OR" => "||", 
+			  "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()", "OBV" => "compute_obv",
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
@@ -177,6 +178,9 @@ sub lookback_custom {
 	$pullval = 4 * $1;
     }
 
+    if($ctoken =~ /STOCH_FAST_[K|D]/ && $alist =~ /([0-9]+)\)/) {
+	$pullval = eval "TA_STOCHF_Lookback($1, $1, $TA_MAType_SMA)";
+    }
 
     set_pull_limit($pullval);
 }
