@@ -95,8 +95,14 @@ sub update_positions {
     @tlist = @ {set_ticker_list(\@temp)};
     @tact = @ {set_actions(\@actions)};
 
-
     init_filter();
+
+    #we update our cash position before selling because interest payments, etc.
+    #would tend to happen before settlement of a trade.  Then we loop through
+    #each position to see if it hit a sell rule or was stopped out, calling our
+    #update stop hook first - stops are updated at the start of each period.
+
+    $current_cash = update_cash_balance($current_cash);
 
     my $equity = 0;
     foreach $ticker (@temp) {
@@ -165,6 +171,8 @@ sub end_position {
 	$discards++;
 	return;
     }
+
+    $price = adjust_for_slippage($price);
 
     $positions{$target}{'end'} = $price;
     $positions{$target}{'edate'} = $edate;
@@ -258,7 +266,9 @@ sub print_portfolio_state {
     
     print "\n";
 
-    charting::draw_line_chart(\@equity_curve);
+    if(conf::draw_curve()) {
+	charting::draw_line_chart(\@equity_curve, conf::draw_curve());
+   }
 }
 
 

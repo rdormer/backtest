@@ -3,7 +3,7 @@ use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
 		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH 
-		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] );
+		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN);
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -19,7 +19,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"ROC" => "compute_roc", "OBV" => "compute_obv", "ADX" => "compute_adx", "ADXR" => "compute_adx_r",
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
-			"STOCH_FAST_K" => "compute_fast_stoch_k",
+			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", 
+			"AROON_DOWN" =>"compute_aroon_down",
 );
 
 
@@ -29,8 +30,8 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
-		       "MACD" => "TA_MACD", "MACDS" => "TA_MACD", "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
-		       "ACCELERATION_LOWER" => "TA_ACCBANDS", 
+		       "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
+		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", 
 );
 
 my @action_list;
@@ -180,6 +181,10 @@ sub lookback_custom {
 
     if($ctoken =~ /STOCH_FAST_[K|D]/ && $alist =~ /([0-9]+)\)/) {
 	$pullval = eval "TA_STOCHF_Lookback($1, $1, $TA_MAType_SMA)";
+    }
+
+    if($ctoken =~ /MACD[S]*/) {
+	$pullval = $maxval * 4;
     }
 
     set_pull_limit($pullval);

@@ -49,6 +49,12 @@ sub risk_percent {
     return 0.01;
 }
 
+sub draw_curve {
+
+    return $configure_info{'-curve'} if exists $configure_info{'-curve'};
+    return 0;
+}
+
 sub check_backtest_args {
 
     die "missing -list (ticker list file)" if not exists $configure_info{'-list'};
@@ -56,5 +62,6 @@ sub check_backtest_args {
     die "missing -entry (entry signal)" if not exists $configure_info{'-entry'};
     die "missing -exit (exit signal)" if not exists $configure_info{'-exit'};
 }
+
 
 1;

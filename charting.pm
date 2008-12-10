@@ -10,9 +10,10 @@ $VERSION = 1.0;
 sub draw_line_chart {
 
     my $points = shift;
-    my $yaxis = shift;
+    my $filename = shift;
 
     @data = (@$points);
+    return if @data == 0;
 
     $linechart = Chart::Lines->new(800, 600);
     $linechart->set('title' => 'Equity Curve');
@@ -24,7 +25,7 @@ sub draw_line_chart {
 	$linechart->add_pt($i++, $_);
     }
 
-    $linechart->png("curve.png");
+    $linechart->png($filename);
 }
 
 1;

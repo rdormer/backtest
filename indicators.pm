@@ -386,6 +386,12 @@ sub compute_macd {
     return $value_cache{$n};
 }
 
+##
+## TODO: Will leave it for now, but sooner or later, this will
+## have to be revisited - if signal period is larger than slow
+## EMA period, MACD values may be calculated incorrectly for want
+## of a longer lookback period.
+
 sub compute_macd_values {
 
     my $fast = shift;
@@ -393,21 +399,16 @@ sub compute_macd_values {
     my $sig = shift;    
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @dates = reverse map @$_->[1], @$current_prices;
+    @closes = splice @closes, -($slow * 4);
     $len = @closes - 1;
-
-#    for($i = 0; $i < $len; $i++) {
-#	print "\n$i: $dates[$i]";
-#    }
 
     my ($rcode, $count, $macd, $sig, $hist) = TA_MACD(0, $len, \@closes, $fast, $slow, $signal);
 
+    my $last = @$macd - 1;
     my $base = "$slow$fast$sig";
-    $value_cache{$base . "macds"} = $sig->[0];
-    $value_cache{$base . "macdh"} = $hist->[0];
-    $value_cache{$base . "macd"} = $macd->[0];
-
-    print "\n$current_prices->[0][0] sig $sig->[0] macd $macd->[0]";
+    $value_cache{$base . "macds"} = $sig->[$last];
+    $value_cache{$base . "macdh"} = $hist->[$last];
+    $value_cache{$base . "macd"} = $macd->[$last];
 }
 
 #in keeping with the spirit of not calling reverse on the map
@@ -633,9 +634,6 @@ sub compute_fast_stoch {
     my $d_period = shift;
     my $k_period = shift;
 
-    my $n = "fastoch$period";
-    return $value_cache{$n} if exists $value_cache{$n};
-
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
@@ -646,6 +644,46 @@ sub compute_fast_stoch {
     $len = @$fast_d - 1;
     $value_cache{"faststochk$k_period"} = $fast_k->[$len];
     $value_cache{"faststochd$d_period"} = $fast_d->[$len];
+}
+
+sub compute_aroon_up {
+
+    my $period = shift;
+
+    my $n = "aroonup$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_aroon($period);
+    return $value_cache{$n};
+}
+
+sub compute_aroon_down {
+
+    my $period = shift;
+
+    my $n = "aroond$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_aroon($period);
+    return $value_cache{$n};
+}
+
+sub compute_aroon {
+
+    my $period = shift;
+
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+
+    @highs = splice @highs, -($period + 1);
+    @lows = splice @lows, -($period + 1);
+    $len = @highs - 1;
+
+    my ($rcode, $start, $down, $up) = TA_AROON(0, $len, \@highs, \@lows, $period);
+
+    $len = @$up - 1;
+    $value_cache{"aroonup$period"} = $up->[$len];
+    $value_cache{"aroond$period"} = $down->[$len];
 }
 
 1;

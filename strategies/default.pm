@@ -1,4 +1,7 @@
 
+sub update_cash_balance {
+    return shift;
+}
 
 sub initial_stop {
 
@@ -12,5 +15,8 @@ sub update_stop {
     my $ticker = shift;
 }
 
+sub adjust_for_slippage {
+    return shift;
+}
 
 1;
