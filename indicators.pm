@@ -513,12 +513,9 @@ sub compute_adx {
 
     my ($rcode, $start, $adx) = TA_ADX(0, $len, \@highs, \@lows, \@closes, $period);
 
-    $olen = @$adx;
-    print "\n$rcode $start $adx retlen $olen";
-    print "\n$current_prices->[0][0] adx is $adx->[0]";
-
-    $value_cache{$n} = $adx->[0];
-    return $adx->[0];
+    $final = @$adx - 1;
+    $value_cache{$n} = $adx->[$final];
+    return $adx->[$final];
 }
 
 
@@ -536,8 +533,9 @@ sub compute_adx_r {
 
     my ($rcode, $start, $adxr) = TA_ADXR(0, $len, \@highs, \@lows, \@closes, $period);
 
-    $value_cache{$n} = $adxr->[0];
-    return $adxr->[0];
+    $final = @$adxr - 1;
+    $value_cache{$n} = $adxr->[$final];
+    return $adxr->[$final];
 }
 
 sub compute_ultosc {
@@ -684,6 +682,25 @@ sub compute_aroon {
     $len = @$up - 1;
     $value_cache{"aroonup$period"} = $up->[$len];
     $value_cache{"aroond$period"} = $down->[$len];
+}
+
+sub compute_aroon_osc {
+
+    my $period = shift;
+
+    my $n = "aroono$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    @highs = reverse map @$_->[3], @$current_prices;
+    @lows = reverse map @$_->[4], @$current_prices;
+
+    @highs = splice @highs, -($period + 1);
+    @lows = splice @lows, -($period + 1);
+    $len = @highs - 1;
+
+    my ($rcode, $start, $osc) = TA_AROONOSC(0, $len, \@highs, \@lows, $period);
+    $value_cache{"aroono$period"} = $osc->[0];
+    return $osc->[0];
 }
 
 1;

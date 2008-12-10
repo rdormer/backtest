@@ -3,7 +3,9 @@ use indicators;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
 		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH 
-		MACD MOMENTUM ROC BOP ADX ADXR ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN);
+		MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN
+                AROON_OSC
+);
 
 
 my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" => "max_open", "MAXV" => "max_volume", 
@@ -20,7 +22,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", 
-			"AROON_DOWN" =>"compute_aroon_down",
+			"AROON_DOWN" =>"compute_aroon_down", "AROON_OSC" => "compute_aroon_osc", 
 );
 
 
@@ -29,9 +31,8 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 			  "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()", "OBV" => "compute_obv",
 );
 
-my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ADXR" => "TA_ADXR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC",
-		       "ADXR" => "TA_ADXR", "ADX" => "TA_ADX", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
-		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", 
+my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
+		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
 );
 
 my @action_list;
@@ -185,6 +186,10 @@ sub lookback_custom {
 
     if($ctoken =~ /MACD[S]*/) {
 	$pullval = $maxval * 4;
+    }
+
+    if($ctoken =~ /ADX[R]?/ && $alist =~ /([0-9]+)\)/) {
+	$pullval = 5 * ($1 + 1);
     }
 
     set_pull_limit($pullval);
