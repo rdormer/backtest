@@ -8,8 +8,14 @@ use vars qw/@ISA @EXPORT $VERSION/;
 $VERSION = 1.0;
 
 my %configure_info;
+$~ = 'HELPTEXT';
 
 sub process_commandline {
+
+    if(@_ == 0) {
+	write;
+	exit();
+    }
 
     while($_ = shift @_) {
 
@@ -62,6 +68,25 @@ sub check_backtest_args {
     die "missing -entry (entry signal)" if not exists $configure_info{'-entry'};
     die "missing -exit (exit signal)" if not exists $configure_info{'-exit'};
 }
+
+
+format HELPTEXT =
+
+OPTIONS FOR BACKTESTER:
+
+   -list <ticker list file>
+   -start <starting date in YYYY-MM-DD>
+   -finish <end date in YYYY-MM-DD>
+   -entry <rule file>
+   -exit <rule file>
+   
+
+AVAILABLE INDICATORS:
+   
+
+
+
+.
 
 
 1;
