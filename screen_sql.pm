@@ -154,9 +154,15 @@ sub pull_from_cache {
 sub cache_ticker_history {
 
     $ticker = shift;
-    $sdate = DateCalc($current_date, "-$max_limit business days");
+
+    $s = $current_date;
+    $s =~ s/-//g;
+    $sd = new Date::Business(DATE => $s);
+    $sd->subb($max_limit + 1);
+    $sdate = $sd->image();
+
     $pull_sql = $dbh->prepare($cache_cmd);
-    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $date_range[@date_range - 1]);
+    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $current_date);
     $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
 
