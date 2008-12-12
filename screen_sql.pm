@@ -162,7 +162,7 @@ sub cache_ticker_history {
     $sdate = $sd->image();
 
     $pull_sql = $dbh->prepare($cache_cmd);
-    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $current_date);
+    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $date_range[@date_range - 1]);
     $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
 }    
 
