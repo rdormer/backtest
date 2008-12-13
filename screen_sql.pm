@@ -113,7 +113,7 @@ sub pull_ticker_history {
     }
 
     %value_cache = ();
-    return scalar @$current_prices;
+    return scalar @$current_prices >= $max_limit;
 }    
 
 sub pull_from_cache {
