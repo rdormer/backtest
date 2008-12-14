@@ -280,13 +280,13 @@ sub compute_bollinger_bands {
     my @upper, @middle, @lower;
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @closes = splice @closes, -($per);
     my ($rcode, $start, $uband, $midband, $lband) = TA_BBANDS(0, $per, \@closes, $per, $dev, $dev, $TA_MAType_SMA);
 
+    my $len = @$lband - 1;
     my $base = "$per$dev";
-    $value_cache{$base . "bbandl"} = $lband->[0];
-    $value_cache{$base . "bbandm"} = $mband->[0];
-    $value_cache{$base . "bbandu"} = $uband->[0];
+    $value_cache{$base . "bbandl"} = $lband->[$len];
+    $value_cache{$base . "bbandm"} = $mband->[$len];
+    $value_cache{$base . "bbandu"} = $uband->[$len];
 }
 
 sub compute_williams_r {
@@ -318,7 +318,7 @@ sub compute_rsi {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @closes = splice @closes, -($period * 4);
+    @closes = splice @closes, 1, $period * 4;
     $len = @closes - 1;
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
@@ -337,9 +337,9 @@ sub compute_atr {
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
     
-    @highs = splice @highs, -($period + 1);
-    @lows = splice @lows, -($period + 1);
-    @closes = splice @closes, -($period + 1);
+    @highs = splice @highs, 0, $period + 1;
+    @lows = splice @lows, 0, $period + 1;
+    @closes = splice @closes, 0, $period + 1;
 
     my ($rcode, $start, $atr) = TA_ATR(0, $period, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
