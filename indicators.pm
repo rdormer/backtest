@@ -551,9 +551,9 @@ sub compute_ultosc {
     @lows =  reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
 
-    @highs = splice @highs, -($period3 + 1);
-    @lows = splice @lows, -($period3 + 1);
-    @closes = splice @closes, -($period3 + 1);
+    @highs = splice @highs, 0, $period3 + 1;
+    @lows = splice @lows, 0, $period3 + 1;
+    @closes = splice @closes, 0, $period3 + 1;
 
     my ($rcode, $start, $ultosc) = TA_ULTOSC(0, $period3, \@highs, \@lows, \@closes, $period1, $period2, $period3);
 
