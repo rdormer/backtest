@@ -280,13 +280,14 @@ sub compute_bollinger_bands {
     my @upper, @middle, @lower;
 
     @closes = reverse map @$_->[5], @$current_prices;
+    @closes = splice @closes, -($per);
     my ($rcode, $start, $uband, $midband, $lband) = TA_BBANDS(0, $per, \@closes, $per, $dev, $dev, $TA_MAType_SMA);
 
     my $len = @$lband - 1;
     my $base = "$per$dev";
-    $value_cache{$base . "bbandl"} = $lband->[$len];
-    $value_cache{$base . "bbandm"} = $mband->[$len];
-    $value_cache{$base . "bbandu"} = $uband->[$len];
+    $value_cache{$base . "bbandl"} = $lband->[0];
+    $value_cache{$base . "bbandm"} = $mband->[0];
+    $value_cache{$base . "bbandu"} = $uband->[0];
 }
 
 sub compute_williams_r {
