@@ -318,7 +318,7 @@ sub compute_rsi {
     return $value_cache{$n} if exists $value_cache{$n};
 
     @closes = reverse map @$_->[5], @$current_prices;
-    @closes = splice @closes, 1, $period * 4;
+    @closes = splice @closes, -($period * 4);
     $len = @closes - 1;
 
     my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
