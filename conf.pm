@@ -79,12 +79,21 @@ OPTIONS FOR BACKTESTER:
    -finish <end date in YYYY-MM-DD>
    -entry <rule file>
    -exit <rule file>
+
+
+OPTIONS FOR SCREENER:
+
+   -list <ticker list file>
+   -screen <rule file>
+   -date <screen date in YYYY-MM-DD>
    
 
 AVAILABLE INDICATORS:
-   
+  
 
-
+   Relative Strength Index      RSI<period>
+   Bollinger Bands              BOLLINGER_UPPER | BOLLINGER_LOWER<period>,<deviations>
+   Average True Range           ATR<period>
 
 .
 
