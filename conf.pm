@@ -94,7 +94,7 @@ AVAILABLE INDICATORS:
    Relative Strength Index      RSI<period>
    Bollinger Bands              BOLLINGER_UPPER | BOLLINGER_LOWER<period>,<deviations>
    Average True Range           ATR<period>
-
+   Williams %R                  WILLIAMS_R<period>
 .
 
 

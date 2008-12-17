@@ -338,12 +338,13 @@ sub compute_atr {
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
     
-    @highs = splice @highs, 0, $period + 1;
-    @lows = splice @lows, 0, $period + 1;
-    @closes = splice @closes, 0, $period + 1;
+    @highs = splice @highs, -($period + 1);
+    @lows = splice @lows, -($period + 1);
+    @closes = splice @closes, -($period + 1);
 
     my ($rcode, $start, $atr) = TA_ATR(0, $period, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
+    print "\n$current_prices->[0][0] $value_cache{$n}";
     return $atr->[0];
 }
 
