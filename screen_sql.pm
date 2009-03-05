@@ -156,7 +156,7 @@ sub cache_ticker_history {
     $pull_sql->execute($ticker, $sdate, $edate);
 
     my $href = $pull_sql->fetchall_arrayref();
- #   process_splits($sdate, $edate, $href);
+#    process_splits($sdate, $edate, $href);
     $history_cache{$ticker} = $href
 }    
 
@@ -177,12 +177,11 @@ sub process_splits {
 	for($i = $ind + 1; $i < @$hist; $i++) {
 
 	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
-	    $ref = $hist->[$i];
-	    splice @$ref, 2, 4, @tt;
+	    splice @{$hist->[$i]}, 2, 4, @tt;
 
 #	    print "\n --- ";
 #	    foreach $c (@$hist->[$i]) {
-#		print "$c->[2] $c->[3] $c->[4] $c->[5]";
+#		print "$c->[1] $c->[2] $c->[3] $c->[4] $c->[5]";
 #	    }
 	}
     }
