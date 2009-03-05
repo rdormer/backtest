@@ -1,5 +1,4 @@
 use DBI;
-use Date::Manip;
 use Date::Business;
 
 
@@ -7,7 +6,6 @@ my $history_table = "historical";
 my $fundamental_table = "fundamentals";
 
 my $pull_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
-
 my $cache_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
 
 #these have to stay non-local for indicators.pm to work
@@ -110,6 +108,8 @@ sub pull_ticker_history {
 	$pull_sql->execute($current_ticker, $current_date, $maximum);
 	$current_prices = $pull_sql->fetchall_arrayref();
 	pull_fundamental();
+
+#	process_splits(days_ago($current_date, $maximum), $current_date, $current_prices);
     }
 
     %value_cache = ();
@@ -121,21 +121,8 @@ sub pull_from_cache {
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
 
-    my $low = 0;
     my $high = @$current_prices - 1;
-
-    while($low < $high) {
-
-	$mid = int(($low + $high) / 2);
-
-	$buf = fetch_date_at($mid);
-
-	if($buf gt $current_date) {
-	    $low = $mid + 1;
-	} else {
-	    $high = $mid;
-	}
-    }
+    my $low = search_array_date($current_date, $current_prices);
 
     if(fetch_date_at($low) ne $current_date) {
 
@@ -161,10 +148,84 @@ sub cache_ticker_history {
     $sd->subb($max_limit + 1);
     $sdate = $sd->image();
 
+    substr $sdate, 4, 0, "-";
+    substr $sdate, 7, 0, "-";
+    my $edate = $date_range[@date_range - 1];
+
     $pull_sql = $dbh->prepare($cache_cmd);
-    $pull_sql->execute($ticker, UnixDate($sdate, "%Y-%m-%d"), $date_range[@date_range - 1]);
-    $history_cache{$ticker} = $pull_sql->fetchall_arrayref();
+    $pull_sql->execute($ticker, $sdate, $edate);
+
+    my $href = $pull_sql->fetchall_arrayref();
+ #   process_splits($sdate, $edate, $href);
+    $history_cache{$ticker} = $href
 }    
+
+sub process_splits {
+
+    my $start_date = shift;
+    my $end_date = shift;
+    my $hist = shift;
+
+    $split_sql = $dbh->prepare("select date,bef,after from splits where ticker=? and date <= ? and date >= ?");
+    $split_sql->execute($current_ticker, $end_date, $start_date);
+
+    $splitlist = $split_sql->fetchall_arrayref();
+    foreach $split (@$splitlist) {
+
+	$ind = search_array_date(@$split[0], $hist);
+	$splitratio = @$split[1] / @$split[2];
+	for($i = $ind + 1; $i < @$hist; $i++) {
+
+	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
+	    $ref = $hist->[$i];
+	    splice @$ref, 2, 4, @tt;
+
+#	    print "\n --- ";
+#	    foreach $c (@$hist->[$i]) {
+#		print "$c->[2] $c->[3] $c->[4] $c->[5]";
+#	    }
+	}
+    }
+}
+
+sub days_ago {
+
+    my $d = shift;
+
+    $d =~ s/-//g;
+    my $date = new Date::Business(DATE => $d);
+    $date->subb(shift);
+    
+    my $rval = $date->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";
+
+    return $rval;
+}
+
+sub search_array_date {
+
+    my $target = shift;
+    my $array = shift;
+
+    my $low = 0;
+    my $high = @$array - 1;
+
+    while($low < $high) {
+
+	$mid = int(($low + $high) / 2);
+
+	$buf = $array->[$mid][1];
+
+	if($buf gt $target) {
+	    $low = $mid + 1;
+	} else {
+	    $high = $mid;
+	}
+    }
+
+    return $low;
+}
 
 sub clear_history_cache {
     delete $history_cache{shift};
@@ -320,7 +381,6 @@ sub set_pull_limit {
     $lim = shift;
     $max_limit = $lim if $lim > $max_limit;
 }
-
 
 sub parse_two_dates {
 
