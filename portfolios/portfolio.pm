@@ -61,16 +61,22 @@ sub calculate_position_count {
 
 sub add_positions {
 
+    my $sharecount = 0;
+
     foreach $ticker (@_) {
 
 	if(positions_available() && ! exists $positions{$ticker} ) {
 
-	    $price = get_entry_price($ticker);
-	    next if $price <= 0;
-
 	    cache_ticker_history($ticker);
+	    current_from_cache($ticker);
+	    $dindex = search_array_date(get_exit_date(), $current_prices);
+	    $price = fetch_open_at($dindex);
 
-	    my $sharecount = int($position_size / $price);
+	    if($price > 0) {
+		$sharecount = int($position_size / $price);
+	    } else {
+		$sharecount = 0;
+	    }
 
 	    if($sharecount >= 1) {
 
@@ -79,8 +85,10 @@ sub add_positions {
 		$positions{$ticker}{'shares'} = $sharecount;
 		$positions{$ticker}{'start'} = $price;
 		$positions{$ticker}{'mae'} = $price;
-
 		$current_cash -= $sharecount * $price;
+
+	    } else {
+		clear_history_cache($ticker);
 	    }
 	}
     }
@@ -144,7 +152,11 @@ sub update_positions {
 
 sub sell_position {
     $ticker = shift;
-    end_position($ticker, get_exit_price($ticker), get_exit_date());
+
+    $dindex = search_array_date(get_exit_date(), $current_prices);
+    $price = fetch_open_at($dindex);
+
+    end_position($ticker, $price, get_exit_date());
 }
 
 sub stop_position {

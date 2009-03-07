@@ -109,7 +109,7 @@ sub pull_ticker_history {
 	$current_prices = $pull_sql->fetchall_arrayref();
 	pull_fundamental();
 
-#	process_splits(days_ago($current_date, $maximum), $current_date, $current_prices);
+	process_splits($current_ticker, days_ago($current_date, $maximum), $current_date, $current_prices);
     }
 
     %value_cache = ();
@@ -137,6 +137,10 @@ sub pull_from_cache {
     $current_prices = [ @$current_prices[$low..$start] ];
 }
 
+sub current_from_cache {
+    my $t = shift;
+    $current_prices = $history_cache{$t};
+}
 
 sub cache_ticker_history {
 
@@ -156,33 +160,29 @@ sub cache_ticker_history {
     $pull_sql->execute($ticker, $sdate, $edate);
 
     my $href = $pull_sql->fetchall_arrayref();
-#    process_splits($sdate, $edate, $href);
+    process_splits($ticker, $sdate, $edate, $href);
     $history_cache{$ticker} = $href
 }    
 
 sub process_splits {
 
+    my $ticker = shift;
     my $start_date = shift;
     my $end_date = shift;
     my $hist = shift;
 
-    $split_sql = $dbh->prepare("select date,bef,after from splits where ticker=? and date <= ? and date >= ?");
-    $split_sql->execute($current_ticker, $end_date, $start_date);
-
+    $split_sql = $dbh->prepare("select date,bef,after from splits where ticker=? and date >= ? and date <= ?");
+    $split_sql->execute($ticker, $start_date, $end_date);
     $splitlist = $split_sql->fetchall_arrayref();
+
     foreach $split (@$splitlist) {
 
 	$ind = search_array_date(@$split[0], $hist);
-	$splitratio = @$split[1] / @$split[2];
-	for($i = $ind + 1; $i < @$hist; $i++) {
+	$splitratio = @$split[2] / @$split[1];
+	for($i = 0; $i <= $ind; $i++) {
 
 	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
 	    splice @{$hist->[$i]}, 2, 4, @tt;
-
-#	    print "\n --- ";
-#	    foreach $c (@$hist->[$i]) {
-#		print "$c->[1] $c->[2] $c->[3] $c->[4] $c->[5]";
-#	    }
 	}
     }
 }
@@ -247,29 +247,8 @@ sub current_ticker {
     return $current_ticker;
 }
 
-sub get_exit_price {
-    return get_price_at_date(shift, get_exit_date());
-}
-
-sub get_entry_price {
-    return get_price_at_date(shift, get_exit_date());
-}
-
-sub get_ending_price {
-    return get_price_at_date(shift, $date_range[@date_range - 1]);
-}
-
 sub get_exit_date {
     return $date_range[$date_index + 1];
-}
-
-sub get_price_at_date {
-
-    my $ticker = shift;
-    my $date = shift;
-    my @t = $dbh->selectrow_array("select open from $history_table where ticker='$ticker' and date >= '$date' order by date asc limit 1");
-
-    return $t[0];
 }
 
 sub get_splitadj_at_date {
