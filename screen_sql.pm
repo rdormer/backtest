@@ -121,13 +121,13 @@ sub pull_from_cache {
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
 
-    my $high = @$current_prices - 1;
+#    my $high = @$current_prices - 1;
     my $low = search_array_date($current_date, $current_prices);
 
     if(fetch_date_at($low) ne $current_date) {
 
 	$low = 0;
-	$low++ while(fetch_date_at($low) gt $current_date && $low < @$current_prices - 1);
+	$low++ while(fetch_date_at($low) gt $current_date && $low < $#{$current_prices});
     }
 
 #    $len = @$current_prices - 1;
@@ -177,8 +177,8 @@ sub process_splits {
 
     foreach $split (@$splitlist) {
 
-	$ind = search_array_date(@$split[0], $hist);
-	$splitratio = @$split[2] / @$split[1];
+	$ind = search_array_date($split->[0], $hist);
+	$splitratio = $split->[2] / $split->[1];
 	for($i = 0; $i <= $ind; $i++) {
 
 	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
@@ -208,7 +208,7 @@ sub search_array_date {
     my $array = shift;
 
     my $low = 0;
-    my $high = @$array - 1;
+    my $high = $#{$array};
 
     while($low < $high) {
 
@@ -235,7 +235,7 @@ sub current_index {
     my $i = 0;
 
     my $current = fetch_date_at($i);
-    while($current_date lt $current && $i < @$current_prices - 1) {
+    while($current_date lt $current && $i < $#{$current_prices}) {
 	$i++;
 	$current = fetch_date_at($i);
     }
