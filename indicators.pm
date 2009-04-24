@@ -492,9 +492,8 @@ sub compute_bop {
     @highs = map @$_->[3], @$current_prices;
     @lows = map @$_->[4], @$current_prices;
     @closes = map @$_->[5], @$current_prices;
-    $len = @closes - 1;
 
-    my ($rcode, $start, $bop) = TA_BOP(0, $len, \@opens, \@highs, \@lows, \@closes);
+    my ($rcode, $start, $bop) = TA_BOP(0, $#closes, \@opens, \@highs, \@lows, \@closes);
 
     $value_cache{$n} = $bop->[0];
     return $bop->[0];
@@ -511,9 +510,8 @@ sub compute_adx {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
 
-    my ($rcode, $start, $adx) = TA_ADX(0, $len, \@highs, \@lows, \@closes, $period);
+    my ($rcode, $start, $adx) = TA_ADX(0, $#closes, \@highs, \@lows, \@closes, $period);
 
     $final = @$adx - 1;
     $value_cache{$n} = $adx->[$final];
@@ -531,9 +529,8 @@ sub compute_adx_r {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
 
-    my ($rcode, $start, $adxr) = TA_ADXR(0, $len, \@highs, \@lows, \@closes, $period);
+    my ($rcode, $start, $adxr) = TA_ADXR(0, $#closes, \@highs, \@lows, \@closes, $period);
 
     $final = @$adxr - 1;
     $value_cache{$n} = $adxr->[$final];
@@ -596,11 +593,10 @@ sub compute_acceleration_bands {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    my $len = @closes - 1;
 
-    my ($rcode, $start, $uband, $midband, $lband) = TA_ACCBANDS(0, $len, \@highs, \@lows, \@closes, $per);
+    my ($rcode, $start, $uband, $midband, $lband) = TA_ACCBANDS(0, $#closes, \@highs, \@lows, \@closes, $per);
 
-    "\n$len $uband->[0] $midband->[0] $lband->[0]";
+    "\n$#closes $uband->[0] $midband->[0] $lband->[0]";
 
     $value_cache{$per . "accbandl"} = $lband->[0];
     $value_cache{$per . "accbandm"} = $midband->[0];
@@ -637,9 +633,8 @@ sub compute_fast_stoch {
     @highs = reverse map @$_->[3], @$current_prices;
     @lows = reverse map @$_->[4], @$current_prices;
     @closes = reverse map @$_->[5], @$current_prices;
-    $len = @closes - 1;
 
-    my ($rcode, $start, $fast_k, $fast_d) = TA_STOCHF(0, $len, \@highs, \@lows, \@closes, $k_period, $d_period, $TA_MAType_SMA);
+    my ($rcode, $start, $fast_k, $fast_d) = TA_STOCHF(0, $#closes, \@highs, \@lows, \@closes, $k_period, $d_period, $TA_MAType_SMA);
 
     $len = @$fast_d - 1;
     $value_cache{"faststochk$k_period"} = $fast_k->[$len];
@@ -677,9 +672,8 @@ sub compute_aroon {
 
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
-    $len = @highs - 1;
 
-    my ($rcode, $start, $down, $up) = TA_AROON(0, $len, \@highs, \@lows, $period);
+    my ($rcode, $start, $down, $up) = TA_AROON(0, $#highs, \@highs, \@lows, $period);
 
     $len = @$up - 1;
     $value_cache{"aroonup$period"} = $up->[$len];
@@ -698,9 +692,8 @@ sub compute_aroon_osc {
 
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
-    $len = @highs - 1;
 
-    my ($rcode, $start, $osc) = TA_AROONOSC(0, $len, \@highs, \@lows, $period);
+    my ($rcode, $start, $osc) = TA_AROONOSC(0, $#highs, \@highs, \@lows, $period);
     $value_cache{"aroono$period"} = $osc->[0];
     return $osc->[0];
 }

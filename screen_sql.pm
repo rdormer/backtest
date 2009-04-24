@@ -63,7 +63,7 @@ sub next_test_day {
 	return 1;
     }
 
-    $current_date = $date_range[@date_range - 1];
+    $current_date = $date_range[$#date_range];
     return 0;
 }
 
@@ -154,7 +154,7 @@ sub cache_ticker_history {
 
     substr $sdate, 4, 0, "-";
     substr $sdate, 7, 0, "-";
-    my $edate = $date_range[@date_range - 1];
+    my $edate = $date_range[$#date_range];
 
     $pull_sql = $dbh->prepare($cache_cmd);
     $pull_sql->execute($ticker, $sdate, $edate);
@@ -264,7 +264,7 @@ sub change_over_period {
 
     my $ticker = shift;
     my $start = get_splitadj_at_date($ticker, $date_range[0]);
-    my $end = get_splitadj_at_date($ticker, $date_range[@date_range - 1]);
+    my $end = get_splitadj_at_date($ticker, $date_range[$#date_range]);
 
     if($start > 0) {
 	return (($end - $start) / $start) * 100;
