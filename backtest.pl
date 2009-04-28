@@ -11,10 +11,11 @@ eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
 
 init_sql();
-parse_screen(conf::enter_sig());
-init_portfolio(conf::exit_sig());
-do_initial_sweep(conf::list());
+@long_exit = parse_screen(conf::exit_sig());
+@long_actions = parse_screen(conf::enter_sig());
 set_date_range(conf::start(), conf::finish());
+do_initial_sweep(conf::list());
+init_portfolio(@long_exit);
 
 while(next_test_day()) {
 
@@ -41,7 +42,7 @@ sub run_screen_loop() {
     init_filter();
 
     foreach $ticker (@ticker_list) {
-	filter_results($ticker) if pull_ticker_history($ticker);
+	filter_results($ticker, @long_actions) if pull_ticker_history($ticker);
 	break if @result_list >= positions_available();
     }
 

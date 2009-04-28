@@ -32,6 +32,8 @@ sub enter_sig { return $configure_info{'-entry'}; }
 sub exit_sig { return $configure_info{'-exit'}; }
 sub start { return $configure_info{'-start'}; }
 sub finish { return $configure_info{'-finish'}; }
+sub short_enter_sig { return $configure_info{'-short-entry'}; }
+sub short_exit_sig { return $configure_info{'-short-exit'}; }
 
 sub portfolio { 
     return $configure_info{'-portfolio'} if exists $configure_info{'-portfolio'};

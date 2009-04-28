@@ -35,18 +35,9 @@ my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" =
 		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
 );
 
-my @action_list;
 my @result_list;
 my $current_action;
 my @token_list;
-
-sub set_actions {
-
-    @rval = @action_list;
-    $t = shift;
-    @action_list = @$t;
-    return \@rval;
-}
 
 sub tokenize {
 
@@ -89,7 +80,7 @@ sub next_token {
 sub parse_screen {
 
     $t = screen_from_file(shift);
-    @action_list = @$t;
+    return @$t;
 }
 
 
@@ -202,11 +193,13 @@ sub init_filter {
 
 sub filter_results {
 
-    foreach $action (@action_list) {
+    my $ticker = shift;
+
+    foreach $action (@_) {
 	return if not eval($action);
     }
 
-    push @result_list, shift;
+    push @result_list, $ticker;
 }
 
 sub do_final_actions {

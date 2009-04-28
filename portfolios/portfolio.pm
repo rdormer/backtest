@@ -35,8 +35,7 @@ sub init_portfolio {
     calculate_position_count();
     calculate_position_size($current_cash);
 
-    $t = screen_from_file(shift);
-    @actions = @$t;
+    @actions = @_;
 }
 
 
@@ -101,7 +100,6 @@ sub update_positions {
 
     @temp = keys %positions;
     @tlist = @ {set_ticker_list(\@temp)};
-    @tact = @ {set_actions(\@actions)};
 
     init_filter();
 
@@ -115,7 +113,7 @@ sub update_positions {
     my $equity = 0;
     foreach $ticker (@temp) {
 	if(pull_ticker_history($ticker)) {
-	    if(filter_results($ticker)) {
+	    if(filter_results($ticker, @actions)) {
 		sell_position($ticker);
 	    } else {
 
@@ -147,7 +145,6 @@ sub update_positions {
     }
 
     set_ticker_list(\@tlist);
-    set_actions(\@tact);
 }
 
 sub sell_position {
