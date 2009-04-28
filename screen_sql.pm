@@ -334,11 +334,13 @@ sub build_sweep_statement {
 
 sub do_initial_sweep {
 
+    my $file = shift;
     my $sweep_results;
 
     $sweep_statement = build_sweep_statement();
 
-    open(INFILE, shift);
+    die "Couldn't open $file" if (! -e $file);
+    open(INFILE, $file);
 
     if($sweep_statement) {
 	$sweep_sql = $dbh->prepare($sweep_statement);
