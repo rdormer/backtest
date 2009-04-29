@@ -28,6 +28,9 @@ my $discards;
 
 sub init_portfolio {
 
+    my $longexits = shift;
+    my $shortexits = shift;
+
     $risk_percent = conf::risk_percent();
     $starting_cash = conf::startwith();
     $current_cash = $starting_cash;
@@ -35,7 +38,7 @@ sub init_portfolio {
     calculate_position_count();
     calculate_position_size($current_cash);
 
-    @actions = @_;
+    @actions = @$longexits;
 }
 
 
@@ -61,8 +64,10 @@ sub calculate_position_count {
 sub add_positions {
 
     my $sharecount = 0;
+    my $longs = shift;
+    my $shorts = shift;
 
-    foreach $ticker (@_) {
+    foreach $ticker (@$longs) {
 
 	if(positions_available() && ! exists $positions{$ticker} ) {
 

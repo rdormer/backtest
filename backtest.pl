@@ -15,7 +15,6 @@ init_sql();
 if(conf::long_positions()) {
     @long_exit = parse_screen(conf::exit_sig());
     @long_actions = parse_screen(conf::enter_sig());
-    init_portfolio(@long_exit);
 }
 
 if(conf::short_positions()) {
@@ -23,21 +22,16 @@ if(conf::short_positions()) {
     @short_actions = parse_screen(conf::short_enter_sig());
 }
 
+init_portfolio(\@long_exit, \@short_exit);
 set_date_range(conf::start(), conf::finish());
 do_initial_sweep(conf::list());
 
 while(next_test_day()) {
 
     if(positions_available()) {
-
-	if(conf::long_positions()) {
-	    @candidates = run_screen_loop(@long_actions);
-	    add_positions(@candidates);
-	}
-
-	if(conf::short_positions()) {
-	    @candidates = run_screen_loop(@short_actions);
-	}
+	@longs = run_screen_loop(@long_actions) if conf::long_positions();
+	@shorts = run_screen_loop(@short_actions) if conf::short_positions();
+	add_positions(\@longs, \@shorts);
     }
 
     update_positions();
