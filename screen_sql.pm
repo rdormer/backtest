@@ -120,8 +120,6 @@ sub pull_from_cache {
 
     my $ticker = shift;
     $current_prices = $history_cache{$ticker};
-
-#    my $high = @$current_prices - 1;
     my $low = search_array_date($current_date, $current_prices);
 
     if(fetch_date_at($low) ne $current_date) {
@@ -129,9 +127,6 @@ sub pull_from_cache {
 	$low = 0;
 	$low++ while(fetch_date_at($low) gt $current_date && $low < $#{$current_prices});
     }
-
-#    $len = @$current_prices - 1;
-#    $current_prices = [ @$current_prices[$low..$len] ];
 
     $start = $low + $max_limit;
     $current_prices = [ @$current_prices[$low..$start] ];

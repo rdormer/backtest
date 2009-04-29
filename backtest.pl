@@ -11,18 +11,33 @@ eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
 
 init_sql();
-@long_exit = parse_screen(conf::exit_sig());
-@long_actions = parse_screen(conf::enter_sig());
+
+if(conf::long_positions()) {
+    @long_exit = parse_screen(conf::exit_sig());
+    @long_actions = parse_screen(conf::enter_sig());
+    init_portfolio(@long_exit);
+}
+
+if(conf::short_positions()) {
+    @short_exit = parse_screen(conf::short_exit_sig());
+    @short_actions = parse_screen(conf::short_enter_sig());
+}
+
 set_date_range(conf::start(), conf::finish());
 do_initial_sweep(conf::list());
-init_portfolio(@long_exit);
 
 while(next_test_day()) {
 
     if(positions_available()) {
 
-	@candidates = run_screen_loop();
-	add_positions(@candidates);
+	if(conf::long_positions()) {
+	    @candidates = run_screen_loop(@long_actions);
+	    add_positions(@candidates);
+	}
+
+	if(conf::short_positions()) {
+	    @candidates = run_screen_loop(@short_actions);
+	}
     }
 
     update_positions();
@@ -42,7 +57,7 @@ sub run_screen_loop() {
     init_filter();
 
     foreach $ticker (@ticker_list) {
-	filter_results($ticker, @long_actions) if pull_ticker_history($ticker);
+	filter_results($ticker, @_) if pull_ticker_history($ticker);
 	break if @result_list >= positions_available();
     }
 

@@ -34,6 +34,9 @@ sub start { return $configure_info{'-start'}; }
 sub finish { return $configure_info{'-finish'}; }
 sub short_enter_sig { return $configure_info{'-short-entry'}; }
 sub short_exit_sig { return $configure_info{'-short-exit'}; }
+sub long_positions{ return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
+sub short_positions{ return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
+
 
 sub portfolio { 
     return $configure_info{'-portfolio'} if exists $configure_info{'-portfolio'};
@@ -65,10 +68,15 @@ sub draw_curve {
 
 sub check_backtest_args {
 
+    die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-exit'} and exists $configure_info{'-short-entry'};
+    die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-entry'} and exists $configure_info{'-short-exit'};
+
     die "missing -list (ticker list file)" if not exists $configure_info{'-list'};
     die "missing -start (start date)" if not exists $configure_info{'-start'};
-    die "missing -entry (entry signal)" if not exists $configure_info{'-entry'};
-    die "missing -exit (exit signal)" if not exists $configure_info{'-exit'};
+    die "missing -entry (entry signal)" if not exists $configure_info{'-entry'} and long_positions();
+    die "missing -exit (exit signal)" if not exists $configure_info{'-exit'} and long_positions();
+    die "missing -short-exit (exit signal)" if not exists $configure_info{'-short-exit'} and exists $configure_info{'-short-entry'} and short_positions();
+    die "missing -short-entry (entry signal)" if not exists $configure_info{'-short-entry'} and exists $configure_info{'-short-exit'} and short_positions();
 }
 
 
@@ -81,6 +89,8 @@ OPTIONS FOR BACKTESTER:
    -finish <end date in YYYY-MM-DD>
    -entry <rule file>
    -exit <rule file>
+   -short-exit <rule file>
+   -short-entry <rule file>
 
 
 OPTIONS FOR SCREENER:
