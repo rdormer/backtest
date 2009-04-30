@@ -1,7 +1,6 @@
 use macro_expander;
 use screen_sql;
 use Charting;
-use Date::Manip;
 use POSIX;
 use conf;
 
@@ -9,7 +8,8 @@ eval "use strategies::" . conf::strategy();
 
 my %positions;
 my @trade_history;
-my @actions;
+my @long_exits;
+my @short_exits;
 
 my @equity_curve;
 
@@ -38,7 +38,8 @@ sub init_portfolio {
     calculate_position_count();
     calculate_position_size($current_cash);
 
-    @actions = @$longexits;
+    @long_exits = @$longexits;
+    @short_exits = @$shortexits;
 }
 
 
@@ -67,35 +68,58 @@ sub add_positions {
     my $longs = shift;
     my $shorts = shift;
 
-    foreach $ticker (@$longs) {
+    foreach (@$longs) {
 
-	if(positions_available() && ! exists $positions{$ticker} ) {
-
-	    cache_ticker_history($ticker);
-	    current_from_cache($ticker);
-	    $dindex = search_array_date(get_exit_date(), $current_prices);
-	    $price = fetch_open_at($dindex);
-
-	    if($price > 0) {
-		$sharecount = int($position_size / $price);
-	    } else {
-		$sharecount = 0;
-	    }
-
-	    if($sharecount >= 1) {
-
-		$positions{$ticker}{'stop'} = initial_stop($price);
-		$positions{$ticker}{'sdate'} = get_exit_date();
-		$positions{$ticker}{'shares'} = $sharecount;
-		$positions{$ticker}{'start'} = $price;
-		$positions{$ticker}{'mae'} = $price;
-		$current_cash -= $sharecount * $price;
-
-	    } else {
-		clear_history_cache($ticker);
-	    }
+	if(positions_available() && ! exists $positions{$_} ) {
+	    start_long_position($_);
 	}
     }
+}
+
+sub start_long_position {
+
+    if(start_position($_[0])) {
+	$current_cash -= $sharecount * $price;
+	$positions{$_[0]}{'short'} = false;
+    }
+}
+
+sub start_short_position {
+
+    if(start_position($_[0])) {
+	$current_cash += $sharecount * $price;
+	$positions{$_[0]}{'short'} = true;
+    }
+}
+
+sub start_position {
+
+    my $ticker = shift;
+    
+    cache_ticker_history($ticker);
+    current_from_cache($ticker);
+    $dindex = search_array_date(get_exit_date(), $current_prices);
+    $price = fetch_open_at($dindex);
+
+    if($price > 0) {
+	$sharecount = int($position_size / $price);
+    } else {
+	$sharecount = 0;
+    }
+
+    if($sharecount >= 1) {
+
+	$positions{$ticker}{'stop'} = initial_stop($price);
+	$positions{$ticker}{'sdate'} = get_exit_date();
+	$positions{$ticker}{'shares'} = $sharecount;
+	$positions{$ticker}{'start'} = $price;
+	$positions{$ticker}{'mae'} = $price;
+	
+    } else {
+	clear_history_cache($ticker);
+    }
+
+    return $sharecount >= 1;
 }
 
 
@@ -118,7 +142,7 @@ sub update_positions {
     my $equity = 0;
     foreach $ticker (@temp) {
 	if(pull_ticker_history($ticker)) {
-	    if(filter_results($ticker, @actions)) {
+	    if(filter_results($ticker, @long_exits)) {
 		sell_position($ticker);
 	    } else {
 
