@@ -13,7 +13,7 @@ if(conf::date()) {
 }
 
 init_sql();
-parse_screen(conf::screen());
+@actions = parse_screen(conf::screen());
 
 do_initial_sweep(conf::list());
 @results = run_screen_loop();
@@ -32,7 +32,7 @@ sub run_screen_loop() {
 
     foreach $ticker (@ticker_list) {
 	pull_ticker_history($ticker);
-	filter_results($ticker);
+	filter_results($ticker, @actions);
     }
 
     my @results = do_final_actions();
