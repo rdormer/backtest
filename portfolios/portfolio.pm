@@ -80,7 +80,8 @@ sub start_long_position {
 
     if(start_position($_[0])) {
 	$current_cash -= $sharecount * $price;
-	$positions{$_[0]}{'short'} = false;
+	$positions{$_[0]}{'short'} = 0;
+	$positions{$_[0]}{'exit'} = \@long_exits;
     }
 }
 
@@ -88,7 +89,8 @@ sub start_short_position {
 
     if(start_position($_[0])) {
 	$current_cash += $sharecount * $price;
-	$positions{$_[0]}{'short'} = true;
+	$positions{$_[0]}{'short'} = 1;
+	$positions{$_[0]}{'exit'} = \@short_exits;
     }
 }
 
@@ -142,7 +144,7 @@ sub update_positions {
     my $equity = 0;
     foreach $ticker (@temp) {
 	if(pull_ticker_history($ticker)) {
-	    if(filter_results($ticker, @long_exits)) {
+	    if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
 		sell_position($ticker);
 	    } else {
 
@@ -211,15 +213,19 @@ sub end_position {
     }
 
     $price = adjust_for_slippage($price);
+    $amt = $positions{$target}{'shares'} * $price;
+    $current_cash -= $amt if $positions{$target}{'short'};
+    $current_cash += $amt if ! $positions{$target}{'short'};
 
     $positions{$target}{'end'} = $price;
     $positions{$target}{'edate'} = $edate;
+
     $ret = ($positions{$target}{'end'} - $positions{$target}{'start'}) / $positions{$target}{'start'};
+    $ret = abs($ret) if $positions{$target}{'short'};
+
     $positions{$target}{'return'} = $ret * 100;
     $positions{$target}{'ticker'} = $target;
-
     delete $positions{$target}{'mae'} if $ret <= 0;
-    $current_cash += $positions{$target}{'shares'} * $price;
 
     push @trade_history, $positions{$target};
     clear_history_cache($target);
@@ -233,7 +239,7 @@ sub get_total_equity {
     my $index = 0;#current_index();
     foreach (keys %positions) {
 	pull_ticker_history($_);
-	$total_equity += (fetch_close_at($index) * $positions{$_}{'shares'});
+	$total_equity += (fetch_close_at($index) * $positions{$_}{'shares'}) if ! $positions{$_}{'short'};
     }
 
     return $total_equity;
