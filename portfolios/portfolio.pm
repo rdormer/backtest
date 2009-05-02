@@ -24,6 +24,7 @@ my $max_drawdown;
 my $max_drawdown_len;
 my $drawdown_days;
 
+my $cur_ticker_index;
 my $discards;
 
 sub init_portfolio {
@@ -69,7 +70,6 @@ sub add_positions {
     my $shorts = shift;
 
     foreach (@$longs) {
-
 	if(positions_available() && ! exists $positions{$_} ) {
 	    start_long_position($_);
 	}
@@ -149,11 +149,10 @@ sub update_positions {
 	    } else {
 
 		update_stop(\%positions, $ticker);
-		$low = fetch_low_at(current_index());
+		$cur_ticker_index = current_index();
+		$low = fetch_low_at($cur_ticker_index);
 
-		if($positions{$ticker}{'stop'} >= $low) {
-		    stop_position($ticker);
-		} else {
+		if(! stop_position($ticker, $low)) {
 		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
@@ -179,24 +178,29 @@ sub update_positions {
 }
 
 sub sell_position {
-    $ticker = shift;
 
     $dindex = search_array_date(get_exit_date(), $current_prices);
     $price = fetch_open_at($dindex);
-
-    end_position($ticker, $price, get_exit_date());
+    end_position(shift, $price, get_exit_date());
 }
 
 sub stop_position {
 
     $ticker = shift;
-    $cur = current_index();
+    $price = shift;
 
-    if(fetch_open_at($cur) < $positions{$ticker}{'stop'}) {
-	end_position($ticker, fetch_open_at($cur), fetch_date_at($cur));
-    } else {
-	end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur));
+    if($positions{$ticker}{'stop'} >= $price) {
+
+	if(fetch_open_at($cur_ticker_index) < $positions{$ticker}{'stop'}) {
+	    end_position($ticker, fetch_open_at($cur_ticker_index), fetch_date_at($cur_ticker_index));
+	} else {
+	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur_ticker_index));
+	}
+
+	return 1;
     }
+
+    return 0;
 }
 
 sub end_position {
