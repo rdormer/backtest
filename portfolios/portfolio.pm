@@ -153,7 +153,7 @@ sub update_positions {
 		$low = fetch_low_at($cur_ticker_index);
 
 		if(! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
+		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'}) if ! $positions{$ticker}{'short'};
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
 	    }
@@ -186,12 +186,27 @@ sub sell_position {
 
 sub stop_position {
 
-    $ticker = shift;
-    $price = shift;
+    my $ticker = shift;
+    my $price = shift;
 
-    if($positions{$ticker}{'stop'} >= $price) {
+    #for long positions, if the low of the day was below the stop, we're stopped out
+    if(! $positions{$ticker}{'short'} && $positions{$ticker}{'stop'} >= $price) {
 
+	#if open was less than the stop we have to sell at the open
 	if(fetch_open_at($cur_ticker_index) < $positions{$ticker}{'stop'}) {
+	    end_position($ticker, fetch_open_at($cur_ticker_index), fetch_date_at($cur_ticker_index));
+	} else {
+	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur_ticker_index));
+	}
+
+	return 1;
+    }
+
+    #for short positions, if the high of the day was above the stop, we're stopped out
+    if($positions{$ticker}{'short'} && $positions{$ticker}{'stop'} <= $price) {
+
+	#if open was more than the stop we have to sell at the open
+	if(fetch_open_at($cur_ticker_index) > $positions{$ticker}{'stop'}) {
 	    end_position($ticker, fetch_open_at($cur_ticker_index), fetch_date_at($cur_ticker_index));
 	} else {
 	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur_ticker_index));
