@@ -6,7 +6,13 @@ sub update_cash_balance {
 sub initial_stop {
 
     my $initial_price = shift;
-    return $initial_price * 0.9;
+    my $isshort = shift;
+
+    if($isshort) {
+	return $initial_price * 1.1;
+    } else {
+	return $initial_price * 0.9;
+    }
 }
 
 sub update_stop {

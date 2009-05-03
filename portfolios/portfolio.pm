@@ -65,7 +65,6 @@ sub calculate_position_count {
 
 sub add_positions {
 
-    my $sharecount = 0;
     my $longs = shift;
     my $shorts = shift;
 
@@ -82,6 +81,7 @@ sub start_long_position {
 	$current_cash -= $sharecount * $price;
 	$positions{$_[0]}{'short'} = 0;
 	$positions{$_[0]}{'exit'} = \@long_exits;
+	$positions{$_[0]}{'stop'} = initial_stop($price, 0);
     }
 }
 
@@ -91,6 +91,7 @@ sub start_short_position {
 	$current_cash += $sharecount * $price;
 	$positions{$_[0]}{'short'} = 1;
 	$positions{$_[0]}{'exit'} = \@short_exits;
+	$positions{$_[0]}{'stop'} = initial_stop($price, 1);
     }
 }
 
@@ -111,7 +112,6 @@ sub start_position {
 
     if($sharecount >= 1) {
 
-	$positions{$ticker}{'stop'} = initial_stop($price);
 	$positions{$ticker}{'sdate'} = get_exit_date();
 	$positions{$ticker}{'shares'} = $sharecount;
 	$positions{$ticker}{'start'} = $price;
@@ -154,7 +154,6 @@ sub update_positions {
 		$low = fetch_low_at($cur_ticker_index);
 		$high = fetch_high_at($cur_ticker_index);
 		$isshort = $positions{$ticker}{'short'};
-
 
 		if(! $isshort && ! stop_position($ticker, $low)) {
 		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
