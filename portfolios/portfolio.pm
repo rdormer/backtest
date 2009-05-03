@@ -97,7 +97,7 @@ sub start_short_position {
 sub start_position {
 
     my $ticker = shift;
-    
+
     cache_ticker_history($ticker);
     current_from_cache($ticker);
     $dindex = search_array_date(get_exit_date(), $current_prices);
@@ -143,6 +143,7 @@ sub update_positions {
 
     my $equity = 0;
     foreach $ticker (@temp) {
+
 	if(pull_ticker_history($ticker)) {
 	    if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
 		sell_position($ticker);
@@ -151,10 +152,17 @@ sub update_positions {
 		update_stop(\%positions, $ticker);
 		$cur_ticker_index = current_index();
 		$low = fetch_low_at($cur_ticker_index);
+		$high = fetch_high_at($cur_ticker_index);
+		$isshort = $positions{$ticker}{'short'};
 
-		if(! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'}) if ! $positions{$ticker}{'short'};
+
+		if(! $isshort && ! stop_position($ticker, $low)) {
+		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
+		} 
+
+		if($isshort && ! stop_position($ticker, $high)) {
+		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
 	    }
 	}
@@ -178,7 +186,6 @@ sub update_positions {
 }
 
 sub sell_position {
-
     $dindex = search_array_date(get_exit_date(), $current_prices);
     $price = fetch_open_at($dindex);
     end_position(shift, $price, get_exit_date());
