@@ -68,9 +68,18 @@ sub add_positions {
     my $longs = shift;
     my $shorts = shift;
 
-    foreach (@$longs) {
-	if(positions_available() && ! exists $positions{$_} ) {
-	    start_long_position($_);
+    my $longlen = scalar @$longs;
+    my $shortlen = scalar @$shorts;
+    my $len = $longlen > $shortlen ? $longlen : $shortlen;
+
+    for(my $i = 0; $i < $len; $i++) {
+
+	if($longlen > 0 && $longlen > $i && positions_available() && ! exists $positions{$longs->[$i]}) {
+	    start_long_position($longs->[$i]);
+	}
+
+	if($shortlen > 0 && $shortlen > $i && positions_available() && ! exists $positions{$shorts->[$i]}) {
+	    start_short_position($shorts->[$i]);
 	}
     }
 }

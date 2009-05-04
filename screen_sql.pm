@@ -139,7 +139,7 @@ sub current_from_cache {
 
 sub cache_ticker_history {
 
-    $ticker = shift;
+    my $ticker = shift;
 
     $s = $current_date;
     $s =~ s/-//g;
@@ -156,7 +156,7 @@ sub cache_ticker_history {
 
     my $href = $pull_sql->fetchall_arrayref();
     process_splits($ticker, $sdate, $edate, $href);
-    $history_cache{$ticker} = $href
+    $history_cache{$ticker} = $href;
 }    
 
 sub process_splits {
@@ -174,8 +174,7 @@ sub process_splits {
 
 	$ind = search_array_date($split->[0], $hist);
 	$splitratio = $split->[2] / $split->[1];
-	for($i = 0; $i <= $ind; $i++) {
-
+	for(my $i = 0; $i <= $ind; $i++) {
 	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
 	    splice @{$hist->[$i]}, 2, 4, @tt;
 	}
