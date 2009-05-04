@@ -96,8 +96,13 @@ sub start_long_position {
 
 sub start_short_position {
 
-    if(start_position($_[0])) {
-	$current_cash += $sharecount * $price;
+    my $poscash = $sharecount * $price;
+
+    if($current_cash > ($poscash * conf::initial_margin()) 
+       && $current_cash >= 2000 
+       && start_position($_[0])) {
+	
+	$current_cash += $poscash;
 	$positions{$_[0]}{'short'} = 1;
 	$positions{$_[0]}{'exit'} = \@short_exits;
 	$positions{$_[0]}{'stop'} = initial_stop($price, 1);

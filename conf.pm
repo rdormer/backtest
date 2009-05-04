@@ -37,6 +37,10 @@ sub short_exit_sig { return $configure_info{'-short-exit'}; }
 sub long_positions{ return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
 sub short_positions{ return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
 
+sub initial_margin {
+    return $configure_info{'-init-margin'} if exists $configure_info{'-init-margin'};
+    return 0.5;
+}
 
 sub portfolio { 
     return $configure_info{'-portfolio'} if exists $configure_info{'-portfolio'};
