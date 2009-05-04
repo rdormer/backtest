@@ -255,7 +255,7 @@ sub end_position {
     $positions{$target}{'edate'} = $edate;
 
     $ret = ($positions{$target}{'end'} - $positions{$target}{'start'}) / $positions{$target}{'start'};
-    $ret = abs($ret) if $positions{$target}{'short'};
+    $ret = -($ret) if $positions{$target}{'short'};
 
     $positions{$target}{'return'} = $ret * 100;
     $positions{$target}{'ticker'} = $target;
