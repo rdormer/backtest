@@ -42,6 +42,11 @@ sub initial_margin {
     return 0.5;
 }
 
+sub maint_margin {
+    return $configure_info{'-maint-margin'} if exists $configure_info{'-maint-margin'};
+    return 0.3;
+}
+
 sub portfolio { 
     return $configure_info{'-portfolio'} if exists $configure_info{'-portfolio'};
     return "portfolio";

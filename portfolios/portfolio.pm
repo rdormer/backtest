@@ -27,6 +27,8 @@ my $drawdown_days;
 my $cur_ticker_index;
 my $discards;
 
+my $total_margin_calls;
+
 sub init_portfolio {
 
     my $longexits = shift;
@@ -156,6 +158,8 @@ sub update_positions {
     $current_cash = update_cash_balance($current_cash);
 
     my $equity = 0;
+    my $shorted = 0;
+
     foreach $ticker (@temp) {
 
 	if(pull_ticker_history($ticker)) {
@@ -175,14 +179,22 @@ sub update_positions {
 		} 
 
 		if($isshort && ! stop_position($ticker, $high)) {
+		    $shorted += (fetch_close_at($index) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
 	    }
 	}
     }
 
+
     $equity += $current_cash;
     push @equity_curve,$equity;
+
+    if(($shorted * conf::maint_margin()) > $current_cash) {
+	my $val = $shorted * conf::maint_margin() - $current_cash;
+	$current_cash += $val;
+	$total_margin_calls += $val;
+    }
 
     if($equity > $max_equity) {
 	$max_equity = $equity;
@@ -322,6 +334,7 @@ sub print_portfolio_state {
     $total = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
     print "\n\ntotal: $total (return $ret)";
+    print "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;
     
     print "\nQQQQ buy and hold: " . change_over_period("QQQQ");
 
