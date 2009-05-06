@@ -11,7 +11,7 @@ my %seglenths;
 my @holidays;
 
 $dbh = DBI->connect("DBI:mysql:finance", "perldb");
-$pull = $dbh->prepare("select date,open,high,low,close,splitadj,volume from historical where ticker=? order by date desc");
+$pull = $dbh->prepare("select date,open,high,low,close,volume from historical where ticker=? order by date desc");
 open(INFILE, $ARGV[0]);
 
 while(<INFILE>) {

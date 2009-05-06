@@ -245,20 +245,18 @@ sub get_exit_date {
     return $date_range[$date_index + 1];
 }
 
-sub get_splitadj_at_date {
-
-    my $ticker = shift;
-    my $date = shift;
-    my @t = $dbh->selectrow_array("select splitadj from $history_table where ticker='$ticker' and date='$date'");
-
-    return $t[0];
-}
-
 sub change_over_period {
 
     my $ticker = shift;
     my $start = get_splitadj_at_date($ticker, $date_range[0]);
     my $end = get_splitadj_at_date($ticker, $date_range[$#date_range]);
+
+
+    my @t = $dbh->selectrow_array("select close from $history_table where ticker='$ticker' and date='$date_range[0]'");
+    my $start = $t[0];
+
+    @t = $dbh->selectrow_array("select close from $history_table where ticker='$ticker' and date='$date_range[$#date_range]'");
+    my $end = $t[0];
 
     if($start > 0) {
 	return (($end - $start) / $start) * 100;
