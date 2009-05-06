@@ -28,6 +28,7 @@ my $cur_ticker_index;
 my $discards;
 
 my $total_margin_calls;
+my $total_short_equity;
 
 sub init_portfolio {
 
@@ -98,16 +99,20 @@ sub start_long_position {
 
 sub start_short_position {
 
-    my $poscash = $sharecount * $price;
+    if($current_cash >= 2000 && start_position($_[0])) {
 
-    if($current_cash > ($poscash * conf::initial_margin()) 
-       && $current_cash >= 2000 
-       && start_position($_[0])) {
-	
-	$current_cash += $poscash;
-	$positions{$_[0]}{'short'} = 1;
-	$positions{$_[0]}{'exit'} = \@short_exits;
-	$positions{$_[0]}{'stop'} = initial_stop($price, 1);
+	#we have to check to see if this new position takes us over the initial margin
+	#requirement, and if it does, back out the trade
+
+	if($current_cash < $total_short_equity + ($sharecount * $price) * conf::initial_margin()) {
+	    delete $positions{$_[0]};
+	    clear_history_cache($ticker);
+	} else {
+	    $current_cash += $sharecount * $price;
+	    $positions{$_[0]}{'short'} = 1;
+	    $positions{$_[0]}{'exit'} = \@short_exits;
+	    $positions{$_[0]}{'stop'} = initial_stop($price, 1);
+	}
     }
 }
 
@@ -158,7 +163,7 @@ sub update_positions {
     $current_cash = update_cash_balance($current_cash);
 
     my $equity = 0;
-    my $shorted = 0;
+    $total_short_equity = 0;
 
     foreach $ticker (@temp) {
 
@@ -174,12 +179,12 @@ sub update_positions {
 		$isshort = $positions{$ticker}{'short'};
 
 		if(! $isshort && ! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at($index) * $positions{$ticker}{'shares'});
+		    $equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
 
 		if($isshort && ! stop_position($ticker, $high)) {
-		    $shorted += (fetch_close_at($index) * $positions{$ticker}{'shares'});
+		    $total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
 	    }
@@ -190,8 +195,8 @@ sub update_positions {
     $equity += $current_cash;
     push @equity_curve,$equity;
 
-    if(($shorted * conf::maint_margin()) > $current_cash) {
-	my $val = $shorted * conf::maint_margin() - $current_cash;
+    if(($total_short_equity * conf::maint_margin()) > $current_cash) {
+	my $val = $total_short_equity * conf::maint_margin() - $current_cash;
 	$current_cash += $val;
 	$total_margin_calls += $val;
     }
