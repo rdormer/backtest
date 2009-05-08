@@ -7,6 +7,7 @@ my $fundamental_table = "fundamentals";
 
 my $pull_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
 my $cache_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
+my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensinoal
@@ -17,6 +18,7 @@ my $cache_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $hi
 $current_prices;
 %value_cache;
 %current_fundamentals;
+%dividend_cache;
 
 my $dbh;
 my $max_limit;
@@ -157,7 +159,18 @@ sub cache_ticker_history {
     my $href = $pull_sql->fetchall_arrayref();
     process_splits($ticker, $sdate, $edate, $href);
     $history_cache{$ticker} = $href;
+    cache_dividends($ticker);
 }    
+
+sub cache_dividends {
+
+    my $ticker = shift;
+
+    $div_sql = $dbh->prepare($div_cmd);
+    $div_sql->execute($ticker, $current_date, $date_range[ $#date_range ]);
+    $dividend_cache{$ticker} = $div_sql->fetchall_hashref('date');
+}
+
 
 sub process_splits {
 
@@ -248,9 +261,6 @@ sub get_exit_date {
 sub change_over_period {
 
     my $ticker = shift;
-    my $start = get_splitadj_at_date($ticker, $date_range[0]);
-    my $end = get_splitadj_at_date($ticker, $date_range[$#date_range]);
-
 
     my @t = $dbh->selectrow_array("select close from $history_table where ticker='$ticker' and date='$date_range[0]'");
     my $start = $t[0];

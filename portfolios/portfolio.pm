@@ -30,6 +30,8 @@ my $discards;
 my $total_margin_calls;
 my $total_short_equity;
 
+my $dividend_payout;
+
 sub init_portfolio {
 
     my $longexits = shift;
@@ -168,6 +170,9 @@ sub update_positions {
     foreach $ticker (@temp) {
 
 	if(pull_ticker_history($ticker)) {
+
+	    update_balance_dividend($ticker);
+
 	    if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
 		sell_position($ticker);
 	    } else {
@@ -213,6 +218,24 @@ sub update_positions {
     }
 
     set_ticker_list(\@tlist);
+}
+
+sub update_balance_dividend {
+
+    my $ticker = shift;
+
+    if(exists $dividend_cache{$ticker} && exists $dividend_cache{$ticker}->{ get_date() }) {
+
+	my $div = $dividend_cache{$ticker}->{ get_date() }->{'divamt'};
+	my $payout = $positions{$ticker}{'shares'} * $div;
+
+	if($positions{$ticker}{'short'}) {
+	    $current_cash -= $payout;
+	} else {
+	    $current_cash += $payout;
+	    $dividend_payout += $payout;
+	}
+    }
 }
 
 sub sell_position {
@@ -340,6 +363,7 @@ sub print_portfolio_state {
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
     print "\n\ntotal: $total (return $ret)";
     print "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;
+    print "\nPaid out $dividend_payout in dividends" if $dividend_payout > 0;
     
     print "\nQQQQ buy and hold: " . change_over_period("QQQQ");
 
