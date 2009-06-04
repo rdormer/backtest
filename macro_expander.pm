@@ -96,17 +96,22 @@ sub screen_from_file {
     return \@rlist;
 }
 
-
 sub parse_scan {
 
     my $actions = shift;
+    my $add_function = sub { push @$actions, $current_action };
     $token = next_token();
 
     while($token ne ";") {
 
 	if(exists $noarg_macro_table{$token}) {
+
 	    $current_action .= "$noarg_macro_table{$token}";
-	    add_fundamental($token);
+	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
+		add_fundamental($token);
+		$add_function = sub { unshift @$actions, $current_action };
+	    }
+
 	} elsif(exists $arg_macro_table{$token}) {
 	    $current_action .= "$arg_macro_table{$token}(";
 	    capture_args($token);
@@ -119,7 +124,7 @@ sub parse_scan {
     }
 
     $current_action = "if($current_action) {return 1;} else {return 0;}";
-    push @$actions, $current_action;
+    $add_function->(@$actions, $current_action);
     $current_action = "";
 }
 

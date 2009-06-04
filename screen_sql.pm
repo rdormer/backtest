@@ -7,6 +7,7 @@ my $fundamental_table = "fundamentals";
 
 my $pull_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
 my $cache_cmd = "select ticker,date,open,high,low,close,splitadj,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
+my $fundamental_cmd = "select * from $fundamental_table where ticker=? and date <= ? order by date desc limit 1";
 my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
 
 #these have to stay non-local for indicators.pm to work
@@ -279,7 +280,7 @@ sub change_over_period {
 sub add_fundamental {
 
     if(! $pull_fundamentals) {
-	$pull_fundamentals = $dbh->prepare("select * from $fundamental_table where ticker=?");
+	$pull_fundamentals = $dbh->prepare($fundamental_cmd);
     }
 }
 
@@ -287,7 +288,7 @@ sub pull_fundamental {
 
     if($pull_fundamentals) {
 
-	$pull_fundamentals->execute($current_ticker);
+	$pull_fundamentals->execute($current_ticker, $current_date);
 	$ref = $pull_fundamentals->fetchrow_hashref;
 	%current_fundamentals = %$ref;
     }
