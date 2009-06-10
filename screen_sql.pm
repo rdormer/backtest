@@ -24,8 +24,8 @@ $current_prices;
 my $dbh;
 my $max_limit;
 
-my %table_list;
 my %history_cache;
+my @fundamental_list;
 
 my $current_date;
 my $date_index;
@@ -276,14 +276,6 @@ sub change_over_period {
     return -100;
 }
 
-
-sub add_fundamental {
-
-    if(! $pull_fundamentals) {
-	$pull_fundamentals = $dbh->prepare($fundamental_cmd);
-    }
-}
-
 sub pull_fundamental {
 
     if($pull_fundamentals) {
@@ -294,44 +286,32 @@ sub pull_fundamental {
     }
 }
 
-sub add_sweep_clause {
+sub add_fundamental {
 
-    $field = shift;
-    my %field_tables = (
-	 "position" => "relative_strength",
-	 "earnings" => "earnings",
-	 "eps" => "$fundamental_table"
-	 );
+    my $inp = shift;
+    my %replace_table = ("fundamental_eps.." => "fundamentals.eps",
+	"fundamental_egrowth.." => "fundamentals.qtrly_earnings_growth");
 
-    $table = $field_tables{$field};
-    $table_list{$table} = true;
+    if(! $pull_fundamentals) {
+	$pull_fundamentals = $dbh->prepare($fundamental_cmd);
+    }
+
+    foreach (keys %replace_table) {
+	$inp =~ s/$_/$replace_table{$_}/g;
+    }
+    
+    push @fundamental_list, $inp;
 }
 
 sub build_sweep_statement {
 
-    @tables = keys %table_list;
-    $statement = "select " . $tables[0] . ".ticker from ";
+    $statement = "select ticker from fundamentals where ";
 
-    foreach $table (@tables) {
-	$statement .= "$table, ";	
+    foreach (@fundamental_list) {
+	$statement .= " $_ and ";
     }
 
-    $statement = substr($statement, 0, length($statement) - 2); 
-
-    if(@tables > 1) {
-
-	$statement .= " where ";
-	for($i = 0; $i <= @tables - 2; $i++) {
-
-	    $statement .= $tables[$i] . ".ticker = ";
-	    $statement .= $tables[$i + 1] . ".ticker ";
-
-	    if(@tables > 2 && $i < @tables - 2) {
-		$statement .= " and ";
-	    }
-	}
-    }
-
+    $statement = substr $statement, 0, -4;
     return $statment;
 }
 

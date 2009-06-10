@@ -35,9 +35,10 @@ my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" =
 		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
 );
 
+my @token_list;
 my @result_list;
 my $current_action;
-my @token_list;
+
 
 sub tokenize {
 
@@ -99,8 +100,8 @@ sub screen_from_file {
 sub parse_scan {
 
     my $actions = shift;
-    my $add_function = sub { push @$actions, $current_action };
     $token = next_token();
+    my $add_function;
 
     while($token ne ";") {
 
@@ -108,13 +109,15 @@ sub parse_scan {
 
 	    $current_action .= "$noarg_macro_table{$token}";
 	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
-		add_fundamental($token);
-		$add_function = sub { unshift @$actions, $current_action };
+		$add_function = sub { add_with_sweep($actions, $current_action) };
 	    }
 
 	} elsif(exists $arg_macro_table{$token}) {
+
+	    $add_function  = sub { push @$actions, "if($current_action) {return 1} else {return 0}" };
 	    $current_action .= "$arg_macro_table{$token}(";
 	    capture_args($token);
+
 	} else {
 	    $current_action .= " $token";
 	}
@@ -123,8 +126,7 @@ sub parse_scan {
 	$token = next_token();
     }
 
-    $current_action = "if($current_action) {return 1;} else {return 0;}";
-    $add_function->(@$actions, $current_action);
+    $add_function->();
     $current_action = "";
 }
 
@@ -191,6 +193,15 @@ sub lookback_custom {
     set_pull_limit($pullval);
 }
 
+
+sub add_with_sweep {
+
+    $acts = shift;
+    $cur = shift;
+
+    add_fundamental($cur);
+    unshift @$acts, $cur;
+}
 
 sub init_filter {
     @result_list = ();
