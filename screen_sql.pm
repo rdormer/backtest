@@ -311,7 +311,7 @@ sub build_sweep_statement {
 	$statement .= " $_ and ";
     }
 
-    $statement = substr $statement, 0, -4;
+    $statement .= "date <= ? order by date desc limit 1";
     return $statment;
 }
 
