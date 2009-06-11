@@ -26,6 +26,7 @@ my $max_limit;
 
 my %history_cache;
 my @fundamental_list;
+my $sweep_statement;
 
 my $current_date;
 my $date_index;
@@ -34,13 +35,24 @@ my $current_ticker;
 
 my $pull_fundamentals;
 
+my @file_ticker_list;
 @ticker_list;
 
-sub init_sql() {
+sub init_sql {
+
+    my $file = shift;
     
     $dbh = DBI->connect("DBI:mysql:finance", "perldb");
     $date_index = -1;
     $max_limit = 1;
+
+    die "Couldn't open $file" if (! -e $file);
+    open(INFILE, $file);
+
+    while(<INFILE>) {
+	chomp;
+	push @file_ticker_list, $_;
+    }
 }
 
 sub set_ticker_list {
@@ -305,38 +317,35 @@ sub add_fundamental {
 
 sub build_sweep_statement {
 
-    $statement = "select ticker from fundamentals where ";
+    if(@fundamental_list == 0) {
+	return;
+    }
+
+    my $statement = "select ticker from fundamentals where ";
 
     foreach (@fundamental_list) {
 	$statement .= " $_ and ";
     }
 
     $statement .= "date <= ? order by date desc limit 1";
-    return $statment;
+    $sweep_statement = $dbh->prepare($statement);
 }
 
 sub do_initial_sweep {
 
-    my $file = shift;
     my $sweep_results;
 
-    $sweep_statement = build_sweep_statement();
-
-    die "Couldn't open $file" if (! -e $file);
-    open(INFILE, $file);
-
     if($sweep_statement) {
-	$sweep_sql = $dbh->prepare($sweep_statement);
-	$sweep_sql->execute();
-	$sweep_results = $sweep_sql->fetchall_hashref("ticker");
+	$sweep_statement->execute($current_date);
+	$sweep_results = $sweep_statement->fetchall_hashref("ticker");
+    } else {
+	@ticker_list = @file_ticker_list;
+	return;
     }
 
-    while(<INFILE>) {
-	chomp;
-	push(@ticker_list, $_) if $sweep_sql and exists $sweep_results->{$_};
-	push(@ticker_list, $_) if not $sweep_sql;
+    foreach (@file_ticker_list) {
+	push(@ticker_list, $_) if exists $sweep_results->{$_};
     }
-
 }
 
 sub set_pull_limit {

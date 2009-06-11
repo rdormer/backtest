@@ -6,11 +6,10 @@ use macro_expander;
 
 conf::process_commandline(@ARGV);
 conf::check_backtest_args();
+init_sql(conf::list());
 
 eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
-
-init_sql();
 
 if(conf::long_positions()) {
     @long_exit = parse_screen(conf::exit_sig());
@@ -24,12 +23,12 @@ if(conf::short_positions()) {
 
 init_portfolio(\@long_exit, \@short_exit);
 set_date_range(conf::start(), conf::finish());
-do_initial_sweep(conf::list());
+build_sweep_statement();
 
 while(next_test_day()) {
 
     if(positions_available()) {
-	@longs = run_screen_loop(@long_actions) if conf::long_positions();
+    	@longs = run_screen_loop(@long_actions) if conf::long_positions();
 	@shorts = run_screen_loop(@short_actions) if conf::short_positions();
 	add_positions(\@longs, \@shorts);
     }
@@ -49,6 +48,7 @@ sub salvage_interrupt {
 sub run_screen_loop() {
 
     init_filter();
+    do_initial_sweep();
 
     foreach $ticker (@ticker_list) {
 	filter_results($ticker, @_) if pull_ticker_history($ticker);
