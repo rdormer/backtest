@@ -321,14 +321,13 @@ sub build_sweep_statement {
 	return;
     }
 
-    my $statement = "select ticker from fundamentals where ";
+    my $sweep_statement = "select ticker from fundamentals where ";
 
     foreach (@fundamental_list) {
-	$statement .= " $_ and ";
+	$sweep_statement .= " $_ and ";
     }
 
-    $statement .= "date <= ? order by date desc limit 1";
-    $sweep_statement = $dbh->prepare($statement);
+    $sweep_statement .= "date <= ? order by date desc limit 1";
 }
 
 sub do_initial_sweep {
@@ -336,8 +335,9 @@ sub do_initial_sweep {
     my $sweep_results;
 
     if($sweep_statement) {
-	$sweep_statement->execute($current_date);
-	$sweep_results = $sweep_statement->fetchall_hashref("ticker");
+	$sweep = $dbh->prepare($sweep_statement);
+	$sweep->execute($current_date);
+	$sweep_results = $sweep->fetchall_hashref("ticker");
     } else {
 	@ticker_list = @file_ticker_list;
 	return;
