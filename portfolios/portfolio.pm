@@ -108,7 +108,7 @@ sub start_short_position {
 
 	if($current_cash < $total_short_equity + ($sharecount * $price) * conf::initial_margin()) {
 	    delete $positions{$_[0]};
-	    clear_history_cache($ticker);
+	    clear_history_cache($_[0]);
 	} else {
 	    $current_cash += $sharecount * $price;
 	    $positions{$_[0]}{'short'} = 1;
