@@ -698,4 +698,20 @@ sub compute_aroon_osc {
     return $osc->[0];
 }
 
+sub compute_fractal {
+
+    my $period = shift;
+    $period--;
+
+    my $enumerator = $current_prices->[0][5] - @$current_prices->[$#current_prices][5];
+    my $denominator = 0;
+
+    for(my $i = 0; $i < $period; $i++) {
+	$denominator += abs( $current_prices->[$i][5] - $current_prices[$i + 1][5] );
+    }
+
+    return $enumerator / $denominator;
+}
+
+
 1;
