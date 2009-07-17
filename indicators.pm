@@ -698,7 +698,7 @@ sub compute_aroon_osc {
     return $osc->[0];
 }
 
-sub compute_fractal {
+sub compute_efficiency_ratio {
 
     my $period = shift;
     $period--;
@@ -710,7 +710,7 @@ sub compute_fractal {
 	$denominator += abs( $current_prices->[$i][5] - $current_prices[$i + 1][5] );
     }
 
-    return $enumerator / $denominator;
+    return ($enumerator / $denominator) * 100;
 }
 
 
