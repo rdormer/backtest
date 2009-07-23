@@ -15,3 +15,21 @@ $ftpbot->binary();
 $ftpbot->cwd("/edgar/full-index") or die "CWD FAIL";
 $ftpbot->get("master.gz") or die "GET FAIL";
 print "OK"; 
+
+`gunzip master.gz`;
+
+$ftpbot->ascii();
+open INDEX, "master.idx";
+
+foreach $filing (<INDEX>) {
+
+	chomp $filing;
+	@fields = split /\|/, $filing;
+
+	if($fields[2] eq "10-Q") {
+
+		print "\nFetch $fields[4]";	
+		$ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
+	}
+
+}
