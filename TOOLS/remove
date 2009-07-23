@@ -1,0 +1,20 @@
+#!/bin/ksh
+# Submitted by : arjun.singh@hpsglobal.com
+# Function : Remove the IPC shared memory for a specified owner
+
+if [ $# -ne 1 ]
+then
+   echo "Usage:$0 <IPC Owner>"
+   exit 1
+fi
+
+for v_shmid in $(ipcs -m|grep $1|awk -v owner=$1 ' { if ( owner == $5 ) {print $2} }')
+do
+  ipcrm -m ${v_shmid}
+  if [ $? -eq 0 ]
+  then
+    echo "IPC Shared Memory $v_shmid removed"
+  else
+    echo "IPC Shared Memory $v_shmid doesn't exists"
+  fi
+done
