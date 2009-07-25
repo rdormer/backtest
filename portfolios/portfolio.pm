@@ -92,10 +92,14 @@ sub add_positions {
 sub start_long_position {
 
     if(start_position($_[0])) {
+
+	my $stop = initial_stop($price, 0);
+
 	$current_cash -= $sharecount * $price;
 	$positions{$_[0]}{'short'} = 0;
 	$positions{$_[0]}{'exit'} = \@long_exits;
 	$positions{$_[0]}{'stop'} = initial_stop($price, 0);
+	$positions{$_[0]}{'risk'} = (($price - $stop) / $price) * 100;
     }
 }
 
@@ -110,10 +114,14 @@ sub start_short_position {
 	    delete $positions{$_[0]};
 	    clear_history_cache($_[0]);
 	} else {
+
+	    my $stop = initial_stop($price, 1);
+
 	    $current_cash += $sharecount * $price;
 	    $positions{$_[0]}{'short'} = 1;
 	    $positions{$_[0]}{'exit'} = \@short_exits;
-	    $positions{$_[0]}{'stop'} = initial_stop($price, 1);
+	    $positions{$_[0]}{'stop'} = $stop;
+	    $positions{$_[0]}{'risk'} = (($price - $stop) / $price) * -100;
 	}
     }
 }
@@ -301,9 +309,11 @@ sub end_position {
 
     $ret = ($positions{$target}{'end'} - $positions{$target}{'start'}) / $positions{$target}{'start'};
     $ret = -($ret) if $positions{$target}{'short'};
+    $ret *= 100;
 
-    $positions{$target}{'return'} = $ret * 100;
+    $positions{$target}{'return'} = $ret;
     $positions{$target}{'ticker'} = $target;
+    $positions{$target}{'rratio'} = $ret / $positions{$target}{'risk'};
     delete $positions{$target}{'mae'} if $ret <= 0;
 
     push @trade_history, $positions{$target};
@@ -342,6 +352,10 @@ sub print_portfolio_state {
 	my %trade = %$_;
 
 	print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t" . sprintf("%.3f", $trade{'return'}) . "%";
+
+	if(conf::show_reward_ratio()) {
+	    print "\t" . sprintf("%.3f", $trade{'rratio'});
+	}
 
 	if($trade{'return'} > 0) {
 	    $winning_trades++;

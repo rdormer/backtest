@@ -36,6 +36,7 @@ sub short_enter_sig { return $configure_info{'-short-entry'}; }
 sub short_exit_sig { return $configure_info{'-short-exit'}; }
 sub long_positions{ return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
 sub short_positions{ return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
+sub show_reward_ratio{ return exists $configure_info{'-showreward'}; }
 
 sub initial_margin {
     return $configure_info{'-init-margin'} if exists $configure_info{'-init-margin'};
