@@ -32,7 +32,19 @@ my $total_short_equity;
 
 my $dividend_payout;
 
+my @replay_list;
+
 sub init_portfolio {
+
+    my $listname = conf::replay_list();
+
+    open LIST, $listname or die "could not open $listname";
+    foreach (<LIST> ) {
+
+	chomp;
+	my @t = split /\t/, $_;
+	push @replay_list, \@t;
+    }
 
     my $longexits = shift;
     my $shortexits = shift;
@@ -47,7 +59,6 @@ sub init_portfolio {
     @long_exits = @$longexits;
     @short_exits = @$shortexits;
 }
-
 
 sub positions_available {
 
@@ -70,28 +81,24 @@ sub calculate_position_count {
 
 sub add_positions {
 
-    my $longs = shift;
-    my $shorts = shift;
+    foreach $position (@replay_list) {
 
-    my $longlen = scalar @$longs;
-    my $shortlen = scalar @$shorts;
-    my $len = $longlen > $shortlen ? $longlen : $shortlen;
+	if(get_date() eq $position->[0]) {
 
-    for(my $i = 0; $i < $len; $i++) {
+	    if($position->[1] eq "long" || $position->[1] eq "LONG") {
+		start_long_position($position->[2], $position->[3], $position->[0]);
+	    }
 
-	if($longlen > 0 && $longlen > $i && positions_available() && ! exists $positions{$longs->[$i]}) {
-	    start_long_position($longs->[$i]);
-	}
-
-	if($shortlen > 0 && $shortlen > $i && positions_available() && ! exists $positions{$shorts->[$i]}) {
-	    start_short_position($shorts->[$i]);
+	    if($position->[1] eq "short" || $position->[1] eq "SHORT") {
+		start_short_position($position->[2], $position->[3], $position->[0]);
+	    }
 	}
     }
 }
 
 sub start_long_position {
 
-    if(start_position($_[0])) {
+    if(start_position($_[0], $_[1], $_[2])) {
 
 	my $price = $positions{$_[0]}{'start'};
 	my $stop = initial_stop($price, 0);
@@ -106,7 +113,7 @@ sub start_long_position {
 
 sub start_short_position {
 
-    if($current_cash >= 2000 && start_position($_[0])) {
+    if($current_cash >= 2000 && start_position($_[0], $_[1], $_[2])) {
 
 	#we have to check to see if this new position takes us over the initial margin
 	#requirement, and if it does, back out the trade
@@ -131,11 +138,10 @@ sub start_short_position {
 sub start_position {
 
     my $ticker = shift;
+    my $price = shift;
 
     cache_ticker_history($ticker);
     current_from_cache($ticker);
-    my $dindex = search_array_date(get_exit_date(), $current_prices);
-    my $price = fetch_open_at($dindex);
 
     if($price > 0) {
 	$sharecount = int($position_size / $price);
@@ -145,7 +151,7 @@ sub start_position {
 
     if($sharecount >= 1) {
 
-	$positions{$ticker}{'sdate'} = get_exit_date();
+	$positions{$ticker}{'sdate'} = shift;
 	$positions{$ticker}{'shares'} = $sharecount;
 	$positions{$ticker}{'start'} = $price;
 	$positions{$ticker}{'mae'} = $price;

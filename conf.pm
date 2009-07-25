@@ -32,11 +32,12 @@ sub enter_sig { return $configure_info{'-entry'}; }
 sub exit_sig { return $configure_info{'-exit'}; }
 sub start { return $configure_info{'-start'}; }
 sub finish { return $configure_info{'-finish'}; }
+sub replay_list { return $configure_info{'-replay'}; }
 sub short_enter_sig { return $configure_info{'-short-entry'}; }
 sub short_exit_sig { return $configure_info{'-short-exit'}; }
-sub long_positions{ return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
-sub short_positions{ return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
-sub show_reward_ratio{ return exists $configure_info{'-showreward'}; }
+sub long_positions { return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
+sub short_positions { return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
+sub show_reward_ratio { return exists $configure_info{'-showreward'}; }
 
 sub initial_margin {
     return $configure_info{'-init-margin'} if exists $configure_info{'-init-margin'};
