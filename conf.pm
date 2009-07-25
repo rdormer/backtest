@@ -80,6 +80,7 @@ sub check_backtest_args {
 
     die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-exit'} and exists $configure_info{'-short-entry'};
     die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-entry'} and exists $configure_info{'-short-exit'};
+    die "You are using the same entry and exit" if $configure_info{'-exit'} eq $configure_info{'-entry'};
 
     die "missing -list (ticker list file)" if not exists $configure_info{'-list'};
     die "missing -start (start date)" if not exists $configure_info{'-start'};
