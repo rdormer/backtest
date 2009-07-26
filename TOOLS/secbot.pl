@@ -4,7 +4,12 @@ use Getopt::Long;
 use Net::FTP;
 
 my $dataroot;
-GetOptions('dataroot=s' => \$dataroot);
+my $skipunzip;
+my $start_year = `date "+%Y"`;
+my $end_year = $start_year;
+
+GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
+    'endyear=i' => \$end_year);
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -16,12 +21,11 @@ $ftpbot->login("anonymous", "password") or die "LOGIN FAIL";
 print "OK";
 
 
-
-for(my $quarter = 1; $quarter <= 4; $quarter++) {
-
-    fetch_quarter(2008, $quarter);
+for(my $year = $start_year; $year <= $end_year; $year++) {
+    for(my $quarter = 1; $quarter <= 4; $quarter++) {
+	fetch_quarter($year, $quarter);
+    }
 }
-
 
 
 
@@ -32,6 +36,8 @@ sub fetch_quarter {
     my $fiscal_year = shift;
     my $fiscal_quarter = shift;
     my $index_name = "master-$fiscal_year-$fiscal_quarter.gz";
+
+    print "\ndownloading for $fiscal_year quarter $fiscal_quarter";
 
     #first step is to retrieve the index file
     #and unzip it
@@ -44,7 +50,10 @@ sub fetch_quarter {
 	print "OK"; 
     }
 
-    `gunzip -c $index_name > index.txt`;
+    if(not $skipunzip) { 
+	print "\nunzip index file";
+	`gunzip -c $index_name > index.txt`;
+    }
 
     $ftpbot->ascii();
     open INDEX, "index.txt";
@@ -60,7 +69,7 @@ sub fetch_quarter {
 
 	if($fields[2] eq "10-Q" && not -e $fname) {
 
-	    print "\nFetch $fields[4]";	
+	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
 	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
 	} 
     }
