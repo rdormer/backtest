@@ -1,5 +1,6 @@
 #! /usr/bin/perl
 
+use HTML::TreeBuilder;
 use Getopt::Long;
 use Net::FTP;
 
@@ -71,6 +72,40 @@ sub fetch_quarter {
 
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
 	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
+	    get_text($fname);
 	} 
     }
+}
+
+#open up file, read it, set up tree, and kick off recursive parse
+
+sub get_text {
+
+    local($/, *RAWFILE);
+    open RAWFILE, shift;
+    my $raw = <RAWFILE>;
+
+    my $parser = HTML::TreeBuilder->new;
+    $parser->parse_content($raw);
+    $parser->elementify();
+
+    return extract_text($parser);
+}
+
+#recursive extraction of text from HTML parse tree
+
+sub extract_text {
+
+    my $parse_tree = shift;
+    my $page_text;
+
+    foreach my $c ($parse_tree->content_list) {
+	if(!ref $c) {
+	    $page_text .= " $c";
+	} else {
+	    $page_text .= extract_text($c);
+	}
+    }
+
+    return $page_text;
 }
