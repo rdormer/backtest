@@ -6,11 +6,12 @@ use Net::FTP;
 
 my $dataroot;
 my $skipunzip;
+my $skipexisting;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
-    'endyear=i' => \$end_year);
+    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting);
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -68,10 +69,16 @@ sub fetch_quarter {
 	@fields = split /\|/, $filing;
 	$fname = substr $fields[4], rindex($fields[4], "/") + 1;
 
-	if($fields[2] eq "10-Q" && not -e $fname) {
+	if($fields[2] eq "10-Q") {
 
-	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
-	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
+	    if(not -e $fname) {
+		print "\nFetch $fields[4]\t[ $fields[1] ]";	
+		$ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
+	    
+	    } elsif ($skipexisting) {
+		next;
+	    }
+
 	    get_text($fname);
 	} 
     }
