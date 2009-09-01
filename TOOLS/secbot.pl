@@ -7,11 +7,12 @@ use Net::FTP;
 my $dataroot;
 my $skipunzip;
 my $skipexisting;
+my $skipdownload;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
-    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting);
+    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload);
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -44,7 +45,7 @@ sub fetch_quarter {
     #first step is to retrieve the index file
     #and unzip it
 
-    if(not -e $index_name) {
+    if(not -e $index_name and ! $skipdownload) {
 	print "\nRetrieve Index...";
 	$ftpbot->binary();
 	$ftpbot->cwd("/edgar/full-index/$fiscal_year/QTR$fiscal_quarter") or die "CWD FAIL";
