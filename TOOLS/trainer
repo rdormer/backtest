@@ -1,0 +1,136 @@
+use AI::Categorizer::Learner::NaiveBayes;
+use AI::Categorizer::KnowledgeSet;
+use AI::Categorizer::Category;
+use AI::Categorizer::Document;
+use Getopt::Long;
+
+$index = 0;
+my $classifyloop;
+GetOptions('start-index=i' => \$index, 'classify' => \$classifyloop);
+
+my $good_stuff = AI::Categorizer::Category->new("name" => "financial data");
+my $maybe_stuff = AI::Categorizer::Category->new("name" => "potential data");
+my $bad_stuff = AI::Categorizer::Category->new("name" => "boilerplate");
+my $rand_stuff = AI::Categorizer::Category->new("name" => "random junk");
+
+my @category_list = ($good_stuff, $maybe_stuff, $bad_stuff, $rand_stuff);
+my @financials, @potentials, @boilerplate, @junk, @alldocs;
+
+load_classifications();
+do_classify_loop();
+
+print "\nprocessing categories...";
+
+add_category($good_stuff, \@financials);
+add_category($maybe_stuff, \@potentials);
+add_category($bad_stuff, \@boilerplate);
+add_category($rand_stuff, \@junk);
+
+my $kset = AI::Categorizer::KnowledgeSet->new(categories => \@category_list, documents => \@alldocs);
+my $bayes = AI::Categorizer::Learner::NaiveBayes->new();
+
+print "\ntraining...";
+$bayes->train(knowledge_set => $kset);
+#$bayes->save_state('test.save');
+
+if($classifyloop) {
+   do_hypothesis($bayes);
+}
+
+
+print "\ndone\n";
+
+sub do_classify_loop {
+
+    my %commandlist = ("1" => sub { push @financials, $files[$index] },
+       		      "2" => sub { push @potentials, $files[$index] },
+		      "3" => sub { push @boilerplate, $files[$index] },
+		      "4" => sub { push @junk, $files[$index] },
+		      "5" => sub { next; },
+		      "x" => sub { print "\nsaving...\n"; save_classifications(); exit(); },
+		      "s" => sub { save_classifications(); goto SAVELABEL; },	  
+		      "b" => sub { last; } );      
+
+
+    opendir DOCS, "./TRAINING" or die "couldn't open directory";
+    @files = readdir(DOCS);
+    undef $/;
+
+    for(; $index < @files; $index++) {
+
+    	  chomp $files[ $index ];
+    	  open CURDOC, "./TRAINING/$files[ $index ]" or die "couldn't open $files[ $index ]";
+	  $current_chunk = <CURDOC>;
+
+	  print "\n\n\n\n\n$current_chunk\n";
+
+	SAVELABEL:
+	  print "\n1) financials\n2) potentially interesting\n3) boilerplate\n4) random chars\n5) skip\nx) exit\ns) save\nb) break";
+	  print "\n$files[ $index ] ($index of " . $#files . ") #: ";
+	  $command = getc;
+	  getc;
+
+	  $commandlist{$command}();
+	  close CURDOC;
+     }
+}
+
+sub save_classifications {
+
+    open OUTFILE, ">classifications.save" or die "couldn't open save file";
+    print OUTFILE "@financials\n@potentials\n@boilerplate\n@junk";
+    close OUTFILE;
+}
+
+
+sub load_classifications {
+
+    if(-e "classifications.save") {
+
+    	  open INFILE, "classifications.save";
+	  @lines = <INFILE>;
+	  close INFILE;
+
+	  @financials = split /\s/, $lines[0];
+	  @potentials = split/\s/, $lines[1];
+	  @boilerplate = split /\s/, $lines[2];
+	  @junk = split /\s/, $lines[3];
+    }
+}
+
+sub add_category {
+
+    my $category = shift;
+    my $fnames = shift;
+
+    foreach (@$fnames) {
+
+    	    open INFILE, "./TRAINING/$_";
+    	    $tempdoc = AI::Categorizer::Document->new(name => $_, content => <INFILE>);
+	    close INFILE;
+
+	    $category->add_document($tempdoc);
+	    push @alldocs, $tempdoc;
+    }
+}
+
+sub do_hypothesis {
+
+    my $nb = shift;
+
+    my $c = new AI::Categorizer::Collection::Files(path => "TRAINING");
+    while (my $document = $c->next()) {
+
+    	    print "\nfile: " . $document->name();
+	    print "\nproceed? y/n: ";
+
+	    $command = getc;
+	    getc;
+
+	    if($command eq 'y') {
+
+	      my $hypothesis = $nb->categorize($document);
+	      print "\n\nmost probable match: " . $hypothesis->best_category;
+	    }
+    }
+}

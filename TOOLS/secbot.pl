@@ -1,18 +1,21 @@
 #! /usr/bin/perl
 
 use HTML::TreeBuilder;
+use AI::Categorizer;
 use Getopt::Long;
 use Net::FTP;
 
 my $dataroot;
 my $skipunzip;
+my $dumpchunks;
 my $skipexisting;
 my $skipdownload;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
-    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload);
+    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
+    'dumpchunks' => \$dumpchunks);
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -80,7 +83,8 @@ sub fetch_quarter {
 		next;
 	    }
 
-	    get_text($fname);
+	    my $tenq = get_text($fname);
+	    get_balance_sheets($tenq);
 	} 
     }
 }
@@ -116,4 +120,21 @@ sub extract_text {
     }
 
     return $page_text;
+}
+
+
+sub get_balance_sheets {
+
+    my @chunks = split /(Condensed|Consolidated)/i, shift;
+
+    foreach (@chunks) {
+
+	if(length $_ > 300) {
+
+	    if($dumpchunks) {
+		print "\n\n\n======!!!!+++=======\n\n\n$_";
+	    }
+	}
+    }
+
 }
