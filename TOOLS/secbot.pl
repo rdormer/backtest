@@ -1,9 +1,11 @@
 #! /usr/bin/perl
 
+use AI::Categorizer::Learner::NaiveBayes;
+use AI::Categorizer::Document;
 use HTML::TreeBuilder;
-use AI::Categorizer;
 use Getopt::Long;
 use Net::FTP;
+use DBI;
 
 my $dataroot;
 my $skipunzip;
@@ -13,9 +15,15 @@ my $skipdownload;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 
+my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
+
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
     'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
     'dumpchunks' => \$dumpchunks);
+
+#workaround for bug in this package
+Algorithm::NaiveBayes->new();
+$c = AI::Categorizer::Learner::NaiveBayes->restore_state('model.sav');
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -70,24 +78,36 @@ sub fetch_quarter {
     foreach $filing (<INDEX>) {
 
 	chomp $filing;
-	@fields = split /\|/, $filing;
-	$fname = substr $fields[4], rindex($fields[4], "/") + 1;
-
-	if($fields[2] eq "10-Q") {
-
-	    if(not -e $fname) {
-		print "\nFetch $fields[4]\t[ $fields[1] ]";	
-		$ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
-	    
-	    } elsif ($skipexisting) {
-		next;
-	    }
-
-	    my $tenq = get_text($fname);
-	    get_balance_sheets($tenq);
-	} 
+	download_filing($filing);
     }
 }
+
+
+sub download_filing {
+
+    @fields = split /\|/, shift;
+    $fname = substr $fields[4], rindex($fields[4], "/") + 1;
+
+    if($fields[2] eq "10-Q") {
+
+	if(not -e $fname) {
+	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
+	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
+	    
+	} elsif ($skipexisting) {
+	    return;
+	}
+
+	my %sql_vals;
+	$sql_vals{sec_file} = $fname;
+
+	my $tenq = get_text($fname);
+	parse_sec_header($tenq, \%sql_vals);
+	categorize_chunks($tenq, \%sql_vals);
+	write_sql(\%sql_vals);
+    } 
+}
+
 
 #open up file, read it, set up tree, and kick off recursive parse
 
@@ -123,9 +143,10 @@ sub extract_text {
 }
 
 
-sub get_balance_sheets {
+sub categorize_chunks {
 
     my @chunks = split /(Condensed|Consolidated)/i, shift;
+
 
     foreach (@chunks) {
 
@@ -134,7 +155,44 @@ sub get_balance_sheets {
 	    if($dumpchunks) {
 		print "\n\n\n======!!!!+++=======\n\n\n$_";
 	    }
+
+	    my $chunkdoc = AI::Categorizer::Document->new(content => $_);	    
+	    $hypth = $c->categorize($chunkdoc);
+	    
+	    if($hypth->best_category eq "financial statements") {
+
+
+	    }
 	}
     }
+}
 
+sub parse_sec_header {
+
+    my $raw = shift;
+    my $sql = shift;
+
+    if($raw =~ /.*COMPANY CONFORMED NAME:\s+([A-Z]+.*)\s*CENTRAL INDEX.*/) {
+	$sql->{sec_name} = $1;
+    }
+
+    if($raw =~ /.*FILED AS OF DATE:\s+([0-9]+).*/) {
+	$sql->{date} = $1;
+    }
+
+    if($raw =~ /.*STANDARD INDUSTRIAL CLASSIFICATION:\s+(\D+)\[([0-9]+)\].*/) {
+	$sql->{sec_industry} = $1;
+	$sql->{sic_code} = $2;
+    }
+}
+
+sub write_sql {
+
+    my $tablevals = shift;
+
+    my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code) values";
+    $cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code})";
+
+    $put_sql = $database->prepare($cmd);
+    $put_sql->execute();
 }

@@ -126,5 +126,9 @@ sub do_hypothesis {
 	      my $hypothesis = $c->learner->categorize($document);
 	      print "\n\nmost probable match: " . $hypothesis->best_category;
 	    }
+
+	    if($command eq 's') {
+	      $c->learner->save_state("model.sav");
+	    }
     }
 }
