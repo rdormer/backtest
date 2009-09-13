@@ -1,0 +1,33 @@
+use AI::Categorizer;
+use AI::Categorizer::Learner::NaiveBayes;
+use AI::Categorizer::KnowledgeSet;
+use AI::Categorizer::Category;
+use AI::Categorizer::Document;
+use Getopt::Long;
+
+my $keyfile, $modelfile;
+GetOptions("keyfile=s" => \$keyfile, "model=s" => \$modelfile);
+my $c = new AI::Categorizer(collection_weighting => 'f');
+open INFILE, $keyfile or die "couldn't open $keyfile";
+
+
+my $i = 0;
+my $category = '';
+
+foreach (<INFILE>) {
+
+	my %data;
+
+	if($_ =~ /\*\*\*(.*)/) {
+	      $category = $1;
+	}
+
+    	$data{'content'} = $_;
+	$data{'categories'} = [ $category ];
+	$c->knowledge_set->make_document(name => $i, %data);
+	$i++;
+}
+
+$c->learner->train( knowledge_set => $c->knowledge_set);
+$c->learner->save_state($modelfile);
+close INFILE;

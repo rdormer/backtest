@@ -7,6 +7,8 @@ use Getopt::Long;
 use Net::FTP;
 use DBI;
 
+use heuristics;
+
 my $dataroot;
 my $skipunzip;
 my $dumpchunks;
@@ -24,6 +26,7 @@ GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
 $c = AI::Categorizer::Learner::NaiveBayes->restore_state('model.sav');
+$keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
 
 if($dataroot ne "") {
     chdir $dataroot;
@@ -89,6 +92,8 @@ sub download_filing {
     $fname = substr $fields[4], rindex($fields[4], "/") + 1;
 
     if($fields[2] eq "10-Q") {
+
+    print "\nprocessing $fname";
 
 	if(not -e $fname) {
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
@@ -160,12 +165,62 @@ sub categorize_chunks {
 	    $hypth = $c->categorize($chunkdoc);
 	    
 	    if($hypth->best_category eq "financial statements") {
-
-
+		process_financials($_);
 	    }
 	}
     }
 }
+
+sub process_financials {
+
+    my $chunk = shift;
+    my $wantchars = 0;
+    my $token;
+
+    $chunk =~ tr/[A-Za-z0-9,().\-%:$\/\\;]/ /c;
+    @tuples = split /\s/, $chunk;
+    @heuristics::token_list = ();
+
+    foreach $tuple (@tuples) {
+
+	if($tuple =~ /[A-Z]/i) {
+
+	    if( ! $wantchars) {
+		push @heuristics::token_list, $token;
+		$token = $tuple;
+		$wantchars = 1;
+		next;
+	    }
+
+	} else {
+
+	    if($wantchars) {
+		push @heuristics::token_list, $token;
+		parse_keys($token);
+		$token = $tuple;
+		$wantchars = 0;
+		next;
+	    }
+	}
+
+	$token .= " $tuple";
+    }
+
+    heuristics::find_best_matches();
+}
+
+
+sub parse_keys {
+
+    my $cont = shift;
+    my $doc = new AI::Categorizer::Document(content => $cont);
+    $hypth = $keymod->categorize($doc);
+
+    $cat = $hypth->best_category;
+    heuristics::add_potential_hit($cat, $hypth->scores($cat), $#heuristics::token_list);
+}
+
+
 
 sub parse_sec_header {
 

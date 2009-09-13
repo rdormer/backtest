@@ -7,3 +7,4 @@ create table fundamentals(date date, sec_file char(24), sec_name varchar(100), s
 
 create unique index histindex on historical (date, ticker);
 create unique index divindex on dividends (date, ticker);
+create unique index fundindex on fundamentals (date, sec_name);
