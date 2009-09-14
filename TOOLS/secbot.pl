@@ -93,8 +93,6 @@ sub download_filing {
 
     if($fields[2] eq "10-Q") {
 
-    print "\nprocessing $fname";
-
 	if(not -e $fname) {
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
 	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
@@ -179,14 +177,14 @@ sub process_financials {
 
     $chunk =~ tr/[A-Za-z0-9,().\-%:$\/\\;]/ /c;
     @tuples = split /\s/, $chunk;
-    @heuristics::token_list = ();
+    heuristics::clear();
 
     foreach $tuple (@tuples) {
 
 	if($tuple =~ /[A-Z]/i) {
 
 	    if( ! $wantchars) {
-		push @heuristics::token_list, $token;
+		heuristics::add_token($token);
 		$token = $tuple;
 		$wantchars = 1;
 		next;
@@ -195,7 +193,7 @@ sub process_financials {
 	} else {
 
 	    if($wantchars) {
-		push @heuristics::token_list, $token;
+		heuristics::add_token($token);
 		parse_keys($token);
 		$token = $tuple;
 		$wantchars = 0;
@@ -217,7 +215,7 @@ sub parse_keys {
     $hypth = $keymod->categorize($doc);
 
     $cat = $hypth->best_category;
-    heuristics::add_potential_hit($cat, $hypth->scores($cat), $#heuristics::token_list);
+    heuristics::add_potential_hit($cat, $hypth->scores($cat));
 }
 
 
