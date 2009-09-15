@@ -9,7 +9,8 @@ $VERSION = 1.0;
 
 #jump table for parsers for each categroy
 
-my %parsers = ("Earnings per share" => \&parser_eps);
+my %parsers = ("Earnings per share" => \&parser_eps, "Calendar dates" => \&parser_dates,
+    "Total Assets" => \&parser_assets);
 
 #an array of tokens created by secbot, and
 #a hash of hashes, indexed by category of token,
@@ -18,6 +19,8 @@ my %parsers = ("Earnings per share" => \&parser_eps);
 
 my @token_list;
 my %hitmap;
+
+$sql_hash;
 
 sub add_token {
 
@@ -31,12 +34,17 @@ sub add_token {
 	$token =~ s/\$\s/\$/g;
 	$token =~ s/\(\s+/\(/g;
 	$token =~ s/\s+\)/\)/g;
+	$token =~ s/://g;
 
 	if($token =~ /.*[A-Za-z].*/) {
 	    push @token_list, $token;
 	} else {
 
 	    foreach (split /\s/, $token) {
+		$_ =~ s/\,//g;
+		$_ =~ s/\(/-/;
+		$_ =~ s/\)//;
+		$_ =~ s/\$//;
 		push @token_list, $_;
 	    }
 	}
@@ -63,21 +71,47 @@ sub find_best_matches {
     foreach $category (keys %hitmap) {
 
 	$temp = $hitmap{$category};
-	foreach $offset (keys %$temp) {
-	    if(exists $parsers{$category}) {
-		$parsers{$category}->($offset);
-	    }
+	if(exists $parsers{$category}) {
+	    $parsers{$category}->($temp);
 	}
+    }
+}
+
+sub parser_dates {
+
+    my $off = shift;
+}
+
+sub parser_assets {
+
+    my $asslist = shift;
+    my @offs = keys %$asslist;
+
+    if(@offs eq 1) {
+	$sql_hash->{total_assets} = $token_list[$offs[0] + 1];
+    } elsif (@offs gt 1) {
+
     }
 }
 
 sub parser_eps {
 
-    my $off = shift;
+    my $epstokens = shift;
 
-    
-#    print "\n$token_list[$off]  ----$token_list[$off + 1]-----   $token_list[$off + 2]";
+    #delete tokens not matching text heuristics
+    foreach my $off (keys %$epstokens) {
 
+	if($token_list[$off] !~ /.*per.*share.*/i && $token_list[$off] !~ /.*(basic|diluted).*/i) {
+	    delete $epstokens->{$off};
+	    next;
+	} 
+    }
+
+
+
+
+   
+	#if($token_list[$off + 1] !~ /\$\-*[0-9]*\.[0-9]+/) {
 
 }
 

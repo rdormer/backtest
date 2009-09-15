@@ -9,11 +9,8 @@ use DBI;
 
 use heuristics;
 
-my $dataroot;
-my $skipunzip;
-my $dumpchunks;
-my $skipexisting;
-my $skipdownload;
+my $dataroot, $skipunzip, $dumpchunks;
+my $skipexisting, $skipdownload, $skipdb;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 
@@ -21,7 +18,7 @@ my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open
 
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
     'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
-    'dumpchunks' => \$dumpchunks);
+    'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb);
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
@@ -92,7 +89,7 @@ sub download_filing {
     $fname = substr $fields[4], rindex($fields[4], "/") + 1;
 
     if($fields[2] eq "10-Q") {
-
+	print "\nprocess $fname";
 	if(not -e $fname) {
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
 	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
@@ -103,6 +100,7 @@ sub download_filing {
 
 	my %sql_vals;
 	$sql_vals{sec_file} = $fname;
+	$heuristics::sql_hash = \%sql_vals;
 
 	my $tenq = get_text($fname);
 	parse_sec_header($tenq, \%sql_vals);
@@ -241,11 +239,13 @@ sub parse_sec_header {
 
 sub write_sql {
 
-    my $tablevals = shift;
+    if(! $skipdb) {
+	
+	my $tablevals = shift;
+	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets) values";
+	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, $tablevals->{total_assets})";
 
-    my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code) values";
-    $cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code})";
-
-    $put_sql = $database->prepare($cmd);
-    $put_sql->execute();
+	$put_sql = $database->prepare($cmd);
+	$put_sql->execute();
+    }
 }
