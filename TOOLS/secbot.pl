@@ -1,5 +1,7 @@
 #! /usr/bin/perl
 
+use heuristics;
+
 use AI::Categorizer::Learner::NaiveBayes;
 use AI::Categorizer::Document;
 use HTML::TreeBuilder;
@@ -7,26 +9,34 @@ use Getopt::Long;
 use Net::FTP;
 use DBI;
 
-use heuristics;
 
-my $dataroot, $skipunzip, $dumpchunks;
-my $skipexisting, $skipdownload, $skipdb;
+my $dataroot, $skipunzip, $dumpchunks, $datafile;
+my $skipexisting, $skipdownload, $skipdb, $dumpfin;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
-
-my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
+my $start_qtr = 1, $end_qtr = 4;
+$dumpkeys;
 
 GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
     'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
-    'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb);
+    'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
+    'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
+    'dumpkeys' => \$dumpkeys);
+
+my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
-$c = AI::Categorizer::Learner::NaiveBayes->restore_state('model.sav');
-$keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
+my $c = AI::Categorizer::Learner::NaiveBayes->restore_state('model.sav');
 
 if($dataroot ne "") {
     chdir $dataroot;
+    unlink("secbot.log");
+}
+
+if($datafile) {
+    process_data_file($datafile);
+    exit(0);
 }
 
 print "\nConnecting to SEC server...";
@@ -36,7 +46,7 @@ print "OK";
 
 
 for(my $year = $start_year; $year <= $end_year; $year++) {
-    for(my $quarter = 1; $quarter <= 4; $quarter++) {
+    for(my $quarter = $start_qtr; $quarter <= $end_qtr; $quarter++) {
 	fetch_quarter($year, $quarter);
     }
 }
@@ -76,7 +86,6 @@ sub fetch_quarter {
     #that entry if it's a quarterly report
 
     foreach $filing (<INDEX>) {
-
 	chomp $filing;
 	download_filing($filing);
     }
@@ -98,17 +107,24 @@ sub download_filing {
 	    return;
 	}
 
-	my %sql_vals;
-	$sql_vals{sec_file} = $fname;
-	$heuristics::sql_hash = \%sql_vals;
-
-	my $tenq = get_text($fname);
-	parse_sec_header($tenq, \%sql_vals);
-	categorize_chunks($tenq, \%sql_vals);
-	write_sql(\%sql_vals);
+	process_data_file($fname);
     } 
 }
 
+
+sub process_data_file {
+
+    my $file = shift;
+    my %sql_vals;
+
+    $sql_vals{sec_file} = $file;
+    $heuristics::sql_hash = \%sql_vals;
+
+    my $tenq = get_text($file);
+    parse_sec_header($tenq, \%sql_vals);
+    categorize_chunks($tenq);
+    write_sql(\%sql_vals);
+}
 
 #open up file, read it, set up tree, and kick off recursive parse
 
@@ -146,7 +162,7 @@ sub extract_text {
 
 sub categorize_chunks {
 
-    my @chunks = split /(Condensed|Consolidated)/i, shift;
+    my @chunks = split /(Condensed|Consolidated|Unaudited)/i, shift;
 
 
     foreach (@chunks) {
@@ -160,8 +176,8 @@ sub categorize_chunks {
 	    my $chunkdoc = AI::Categorizer::Document->new(content => $_);	    
 	    $hypth = $c->categorize($chunkdoc);
 	    
-	    if($hypth->best_category eq "financial statements") {
-		process_financials($_);
+	    if($hypth->best_category ne "boilerplate") {
+		process_financials($_, $hypth->best_category);
 	    }
 	}
     }
@@ -170,12 +186,17 @@ sub categorize_chunks {
 sub process_financials {
 
     my $chunk = shift;
+    my $category = shift;
     my $wantchars = 0;
     my $token;
 
     $chunk =~ tr/[A-Za-z0-9,().\-%:$\/\\;]/ /c;
     @tuples = split /\s/, $chunk;
     heuristics::clear();
+
+    if($dumpfin) {
+	print "\n\n======!!!!+++=======\n($category)\n$chunk\n";
+    }
 
     foreach $tuple (@tuples) {
 
@@ -192,7 +213,7 @@ sub process_financials {
 
 	    if($wantchars) {
 		heuristics::add_token($token);
-		parse_keys($token);
+		heuristics::parse_keys($token);
 		$token = $tuple;
 		$wantchars = 0;
 		next;
@@ -202,20 +223,8 @@ sub process_financials {
 	$token .= " $tuple";
     }
 
-    heuristics::find_best_matches();
+    heuristics::find_best_matches($category);
 }
-
-
-sub parse_keys {
-
-    my $cont = shift;
-    my $doc = new AI::Categorizer::Document(content => $cont);
-    $hypth = $keymod->categorize($doc);
-
-    $cat = $hypth->best_category;
-    heuristics::add_potential_hit($cat, $hypth->scores($cat));
-}
-
 
 
 sub parse_sec_header {
@@ -245,7 +254,21 @@ sub write_sql {
 	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets) values";
 	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, $tablevals->{total_assets})";
 
-	$put_sql = $database->prepare($cmd);
-	$put_sql->execute();
+	$put_sql = $database->prepare($cmd) or update_log($tablevals);
+	$put_sql->execute() or update_log($tablevals);
     }
+}
+
+
+sub update_log {
+
+    my $dbgvals = shift;
+    open ERRORFILE, ">>secbot.log";
+    
+    foreach (keys %$dbgvals) {
+	print ERRORFILE "$_ = $dbgvals->{$_}\n";
+    }
+
+    print ERRORFILE "================\n";
+    close ERRORFILE;
 }

@@ -7,7 +7,7 @@ use Getopt::Long;
 
 $index = 0;
 my $hyploop, $trainpath, $testpath;
-my @financials, @potentials, @boilerplate, @junk, @alldocs;
+my @cashflows, @balances, @earnings, @boilerplate, @alldocs;
 GetOptions('start-index=i' => \$index, 'hypothesize' => \$hyploop, 'train-path=s' => \$trainpath,
 	   'test-path=s' => \$testpath);
 
@@ -16,10 +16,10 @@ do_classify_loop();
 
 print "\nprocessing categories...";
 my $c = new AI::Categorizer(collection_weighting => 'f');
-add_category(\@financials, "financial statements");
-add_category(\@potentials, "potentially interesting");
+add_category(\@cashflows, "cash flow statements");
+add_category(\@balances, "balance sheets");
+add_category(\@earnings, "earnings statements");
 add_category(\@boilerplate, "boilerplate");
-add_category(\@junk, "random crap");
 $c->learner->train( knowledge_set => $c->knowledge_set );
 
 if($hyploop) {
@@ -30,10 +30,10 @@ print "\ndone\n";
 
 sub do_classify_loop {
 
-    my %commandlist = ("1" => sub { push @financials, $files[$index] },
-       		      "2" => sub { push @potentials, $files[$index] },
-		      "3" => sub { push @boilerplate, $files[$index] },
-		      "4" => sub { push @junk, $files[$index] },
+    my %commandlist = ("1" => sub { push @cashflows, $files[$index] },
+       		      "2" => sub { push @balances, $files[$index] },
+		      "3" => sub { push @earnings, $files[$index] },
+		      "4" => sub { push @boilerplate, $files[$index] },
 		      "5" => sub { next; },
 		      "x" => sub { print "\nsaving...\n"; save_classifications(); exit(); },
 		      "s" => sub { save_classifications(); goto SAVELABEL; },	  
@@ -42,6 +42,7 @@ sub do_classify_loop {
 
     opendir DOCS, "./$trainpath" or die "couldn't open directory";
     @files = readdir(DOCS);
+    sort @files;
     undef $/;
 
     for(; $index < @files; $index++) {
@@ -53,7 +54,7 @@ sub do_classify_loop {
 	  print "\n\n\n\n\n$current_chunk\n";
 
 	SAVELABEL:
-	  print "\n1) financials\n2) potentially interesting\n3) boilerplate\n4) random chars\n5) skip\nx) exit\ns) save\nb) break";
+	  print "\n1) cashflow statement\n2) balance sheets\n3) earnings statements\n4) boilerplate\n5) skip\nx) exit\ns) save\nb) break";
 	  print "\n$files[ $index ] ($index of " . $#files . ") #: ";
 	  $command = getc;
 	  getc;
@@ -66,7 +67,7 @@ sub do_classify_loop {
 sub save_classifications {
 
     open OUTFILE, ">classifications.save" or die "couldn't open save file";
-    print OUTFILE "@financials\n@potentials\n@boilerplate\n@junk";
+    print OUTFILE "@cashflows\n@balances\n@earnings\n@boilerplate";
     close OUTFILE;
 }
 
@@ -79,10 +80,10 @@ sub load_classifications {
 	  @lines = <INFILE>;
 	  close INFILE;
 
-	  @financials = split /\s/, $lines[0];
-	  @potentials = split/\s/, $lines[1];
-	  @boilerplate = split /\s/, $lines[2];
-	  @junk = split /\s/, $lines[3];
+	  @cashflows = split /\s/, $lines[0];
+	  @balances = split/\s/, $lines[1];
+	  @earnings = split /\s/, $lines[2];
+	  @boilerplate = split /\s/, $lines[3];
     }
 }
 
