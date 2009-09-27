@@ -200,6 +200,10 @@ sub process_financials {
 
     foreach $tuple (@tuples) {
 
+	if($tuple eq "") {
+	    next;
+	}
+
 	if($tuple =~ /[A-Z]/i) {
 
 	    if( ! $wantchars) {
