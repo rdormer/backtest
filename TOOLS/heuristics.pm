@@ -26,6 +26,7 @@ $keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
 
 my @token_list;
 my %hitmap;
+my $datecount;
 
 $sql_hash;
 
@@ -33,7 +34,6 @@ sub add_token {
 
     my $token = shift;
 
-#    if($token =~ /\s+/c) {
     if($token =~ /.*[A-Za-z0-9]+.*/) {
 
 	#delete extraneous spacing
@@ -80,8 +80,8 @@ sub parse_keys {
     my $doc = new AI::Categorizer::Document(content => $cont);
     $hypth = $keymod->categorize($doc);
 
-    $cat = $hypth->best_category;
-    heuristics::add_potential_hit($cat, $hypth->scores($cat));
+    my $cat = $hypth->best_category;
+    add_potential_hit($cat, $hypth->scores($cat));
 
     if($main::dumpkeys) {
 	print "\n$cont\t($cat  score " . $hypth->scores($cat) .")";
@@ -94,13 +94,7 @@ sub find_best_matches {
 
     if($cat eq "balance sheets") {
 	search_assets();
-#	search_equity();
-#	search_liabilities();
-#	parser_lae($hitmap{'Total Liabilities and equity'});
-    }
-
-    if($cat eq "earnings statements") {
-#	search_revenue();
+	search_liabilities();
     }
 
 #    foreach $category (keys %hitmap) {
@@ -112,22 +106,27 @@ sub find_best_matches {
 #    }
 }
 
-sub parser_dates {
-
-    my $off = shift;
-}
-
 sub search_assets {
 
     my $off = forward_token_search("total assets", 0, "liabilities");
     if($off < 0) {
-#	print "\nmiss, looking for TOTAL";
 	$off = forward_token_search("total", 0, "liabilities");
-	if($off < 0) {
+	if($off < 0 && ! exists $sql_hash->{total_assets}) {
+
+	    $off = 0;
+	    while($token_list[$off] !~ /.*liabilities.*/i && $off < $#token_list) {
+		$off++;
+	    }
+
+	    if($token_list[$off - 2] =~ /[0-9]+/) {
+		$sql_hash->{total_assets} = $token_list[$off - 2];
+		return;
+	    }
+
+	    #if we got here, we have a failure to find
+	    log_error("couldn't find assets");
 	    return;
-	} else {
-	    print "\nHIT ON SECOND";
-	}
+	} 
     }
 
     #do not permit more than one value for this.  Some orgs
@@ -138,86 +137,29 @@ sub search_assets {
     if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
 	$sql_hash->{total_assets} = $token_list[$off + 1];
     }
-
-    print "\nafter forward search assets is $sql_hash->{total_assets}";
 }
 
-
-sub search_revenue {
-
-    my $off = forward_token_search("total revenue", 0, "liabilities");
-    if($off < 0) {
-#	print "\nmiss, looking for TOTAL";
-	$off = forward_token_search("total", 0, "liabilities");
-	if($off < 0) {
-	    return;
-	} else {
-	    print "\nHIT ON SECOND";
-	}
-    }
-
-    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i) {
-	$sql_hash->{total_revenue} = $token_list[$off + 1];
-    }
-
-    print "\nafter forward search revenues is $sql_hash->{total_revenue}";
-
-#    if(! exists $sql_hash->{total_assets}) {
-#	dump_category($asslist, shift);
-#    }
-}
 
 sub search_liabilities {
 
     my $off = backward_token_search("total liabilities", $#token_list, "assets");
     if($off < 0) {
-	print "\nmiss, looking for TOTAL";
+#	print "\nmiss, looking for TOTAL";
 	$off = backward_token_search("total", $#token_list, "assets");
 	if($off < 0) {
+	    log_error("couldn't find total liabilities") if !exists $sql_hash->{total_liabilities};
 	    return;
 	}
     }
 
-    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i) {
+    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
 	$sql_hash->{total_liabilities} = $token_list[$off + 1];
     }
 
-    print "\nafter forward search liabilities is $sql_hash->{total_liabilities}";
-
-#    if(! exists $sql_hash->{total_assets}) {
-#	dump_category($asslist, shift);
-#    }
+#    print "\nafter forward search liabilities is $sql_hash->{total_liabilities}";
 }
 
 
-sub search_equity {
-
-    my $off = backward_token_search("total equity", $#token_list, "assets");
-    if($off < 0) {
-	$off = backward_token_search("total stockholders equity", $#token_list, "assets");
-	if($off < 0) {
-	    return;
-	}
-    }
-
-    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i) {
-	$sql_hash->{total_equity} = $token_list[$off + 1];
-    }
-
-    print "\nafter backward search equity is $sql_hash->{total_equity}";
-
-#    if(! exists $sql_hash->{total_assets}) {
-#	dump_category($asslist, shift);
-#    }
-}
-
-
-sub parser_lae {
-
-    my $cathash = shift;
-    
-
-}
 
 sub forward_token_search {
 
@@ -226,7 +168,6 @@ sub forward_token_search {
     my $endval = shift;
 
     for($i = $start; $i <= $#token_list; $i++) {
-#	print "\n$trying ----$token_list[$i]---";
 	return $i if lc($token_list[$i]) eq lc($searchval);
 	last if $token_list[$i] =~ /.*$endval.*/i;
     }
@@ -242,7 +183,6 @@ sub backward_token_search {
     my $endval = shift;
 
     for($i = $start; $i >= 0; $i--) {
-#	print "\n$trying ----$token_list[$i]---";
 	return $i if lc($token_list[$i]) eq lc($searchval);
 	last if $token_list[$i] =~ /.*$endval.*/i;
     }
@@ -250,6 +190,13 @@ sub backward_token_search {
     return -1;
 }
 
+
+sub log_error {
+
+    open ERRFILE, ">>secbot.log";
+    print ERRFILE "\n" . shift;
+    close ERRFILE;
+}
 
 sub dump_category {
 
