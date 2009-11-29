@@ -12,7 +12,7 @@ use AI::Categorizer::Document;
 
 #jump table for parsers for each categroy
 
-my %parsers = ("Earnings per share" => \&parser_eps, "Total Liabilities and equity" => \&parser_lae);
+my %parsers = ("Shares Outstanding" => \&process_shares_outstanding);
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
@@ -97,13 +97,13 @@ sub find_best_matches {
 	search_liabilities();
     }
 
-#    foreach $category (keys %hitmap) {
+    foreach $category (keys %hitmap) {
 
-#	$temp = $hitmap{$category};
-#	if(exists $parsers{$category}) {
-#	    $parsers{$category}->($temp, $category);
-#	}
-#    }
+	$temp = $hitmap{$category};
+	if(exists $parsers{$category}) {
+	    $parsers{$category}->($temp, $cat);
+	}
+    }
 }
 
 sub search_assets {
@@ -159,7 +159,70 @@ sub search_liabilities {
 #    print "\nafter forward search liabilities is $sql_hash->{total_liabilities}";
 }
 
+sub process_shares_outstanding {
 
+    my $hits = shift;
+    my $topcat = shift;
+
+    my @potential_hits;
+
+    if($topcat eq "earnings statements") {
+
+	foreach (keys %$hits) {
+
+	    $shares = $token_list[$_ + 1];
+	    if(length $token_list[$_] < 150 && $shares =~ /\d+/ && $shares > 1) {
+		push @potential_hits, $_;
+	    }
+	}
+
+
+	if(@potential_hits == 1) {
+	    my $ind = $potential_hits[0] + 1;
+	    $sql_hash->{shares_outstanding} = $token_list[$ind];
+	} else {
+
+	    if(count_term_hits(\@potential_hits, "diluted") == 1) {
+		my $match = find_term(\@potential_hits, "diluted");
+		$sql_hash->{shares_outstanding} = $token_list[$match + 1];
+	    } else {
+		print "\nALTERNATE HIT COUNT IS " . count_term_hits(\@potential_hits, "diluted");
+	    }
+	} 
+    }
+
+    print "\nshares outstanding is $sql_hash->{shares_outstanding}" if exists $sql_hash->{shares_outstanding};
+}
+
+
+sub count_term_hits {
+
+    my $searcharr = shift;
+    my $term = shift;
+    my $count = 0;
+
+    foreach(@$searcharr) {
+	if($token_list[$_] =~ /.*$term.*/i) {
+	    $count++;
+	}
+    }
+
+    return $count;
+}
+
+sub find_term {
+
+    my $searcharr = shift;
+    my $term = shift;
+
+    foreach(@$searcharr) {
+	if($token_list[$_] =~ /.*$term.*/i) {
+	    return $_;
+	}
+    }
+
+    return 0;
+}
 
 sub forward_token_search {
 
