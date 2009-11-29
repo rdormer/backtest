@@ -163,6 +163,7 @@ sub process_shares_outstanding {
 
     my $hits = shift;
     my $topcat = shift;
+    my $shares, $index;
 
     my @potential_hits;
 
@@ -170,9 +171,17 @@ sub process_shares_outstanding {
 
 	foreach (keys %$hits) {
 
-	    $shares = $token_list[$_ + 1];
-	    if(length $token_list[$_] < 150 && $shares =~ /\d+/ && $shares > 1) {
-		push @potential_hits, $_;
+	    $index = $_;
+
+	    if(extend_category_match($_)) {
+		$shares = $token_list[$_ + 2];
+		$index++;
+	    } else {
+		$shares = $token_list[$_ + 1];
+	    }
+
+	    if(length $token_list[$index] < 150 && $shares =~ /\d+/ && $shares > 1) {
+		push @potential_hits, $index;
 	    }
 	}
 
@@ -190,10 +199,18 @@ sub process_shares_outstanding {
 	    }
 	} 
     }
-
-    print "\nshares outstanding is $sql_hash->{shares_outstanding}" if exists $sql_hash->{shares_outstanding};
 }
 
+sub extend_category_match {
+
+    my $hitindex = shift;
+    
+    if($token_list[$hitindex + 1] =~ /.*(basic|diluted)/i) {
+	return 1;
+    }
+
+    return 0;
+}
 
 sub count_term_hits {
 
