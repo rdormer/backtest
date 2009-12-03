@@ -27,6 +27,10 @@ $keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
 my @token_list;
 my %hitmap;
 my $datecount;
+my $selection_offset = 1;
+
+my @chunk_list;
+my @chunk_categories;
 
 $sql_hash;
 
@@ -97,11 +101,98 @@ sub find_best_matches {
 	search_liabilities();
     }
 
+    if($cat eq "earnings statements") {
+	search_net_income();
+    }
+
     foreach $category (keys %hitmap) {
 
 	$temp = $hitmap{$category};
 	if(exists $parsers{$category}) {
 	    $parsers{$category}->($temp, $cat);
+	}
+    }
+
+    my @temp = @token_list;
+    push @chunk_categories, $cat;
+    push @chunk_list, \@temp;
+}
+
+sub finish_sweep {
+
+    if(not exists $sql_hash->{net_income}) {
+	retry_net_income();
+    }
+
+    @chunk_categories = ();
+    @chunk_list = ();
+}
+
+sub search_net_income {
+
+    if($token_list[0] !~ /three months.*/i && $token_list[0] !~ /quarter ended.*/i) {
+	return;
+    }
+
+    for(my $index = 0; $index < $#token_list; $index++) {
+
+	my $curtoken = $token_list[ $index ];
+
+	if($curtoken =~ /net income( \(loss\))?/i || 
+	   $curtoken =~ /net loss$/i ||
+	   $curtoken =~ /net \(loss\) income$/i) {
+		
+	    if($token_list[$index + $selection_offset] =~ /^-?[0-9]+$/) {
+
+		$sql_hash->{net_income} = $token_list[$index + $selection_offset] if not exists $sql_hash->{net_income};
+		return;
+	    }
+	} 
+    }
+}
+
+#if we didn't find net income under one of it's common names in the earnings statements, then
+#we need to search for it under a different name, which can be found by looking at the first
+#line of the cash flow statement - which is always net income (or whatever it's called).
+
+sub retry_net_income {
+
+    my $searchterm;
+
+  CATEGORY_LOOP:
+    for(my $catindex = 0; $catindex <= $#chunk_categories; $catindex++) {
+	if($chunk_categories[$catindex] eq 'cash flow statements') {
+
+	    @temp = @{$chunk_list[$catindex]};
+	    foreach(@temp) {
+		
+		if(/Operating activities (.*)/i) {
+		    $searchterm = $1;
+		    last CATEGORY_LOOP;
+		}
+	    }
+	}
+    }
+
+    #why bother searching for the key when we already found it in the 
+    #cash flow statements?  Because it may not be the right value.
+    #a lot of cash flow statements are in odd time increments (i.e. not quarterly)
+
+  SEARCH_LOOP:
+    for(my $catindex = 0; $catindex < $#chunk_categories; $catindex++) {
+
+	if($chunk_categories[$catindex] eq 'earnings statements') {
+
+	    #hate constructing a new array here
+	    @tokens = @{$chunk_list[$catindex]};
+
+	    for(my $index = 0; $index < $#tokens; $index++) {
+
+		if($tokens[$index] =~ /$searchterm$/i) {
+		    $sql_hash->{net_income} = $tokens[$index + $selection_offset];
+		    last SEARCH_LOOP;
+		}
+	    }
 	}
     }
 }
@@ -119,7 +210,7 @@ sub search_assets {
 	    }
 
 	    if($token_list[$off - 2] =~ /[0-9]+/) {
-		$sql_hash->{total_assets} = $token_list[$off - 2];
+		$sql_hash->{total_assets} = $token_list[$off - 2];  ##### <----------THIS???
 		return;
 	    }
 
@@ -135,7 +226,7 @@ sub search_assets {
     #we don't need it, we assume the first value is the proper value
 
     if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
-	$sql_hash->{total_assets} = $token_list[$off + 1];
+	$sql_hash->{total_assets} = $token_list[$off + $selection_offset];
     }
 }
 
@@ -144,7 +235,7 @@ sub search_liabilities {
 
     my $off = backward_token_search("total liabilities", $#token_list, "assets");
     if($off < 0) {
-#	print "\nmiss, looking for TOTAL";
+
 	$off = backward_token_search("total", $#token_list, "assets");
 	if($off < 0) {
 	    log_error("couldn't find total liabilities") if !exists $sql_hash->{total_liabilities};
@@ -153,10 +244,8 @@ sub search_liabilities {
     }
 
     if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
-	$sql_hash->{total_liabilities} = $token_list[$off + 1];
+	$sql_hash->{total_liabilities} = $token_list[$off + $selection_offset];
     }
-
-#    print "\nafter forward search liabilities is $sql_hash->{total_liabilities}";
 }
 
 sub process_shares_outstanding {
@@ -174,10 +263,10 @@ sub process_shares_outstanding {
 	    $index = $_;
 
 	    if(extend_category_match($_)) {
-		$shares = $token_list[$_ + 2];
+		$shares = $token_list[$_ + $selection_offset + 1];
 		$index++;
 	    } else {
-		$shares = $token_list[$_ + 1];
+		$shares = $token_list[$_ + $selection_offset];
 	    }
 
 	    if(length $token_list[$index] < 150 && $shares =~ /\d+/ && $shares > 1) {
@@ -193,9 +282,9 @@ sub process_shares_outstanding {
 
 	    if(count_term_hits(\@potential_hits, "diluted") == 1) {
 		my $match = find_term(\@potential_hits, "diluted");
-		$sql_hash->{shares_outstanding} = $token_list[$match + 1];
+		$sql_hash->{shares_outstanding} = $token_list[$match + $selection_offset];
 	    } else {
-		print "\nALTERNATE HIT COUNT IS " . count_term_hits(\@potential_hits, "diluted");
+#		print "\nALTERNATE HIT COUNT IS " . count_term_hits(\@potential_hits, "diluted");
 	    }
 	} 
     }
@@ -292,6 +381,5 @@ sub dump_category {
 
     close ERRFILE;
 }
-
 
 1;

@@ -181,6 +181,8 @@ sub categorize_chunks {
 	    }
 	}
     }
+
+    heuristics::finish_sweep();
 }
 
 sub process_financials {
