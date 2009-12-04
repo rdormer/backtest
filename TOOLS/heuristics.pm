@@ -99,6 +99,8 @@ sub find_best_matches {
     if($cat eq "balance sheets") {
 	search_assets();
 	search_liabilities();
+	search_current_assets();
+	search_current_liabilities();
     }
 
     if($cat eq "earnings statements") {
@@ -197,6 +199,25 @@ sub retry_net_income {
     }
 }
 
+
+sub search_current_assets {
+
+    my $off = forward_token_search("total current assets", 0, "liabilities");
+
+    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_assets}) {
+	$sql_hash->{current_assets} = $token_list[$off + $selection_offset];
+    }
+}
+
+sub search_current_liabilities {
+
+    my $off = backward_token_search("total current liabilities", $#token_list, "assets");
+
+    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_liabilities}) {
+	$sql_hash->{current_liabilities} = $token_list[$off + $selection_offset];
+    }
+}
+
 sub search_assets {
 
     my $off = forward_token_search("total assets", 0, "liabilities");
@@ -225,7 +246,7 @@ sub search_assets {
     #statements contain re-statements of earlier data.  Either way,
     #we don't need it, we assume the first value is the proper value
 
-    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
+    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
 	$sql_hash->{total_assets} = $token_list[$off + $selection_offset];
     }
 }
@@ -243,7 +264,7 @@ sub search_liabilities {
 	}
     }
 
-    if($token_list[$off + 1] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
+    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
 	$sql_hash->{total_liabilities} = $token_list[$off + $selection_offset];
     }
 }
