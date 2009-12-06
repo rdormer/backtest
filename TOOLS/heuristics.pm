@@ -12,7 +12,7 @@ use AI::Categorizer::Document;
 
 #jump table for parsers for each categroy
 
-my %parsers = ("Shares Outstanding" => \&process_shares_outstanding);
+my %parsers = ("Shares Outstanding" => \&process_shares_outstanding, "Earnings per share" => \&process_diluted_eps);
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
@@ -266,6 +266,34 @@ sub search_liabilities {
 
     if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
 	$sql_hash->{total_liabilities} = $token_list[$off + $selection_offset];
+    }
+}
+
+sub process_diluted_eps {
+
+    my $hits = shift;
+    my $topcat = shift;
+
+    if($topcat eq 'earnings statements') {
+
+	foreach (keys %$hits) {
+
+	    my $value = $token_list[$_ + $selection_offset];
+	    if($value =~ /-?[0-9]+\.[0-9]+/) {
+
+		if($token_list[$_] =~ /diluted/i && $token_list[$_] =~ /basic/i) {
+		    $sql_hash->{diluted_eps} = $value;
+		    $sql_hash->{basic_eps} = $value;
+		} elsif($token_list[$_] =~ /diluted/i && ! exists $sql_hash->{diluted_eps}) {
+		    $sql_hash->{diluted_eps} = $value;
+		} elsif($token_list[$_] =~ /basic/i && ! exists $sql_hash->{basic_eps}) {
+		    $sql_hash->{basic_eps} = $value;
+		} elsif(! exists $sql_hash->{basic_eps} && ! exists $sql_hash->{diluted_eps}) {
+		    $sql_hash->{diluted_eps} = $value;
+		    $sql_hash->{basic_eps} = $value;
+		}
+	    }
+	}
     }
 }
 
