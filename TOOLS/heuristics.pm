@@ -96,8 +96,6 @@ sub find_best_matches {
 
     my $cat = shift;
 
-    return if wrong_timeframe();
-
     if($cat eq "balance sheets") {
 	search_assets();
 	search_liabilities();
@@ -105,7 +103,7 @@ sub find_best_matches {
 	search_current_liabilities();
     }
 
-    if($cat eq "earnings statements") {
+    if($cat eq "earnings statements" && ! wrong_timeframe()) {
 	search_net_income();
 	search_revenue();
     }
@@ -288,20 +286,27 @@ sub process_eps {
     my $hits = shift;
     my $topcat = shift;
 
-    if($topcat eq 'earnings statements') {
+    if($topcat eq 'earnings statements' && ! wrong_timeframe()) {
 
 	foreach (keys %$hits) {
 
+	    my $keyval = $token_list[$_];
 	    my $value = $token_list[$_ + $selection_offset];
+
+	    if(extend_category_match($_)) {
+
+		$keyval = $keyval . $token_list[$_ + 1];
+		$value = $token_list[$_ + 1 + $selection_offset];
+	    }
 
 	    if($value =~ /-?[0-9]*\.[0-9]+/) {
 
-		if($token_list[$_] =~ /diluted/i && $token_list[$_] =~ /basic/i) {
+		if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
 		    $sql_hash->{diluted_eps} = $value;
 		    $sql_hash->{basic_eps} = $value;
-		} elsif($token_list[$_] =~ /diluted/i && ! exists $sql_hash->{diluted_eps}) {
+		} elsif($keyval =~ /diluted/i && ! exists $sql_hash->{diluted_eps}) {
 		    $sql_hash->{diluted_eps} = $value;
-		} elsif($token_list[$_] =~ /basic/i && ! exists $sql_hash->{basic_eps}) {
+		} elsif($keyval =~ /basic/i && ! exists $sql_hash->{basic_eps}) {
 		    $sql_hash->{basic_eps} = $value;
 		} elsif(! exists $sql_hash->{basic_eps} && ! exists $sql_hash->{diluted_eps}) {
 		    $sql_hash->{diluted_eps} = $value;
@@ -384,7 +389,9 @@ sub extend_category_match {
 
     my $hitindex = shift;
     
-    if($token_list[$hitindex + 1] =~ /.*(basic|diluted)/i) {
+    if($token_list[$hitindex + 1] =~ /.*(basic|diluted)/i || 
+       $token_list[$hitindex] =~ /.*note$/i) {
+	
 	return 1;
     }
 
