@@ -127,6 +127,8 @@ sub finish_sweep {
 	retry_net_income();
     }
 
+    retry_eps();
+
     @chunk_categories = ();
     @chunk_list = ();
 }
@@ -197,6 +199,18 @@ sub retry_net_income {
 		}
 	    }
 	}
+    }
+}
+
+
+sub retry_eps {
+
+    if(exists $sql_hash->{basic_eps} && ! exists $sql_hash->{diluted_eps}) {
+	$sql_hash->{diluted_eps} = $sql_hash->{basic_eps};
+    }
+
+    if(exists $sql_hash->{diluted_eps} && ! exists $sql_hash->{basic_eps}) {
+	$sql_hash->{basic_eps} = $sql_hash->{$diluted_eps};
     }
 }
 
