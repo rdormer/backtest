@@ -257,8 +257,9 @@ sub write_sql {
     if(! $skipdb) {
 	
 	my $tablevals = shift;
-	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets) values";
-	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, $tablevals->{total_assets})";
+	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, eps_basic, eps_diluted) values";
+	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, $tablevals->{total_assets}, ";
+	$cmd .= "$tablevals->{basic_eps}, $tablevals->{diluted_eps})";
 
 	$put_sql = $database->prepare($cmd) or update_log($tablevals);
 	$put_sql->execute() or update_log($tablevals);

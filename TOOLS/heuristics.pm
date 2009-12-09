@@ -12,7 +12,7 @@ use AI::Categorizer::Document;
 
 #jump table for parsers for each categroy
 
-my %parsers = ("Shares Outstanding" => \&process_shares_outstanding, "Earnings per share" => \&process_diluted_eps);
+my %parsers = ("Shares Outstanding" => \&process_shares_outstanding, "Earnings per share" => \&process_eps);
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
@@ -96,6 +96,8 @@ sub find_best_matches {
 
     my $cat = shift;
 
+    return if wrong_timeframe();
+
     if($cat eq "balance sheets") {
 	search_assets();
 	search_liabilities();
@@ -105,6 +107,7 @@ sub find_best_matches {
 
     if($cat eq "earnings statements") {
 	search_net_income();
+	search_revenue();
     }
 
     foreach $category (keys %hitmap) {
@@ -199,6 +202,18 @@ sub retry_net_income {
     }
 }
 
+sub search_revenue {
+
+    foreach(@token_list) {
+
+	if($_ =~ /revenue/i || $_ =~ /gross profit/i || $_ =~ /income before/i) {
+#	    print "  HIT";
+	}
+
+    }
+
+}
+
 
 sub search_current_assets {
 
@@ -259,7 +274,6 @@ sub search_liabilities {
 
 	$off = backward_token_search("total", $#token_list, "assets");
 	if($off < 0) {
-	    log_error("couldn't find total liabilities") if !exists $sql_hash->{total_liabilities};
 	    return;
 	}
     }
@@ -269,7 +283,7 @@ sub search_liabilities {
     }
 }
 
-sub process_diluted_eps {
+sub process_eps {
 
     my $hits = shift;
     my $topcat = shift;
@@ -279,7 +293,8 @@ sub process_diluted_eps {
 	foreach (keys %$hits) {
 
 	    my $value = $token_list[$_ + $selection_offset];
-	    if($value =~ /-?[0-9]+\.[0-9]+/) {
+
+	    if($value =~ /-?[0-9]*\.[0-9]+/) {
 
 		if($token_list[$_] =~ /diluted/i && $token_list[$_] =~ /basic/i) {
 		    $sql_hash->{diluted_eps} = $value;
@@ -337,6 +352,32 @@ sub process_shares_outstanding {
 	    }
 	} 
     }
+}
+
+#sub to check and make sure there is quarterly data 
+#in this chunk, if not, we can discard said chunk
+sub wrong_timeframe {
+
+    my $three_index = -1;
+    my $six_index = -1;
+
+
+    for(my $i = 0; $i <= $#token_list; $i++) {
+	if($token_list[$i] =~ /three months/i) {
+	    $three_index = $i;
+	    last;
+	}
+    }
+
+
+    for(my $i = 0; $i <= $#token_list; $i++) {
+	if($token_list[$i] =~ /six months/i) {
+	    $six_index = $i;
+	    last;
+	}
+    }
+
+    return $six_index >= 0 && $three_index < 0;
 }
 
 sub extend_category_match {
