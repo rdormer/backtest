@@ -47,6 +47,7 @@ sub add_token {
 	$token =~ s/\$\s/\$/g;
 	$token =~ s/\(\s+/\(/g;
 	$token =~ s/\s+\)/\)/g;
+	$token =~ s/nil/0.0/g;
 	$token =~ s/://g;
 
 	if($token =~ /.*[A-Za-z].*/) {
@@ -302,34 +303,76 @@ sub process_eps {
 
     if($topcat eq 'earnings statements' && ! wrong_timeframe()) {
 
-	foreach (keys %$hits) {
+	if( ! try_eps_summation($hits)) {
+	    try_eps_lexsearch($hits);
+	}
+    }
+}
 
-	    my $keyval = $token_list[$_];
-	    my $value = $token_list[$_ + $selection_offset];
+sub try_eps_lexsearch {
 
-	    if(extend_category_match($_)) {
+    my $hits = shift;
 
-		$keyval = $keyval . $token_list[$_ + 1];
-		$value = $token_list[$_ + 1 + $selection_offset];
-	    }
+    foreach (keys %$hits) {
 
-	    if($value =~ /-?[0-9]*\.[0-9]+/) {
+	my $keyval = $token_list[$_];
+	my $value = $token_list[$_ + $selection_offset];
 
-		if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
-		    $sql_hash->{diluted_eps} = $value;
-		    $sql_hash->{basic_eps} = $value;
-		} elsif($keyval =~ /diluted/i && ! exists $sql_hash->{diluted_eps}) {
-		    $sql_hash->{diluted_eps} = $value;
-		} elsif($keyval =~ /basic/i && ! exists $sql_hash->{basic_eps}) {
-		    $sql_hash->{basic_eps} = $value;
-		} elsif(! exists $sql_hash->{basic_eps} && ! exists $sql_hash->{diluted_eps}) {
-		    $sql_hash->{diluted_eps} = $value;
-		    $sql_hash->{basic_eps} = $value;
-		}
+	if(extend_category_match($_)) {
+	    
+	    $keyval = $keyval . $token_list[$_ + 1];
+	    $value = $token_list[$_ + 1 + $selection_offset];
+	}
+
+	if($value =~ /-?[0-9]*\.[0-9]+/) {
+
+	    if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
+		$sql_hash->{diluted_eps} = $value;
+		$sql_hash->{basic_eps} = $value;
+	    } elsif($keyval =~ /diluted/i && ! exists $sql_hash->{diluted_eps}) {
+		$sql_hash->{diluted_eps} = $value;
+	    } elsif($keyval =~ /basic/i && ! exists $sql_hash->{basic_eps}) {
+		$sql_hash->{basic_eps} = $value;
+	    } elsif(! exists $sql_hash->{basic_eps} && ! exists $sql_hash->{diluted_eps}) {
+		$sql_hash->{diluted_eps} = $value;
+		$sql_hash->{basic_eps} = $value;
 	    }
 	}
     }
 }
+
+sub try_eps_summation {
+
+    my $hits = shift;
+    my $sum = 0;
+    my $last = 0;
+    
+    foreach (sort keys %$hits) {
+	    
+	my $keyval = $token_list[$_];
+	my $value = $token_list[$_ + $selection_offset];
+
+	if(extend_category_match($_)) {
+	    
+	    $keyval = $keyval . $token_list[$_ + 1];
+	    $value = $token_list[$_ + 1 + $selection_offset];
+	}
+
+	if($value =~ /-?[0-9]*\.[0-9]+/) {
+	    $sum += $value;
+	    $last = $value;
+	}
+    }
+
+    if(($sum - $last) == $last && ($sum - $last) != 0) {
+	$sql_hash->{basic_eps} = $last;
+	$sql_hash->{diluted_eps} = $last;
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
 
 sub process_shares_outstanding {
 
@@ -411,6 +454,11 @@ sub extend_category_match {
 
     return 0;
 }
+
+#count term hits and find term hits are utilities 
+#that check an array of indices into the token list
+#to see if they contain search terms - not to be mistaken
+#for functions that search the token list itself
 
 sub count_term_hits {
 
