@@ -73,12 +73,18 @@ sub add_tuple {
     push @tuple_list, \@new_tuple;
 
     if($main::dumptuples) {
-	print "\n$new_tuple[$KEYINDEX]   ($new_tuple[$CATINDEX])";
+
+	print "\n";
+	for(my $i = 1; $i <= $#new_tuple; $i++) {
+	    print "$new_tuple[$i] ";
+	}
+
+	print "\t($new_tuple[0])";
     }
 }
 
 sub clear {
-    @token_list = ();
+    @tuple_list = ();
     @temp_tuple = ();
     %hitmap = ();
 }
@@ -126,7 +132,7 @@ sub search_net_income {
 	return;
     }
 
-    for(my $index = 0; $index < $#tuple_list; $index++) {
+    for(my $index = 0; $index <= $#tuple_list; $index++) {
 
 	my $curtoken = $tuple_list[ $index ][$KEYINDEX];
 
@@ -171,14 +177,14 @@ sub retry_net_income {
     #a lot of cash flow statements are in odd time increments (i.e. not quarterly)
 
   SEARCH_LOOP:
-    for(my $catindex = 0; $catindex < $#chunk_categories; $catindex++) {
+    for(my $catindex = 0; $catindex <= $#chunk_categories; $catindex++) {
 
 	if($chunk_categories[$catindex] eq 'earnings statements') {
 
 	    #hate constructing a new array here
 	    @tuples = @{$chunk_list[$catindex]};
 
-	    for(my $index = 0; $index < $#tuples; $index++) {
+	    for(my $index = 0; $index <= $#tuples; $index++) {
 
 		if($tuples[$index][$KEYINDEX] =~ /$searchterm$/i) {
 		    $sql_hash->{net_income} = $tuples[$index][$selection_offset];
@@ -240,7 +246,7 @@ sub search_assets {
 	if($off < 0 && ! exists $sql_hash->{total_assets}) {
 
 	    $off = 0;
-	    while($tuple_list[$off][$KEYINDEX] !~ /.*liabilities.*/i && $off < $#tuple_list) {
+	    while($tuple_list[$off][$KEYINDEX] !~ /.*liabilities.*/i && $off <= $#tuple_list) {
 		$off++;
 	    }
 
@@ -288,17 +294,14 @@ sub search_eps {
     my $hits = shift;
     my $topcat = shift;
 
-    if( ! wrong_timeframe()) {
-
-	if( ! try_eps_summation()) {
-	    try_eps_lexsearch();
-	}
+    if( ! try_eps_summation()) {
+	try_eps_lexsearch();
     }
 }
 
 sub try_eps_lexsearch {
 
-    for(my $index = 0; $index < $#tuple_list; $index++) {
+    for(my $index = 0; $index <= $#tuple_list; $index++) {
 
 	next if $tuple_list[$index][$CATINDEX] ne "Earnings per share";
 
@@ -313,6 +316,8 @@ sub try_eps_lexsearch {
 
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
 
+	    print "\nMATCH ON $value";
+
 	    if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
 		$sql_hash->{diluted_eps} = $value;
 		$sql_hash->{basic_eps} = $value;
@@ -324,6 +329,8 @@ sub try_eps_lexsearch {
 		$sql_hash->{diluted_eps} = $value;
 		$sql_hash->{basic_eps} = $value;
 	    }
+
+	    print "\nPUTTING $sql_hash->{diluted_eps}  $sql_hash->{basic_eps}";
 	}
     }
 }
@@ -333,7 +340,7 @@ sub try_eps_summation {
     my $sum = 0;
     my $last = 0;
     
-    for(my $index = 0; $index < $#tuple_list; $index++) {
+    for(my $index = 0; $index <= $#tuple_list; $index++) {
 	    
 	my $keyval = $tuple_list[$index][$KEYINDEX];
 	my $value = $tuple_list[$index][$selection_offset];
