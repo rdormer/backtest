@@ -21,7 +21,7 @@ GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' 
     'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
     'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
     'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
-    'dumpkeys' => \$dumpkeys);
+    'dumptuples' => \$dumptuples);
 
 my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
 
@@ -219,7 +219,6 @@ sub process_financials {
 
 	    if($wantchars) {
 		heuristics::add_token($token);
-		heuristics::parse_keys($token);
 		$token = $tuple;
 		$wantchars = 0;
 		next;

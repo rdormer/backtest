@@ -9,25 +9,18 @@ $VERSION = 1.0;
 use AI::Categorizer::Learner::NaiveBayes;
 use AI::Categorizer::Document;
 
-
-#jump table for parsers for each categroy
-
-my %parsers = ("Shares Outstanding" => \&process_shares_outstanding, "Earnings per share" => \&process_eps);
+my $CATINDEX = 0;
+my $KEYINDEX = 1;
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
 $keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
 
 
-#an array of tokens created by secbot, and
-#a hash of hashes, indexed by category of token,
-#and then it's offset in the array, with the value 
-#being the score returned by the bayesian recognizer
+my $selection_offset = 2;
 
-my @token_list;
-my %hitmap;
-my $datecount;
-my $selection_offset = 1;
+my @tuple_list;
+my @temp_tuple;
 
 my @chunk_list;
 my @chunk_categories;
@@ -51,7 +44,10 @@ sub add_token {
 	$token =~ s/://g;
 
 	if($token =~ /.*[A-Za-z].*/) {
-	    push @token_list, $token;
+
+	    add_tuple(\@temp_tuple);
+	    @temp_tuple = ();
+	    push @temp_tuple, $token;
 	} else {
 
 	    foreach (split /\s/, $token) {
@@ -59,43 +55,39 @@ sub add_token {
 		$_ =~ s/\(/-/;
 		$_ =~ s/\)//;
 		$_ =~ s/\$//;
-		push @token_list, $_;
+		push @temp_tuple, $_;
 	    }
 	}
     }
 }
 
+sub add_tuple {
+
+    my $tuple = shift;
+    my @new_tuple = @$tuple;
+
+    return if @new_tuple < 1;
+    my $doc = new AI::Categorizer::Document(content => $new_tuple[0]);
+    $hypth = $keymod->categorize($doc);
+    unshift @new_tuple, $hypth->best_category;
+    push @tuple_list, \@new_tuple;
+
+    if($main::dumptuples) {
+	print "\n$new_tuple[$KEYINDEX]   ($new_tuple[$CATINDEX])";
+    }
+}
+
 sub clear {
     @token_list = ();
+    @temp_tuple = ();
     %hitmap = ();
-}
-
-sub add_potential_hit {
-
-    my $cat = shift;
-    my $score = shift;
-    my $offset = $#token_list;
-
-    $hitmap{$cat}->{$offset} = $score;
-}
-
-sub parse_keys {
-
-    my $cont = shift;
-    my $doc = new AI::Categorizer::Document(content => $cont);
-    $hypth = $keymod->categorize($doc);
-
-    my $cat = $hypth->best_category;
-    add_potential_hit($cat, $hypth->scores($cat));
-
-    if($main::dumpkeys) {
-	print "\n$cont\t($cat  score " . $hypth->scores($cat) .")";
-    }
 }
 
 sub find_best_matches {
 
     my $cat = shift;
+    add_tuple(\@temp_tuple);
+
 
     if($cat eq "balance sheets") {
 	search_assets();
@@ -105,19 +97,13 @@ sub find_best_matches {
     }
 
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
+	search_shares_outstanding();
 	search_net_income();
 	search_revenue();
+	search_eps();
     }
 
-    foreach $category (keys %hitmap) {
-
-	$temp = $hitmap{$category};
-	if(exists $parsers{$category}) {
-	    $parsers{$category}->($temp, $cat);
-	}
-    }
-
-    my @temp = @token_list;
+    my @temp = @tuple_list;
     push @chunk_categories, $cat;
     push @chunk_list, \@temp;
 }
@@ -136,21 +122,21 @@ sub finish_sweep {
 
 sub search_net_income {
 
-    if($token_list[0] !~ /three months.*/i && $token_list[0] !~ /quarter ended.*/i) {
+    if($tuple_list[0][$KEYINDEX] !~ /three months.*/i && $tuple_list[0][$KEYINDEX] !~ /quarter ended.*/i) {
 	return;
     }
 
-    for(my $index = 0; $index < $#token_list; $index++) {
+    for(my $index = 0; $index < $#tuple_list; $index++) {
 
-	my $curtoken = $token_list[ $index ];
+	my $curtoken = $tuple_list[ $index ][$KEYINDEX];
 
 	if($curtoken =~ /net income( \(loss\))?/i || 
 	   $curtoken =~ /net loss$/i ||
 	   $curtoken =~ /net \(loss\) income$/i) {
 		
-	    if($token_list[$index + $selection_offset] =~ /^-?[0-9]+$/) {
+	    if($tuple_list[$index][$selection_offset] =~ /^-?[0-9]+$/) {
 
-		$sql_hash->{net_income} = $token_list[$index + $selection_offset] if not exists $sql_hash->{net_income};
+		$sql_hash->{net_income} = $tuple_list[$index][$selection_offset] if not exists $sql_hash->{net_income};
 		return;
 	    }
 	} 
@@ -162,7 +148,7 @@ sub search_net_income {
 #line of the cash flow statement - which is always net income (or whatever it's called).
 
 sub retry_net_income {
-
+    
     my $searchterm;
 
   CATEGORY_LOOP:
@@ -190,12 +176,12 @@ sub retry_net_income {
 	if($chunk_categories[$catindex] eq 'earnings statements') {
 
 	    #hate constructing a new array here
-	    @tokens = @{$chunk_list[$catindex]};
+	    @tuples = @{$chunk_list[$catindex]};
 
-	    for(my $index = 0; $index < $#tokens; $index++) {
+	    for(my $index = 0; $index < $#tuples; $index++) {
 
-		if($tokens[$index] =~ /$searchterm$/i) {
-		    $sql_hash->{net_income} = $tokens[$index + $selection_offset];
+		if($tuples[$index][$KEYINDEX] =~ /$searchterm$/i) {
+		    $sql_hash->{net_income} = $tuples[$index][$selection_offset];
 		    last SEARCH_LOOP;
 		}
 	    }
@@ -217,7 +203,7 @@ sub retry_eps {
 
 sub search_revenue {
 
-    foreach(@token_list) {
+    foreach(@tuple_list) {
 
 	if($_ =~ /revenue/i || $_ =~ /gross profit/i || $_ =~ /income before/i) {
 #	    print "  HIT";
@@ -232,17 +218,17 @@ sub search_current_assets {
 
     my $off = forward_token_search("total current assets", 0, "liabilities");
 
-    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_assets}) {
-	$sql_hash->{current_assets} = $token_list[$off + $selection_offset];
+    if($tuple_list[$off][$selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_assets}) {
+	$sql_hash->{current_assets} = $tuple_list[$off][$selection_offset];
     }
 }
 
 sub search_current_liabilities {
 
-    my $off = backward_token_search("total current liabilities", $#token_list, "assets");
+    my $off = backward_token_search("total current liabilities", $#tuple_list, "assets");
 
-    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_liabilities}) {
-	$sql_hash->{current_liabilities} = $token_list[$off + $selection_offset];
+    if($tuple_list[$off][$KEYINDEX] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{current_liabilities}) {
+	$sql_hash->{current_liabilities} = $tuple_list[$off][$selection_offset];
     }
 }
 
@@ -254,14 +240,15 @@ sub search_assets {
 	if($off < 0 && ! exists $sql_hash->{total_assets}) {
 
 	    $off = 0;
-	    while($token_list[$off] !~ /.*liabilities.*/i && $off < $#token_list) {
+	    while($tuple_list[$off][$KEYINDEX] !~ /.*liabilities.*/i && $off < $#tuple_list) {
 		$off++;
 	    }
 
-	    if($token_list[$off - 2] =~ /[0-9]+/) {
-		$sql_hash->{total_assets} = $token_list[$off - 2];  ##### <----------THIS???
-		return;
-	    }
+# TODO TODO TODO - what the hell was this for???
+#	    if($token_list[$off - 2] =~ /[0-9]+/) {
+#		$sql_hash->{total_assets} = $token_list[$off - 2];  ##### <----------THIS???
+#		return;
+#	    }
 
 	    #if we got here, we have a failure to find
 	    log_error("couldn't find assets");
@@ -274,54 +261,54 @@ sub search_assets {
     #statements contain re-statements of earlier data.  Either way,
     #we don't need it, we assume the first value is the proper value
 
-    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
-	$sql_hash->{total_assets} = $token_list[$off + $selection_offset];
+    if($tuple_list[$off][$selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_assets}) {
+	$sql_hash->{total_assets} = $tuple_list[$off][$selection_offset];
     }
 }
 
 
 sub search_liabilities {
 
-    my $off = backward_token_search("total liabilities", $#token_list, "assets");
+    my $off = backward_token_search("total liabilities", $#tuple_list, "assets");
     if($off < 0) {
 
-	$off = backward_token_search("total", $#token_list, "assets");
+	$off = backward_token_search("total", $#tuple_list, "assets");
 	if($off < 0) {
 	    return;
 	}
     }
 
-    if($token_list[$off + $selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
-	$sql_hash->{total_liabilities} = $token_list[$off + $selection_offset];
+    if($tuple_list[$off][$selection_offset] !~ /.*[A-Z]+.*/i && ! exists $sql_hash->{total_liabilities}) {
+	$sql_hash->{total_liabilities} = $tuple_list[$off][$selection_offset];
     }
 }
 
-sub process_eps {
+sub search_eps {
 
     my $hits = shift;
     my $topcat = shift;
 
-    if($topcat eq 'earnings statements' && ! wrong_timeframe()) {
+    if( ! wrong_timeframe()) {
 
-	if( ! try_eps_summation($hits)) {
-	    try_eps_lexsearch($hits);
+	if( ! try_eps_summation()) {
+	    try_eps_lexsearch();
 	}
     }
 }
 
 sub try_eps_lexsearch {
 
-    my $hits = shift;
+    for(my $index = 0; $index < $#tuple_list; $index++) {
 
-    foreach (keys %$hits) {
+	next if $tuple_list[$index][$CATINDEX] ne "Earnings per share";
 
-	my $keyval = $token_list[$_];
-	my $value = $token_list[$_ + $selection_offset];
+	my $keyval = $tuple_list[$index][$KEYINDEX];
+	my $value = $tuple_list[$index][$selection_offset];
 
 	if(extend_category_match($_)) {
 	    
-	    $keyval = $keyval . $token_list[$_ + 1];
-	    $value = $token_list[$_ + 1 + $selection_offset];
+#	    $keyval = $keyval . $token_list[$_ + 1];
+#	    $value = $token_list[$_ + 1 + $selection_offset];
 	}
 
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
@@ -343,19 +330,18 @@ sub try_eps_lexsearch {
 
 sub try_eps_summation {
 
-    my $hits = shift;
     my $sum = 0;
     my $last = 0;
     
-    foreach (sort keys %$hits) {
+    for(my $index = 0; $index < $#tuple_list; $index++) {
 	    
-	my $keyval = $token_list[$_];
-	my $value = $token_list[$_ + $selection_offset];
+	my $keyval = $tuple_list[$index][$KEYINDEX];
+	my $value = $tuple_list[$index][$selection_offset];
 
 	if(extend_category_match($_)) {
 	    
-	    $keyval = $keyval . $token_list[$_ + 1];
-	    $value = $token_list[$_ + 1 + $selection_offset];
+#	    $keyval = $keyval . $token_list[$_ + 1];
+#	    $value = $token_list[$_ + 1 + $selection_offset];
 	}
 
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
@@ -374,46 +360,38 @@ sub try_eps_summation {
 }
 
 
-sub process_shares_outstanding {
+sub search_shares_outstanding {
 
-    my $hits = shift;
-    my $topcat = shift;
-    my $shares, $index;
-
+    my $shares;
     my @potential_hits;
 
-    if($topcat eq "earnings statements") {
+    for(my $index = 0; $index <= $#tuple_list; $index++) {
 
-	foreach (keys %$hits) {
-
-	    $index = $_;
-
-	    if(extend_category_match($_)) {
-		$shares = $token_list[$_ + $selection_offset + 1];
-		$index++;
-	    } else {
-		$shares = $token_list[$_ + $selection_offset];
-	    }
-
-	    if(length $token_list[$index] < 150 && $shares =~ /\d+/ && $shares > 1) {
-		push @potential_hits, $index;
-	    }
+	if(extend_category_match($_)) {
+#	    $shares = $token_list[$_ + $selection_offset + 1];
+#	    $index++;
+	} else {
+	    $shares = $tuple_list[$index][$selection_offset];
 	}
 
-
-	if(@potential_hits == 1) {
-	    my $ind = $potential_hits[0] + 1;
-	    $sql_hash->{shares_outstanding} = $token_list[$ind];
-	} else {
-
-	    if(count_term_hits(\@potential_hits, "diluted") == 1) {
-		my $match = find_term(\@potential_hits, "diluted");
-		$sql_hash->{shares_outstanding} = $token_list[$match + $selection_offset];
-	    } else {
-#		print "\nALTERNATE HIT COUNT IS " . count_term_hits(\@potential_hits, "diluted");
-	    }
-	} 
+	if(length $tuple_list[$index][$KEYINDEX] < 150 && $shares =~ /\d+/ && $shares > 1) {
+	    push @potential_hits, $index;
+	}
     }
+
+
+    if(@potential_hits == 1) {
+	my $ind = $potential_hits[0] + 1;
+	$sql_hash->{shares_outstanding} = $tuple_list[$ind][$selection_offset];
+    } else {
+
+	if(count_term_hits(\@potential_hits, "diluted") == 1) {
+	    my $match = find_term(\@potential_hits, "diluted");
+	    $sql_hash->{shares_outstanding} = $tuple_list[$match][$selection_offset];
+	} else {
+#		print "\nALTERNATE HIT COUNT IS " . count_term_hits(\@potential_hits, "diluted");
+	}
+    } 
 }
 
 #sub to check and make sure there is quarterly data 
@@ -423,17 +401,16 @@ sub wrong_timeframe {
     my $three_index = -1;
     my $six_index = -1;
 
-
-    for(my $i = 0; $i <= $#token_list; $i++) {
-	if($token_list[$i] =~ /three months/i) {
+    for(my $i = 0; $i <= $#tuple_list; $i++) {
+	if($tuple_list[$i][$KEYINDEX] =~ /three months/i) {
 	    $three_index = $i;
 	    last;
 	}
     }
 
 
-    for(my $i = 0; $i <= $#token_list; $i++) {
-	if($token_list[$i] =~ /six months/i) {
+    for(my $i = 0; $i <= $#tuple_list; $i++) {
+	if($tuple_list[$i][$KEYINDEX] =~ /six months/i) {
 	    $six_index = $i;
 	    last;
 	}
@@ -444,13 +421,13 @@ sub wrong_timeframe {
 
 sub extend_category_match {
 
-    my $hitindex = shift;
+#    my $hitindex = shift;
     
-    if($token_list[$hitindex + 1] =~ /.*(basic|diluted)/i || 
-       $token_list[$hitindex] =~ /.*note$/i) {
+#    if($tuple_list[$hitindex + 1] =~ /.*(basic|diluted)/i || 
+#       $token_list[$hitindex] =~ /.*note$/i) {
 	
-	return 1;
-    }
+#	return 1;
+#    }
 
     return 0;
 }
@@ -467,7 +444,7 @@ sub count_term_hits {
     my $count = 0;
 
     foreach(@$searcharr) {
-	if($token_list[$_] =~ /.*$term.*/i) {
+	if($tuple_list[$_][$KEYINDEX] =~ /.*$term.*/i) {
 	    $count++;
 	}
     }
@@ -481,7 +458,7 @@ sub find_term {
     my $term = shift;
 
     foreach(@$searcharr) {
-	if($token_list[$_] =~ /.*$term.*/i) {
+	if($tuple_list[$_][$KEYINDEX] =~ /.*$term.*/i) {
 	    return $_;
 	}
     }
@@ -495,9 +472,9 @@ sub forward_token_search {
     my $start = shift;
     my $endval = shift;
 
-    for($i = $start; $i <= $#token_list; $i++) {
-	return $i if lc($token_list[$i]) eq lc($searchval);
-	last if $token_list[$i] =~ /.*$endval.*/i;
+    for($i = $start; $i <= $#tuple_list; $i++) {
+	return $i if lc($tuple_list[$i][$KEYINDEX]) eq lc($searchval);
+	last if $tuple_list[$i][$KEYINDEX] =~ /.*$endval.*/i;
     }
 
     return -1;
@@ -511,8 +488,8 @@ sub backward_token_search {
     my $endval = shift;
 
     for($i = $start; $i >= 0; $i--) {
-	return $i if lc($token_list[$i]) eq lc($searchval);
-	last if $token_list[$i] =~ /.*$endval.*/i;
+	return $i if lc($tuple_list[$i][$KEYINDEX]) eq lc($searchval);
+	last if $tuple_list[$i][$KEYINDEX] =~ /.*$endval.*/i;
     }
 
     return -1;
