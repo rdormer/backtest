@@ -245,16 +245,21 @@ sub search_assets {
 	$off = forward_token_search("total", 0, "liabilities");
 	if($off < 0 && ! exists $sql_hash->{total_assets}) {
 
+	    #$off is post incremented so we don't need to go all the way to the last element
+	    #this is for the case where assets is not labeled, but just a bottom line total
+
 	    $off = 0;
-	    while($tuple_list[$off][$KEYINDEX] !~ /.*liabilities.*/i && $off <= $#tuple_list) {
+	    while($tuple_list[$off][$KEYINDEX] !~ /.*liabilities.*/i && $off < $#tuple_list) {
 		$off++;
 	    }
 
-# TODO TODO TODO - what the hell was this for???
-#	    if($token_list[$off - 2] =~ /[0-9]+/) {
-#		$sql_hash->{total_assets} = $token_list[$off - 2];  ##### <----------THIS???
-#		return;
-#	    }
+	    my $tuplesize = @{ $tuple_list[$off - 1] };
+	    my $assetval = $tuple_list[$off - 1][$tuplesize - $selection_offset]; #TODO <-- check this
+
+	    if($assetval =~ /[0-9]+/) {
+		$sql_hash->{total_assets} = $assetval;
+		return;
+	    }
 
 	    #if we got here, we have a failure to find
 	    log_error("couldn't find assets");
@@ -316,8 +321,6 @@ sub try_eps_lexsearch {
 
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
 
-	    print "\nMATCH ON $value";
-
 	    if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
 		$sql_hash->{diluted_eps} = $value;
 		$sql_hash->{basic_eps} = $value;
@@ -329,8 +332,6 @@ sub try_eps_lexsearch {
 		$sql_hash->{diluted_eps} = $value;
 		$sql_hash->{basic_eps} = $value;
 	    }
-
-	    print "\nPUTTING $sql_hash->{diluted_eps}  $sql_hash->{basic_eps}";
 	}
     }
 }

@@ -23,7 +23,7 @@ GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' 
     'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
     'dumptuples' => \$dumptuples);
 
-my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
+my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database" if not $skipdb;
 
 #workaround for bug in this package
 Algorithm::NaiveBayes->new();
@@ -137,8 +137,10 @@ sub get_text {
     my $parser = HTML::TreeBuilder->new;
     $parser->parse_content($raw);
     $parser->elementify();
+    my $ptext = extract_text($parser);
 
-    return extract_text($parser);
+    $parser->delete;
+    return $ptext;
 }
 
 #recursive extraction of text from HTML parse tree
