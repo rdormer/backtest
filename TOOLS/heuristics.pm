@@ -70,6 +70,7 @@ sub add_tuple {
     my $doc = new AI::Categorizer::Document(content => $new_tuple[0]);
     $hypth = $keymod->categorize($doc);
     unshift @new_tuple, $hypth->best_category;
+    preprocess_tuple(\@new_tuple);
     push @tuple_list, \@new_tuple;
 
     if($main::dumptuples) {
@@ -94,7 +95,6 @@ sub find_best_matches {
     my $cat = shift;
     add_tuple(\@temp_tuple);
 
-
     if($cat eq "balance sheets") {
 	search_assets();
 	search_liabilities();
@@ -112,6 +112,17 @@ sub find_best_matches {
     my @temp = @tuple_list;
     push @chunk_categories, $cat;
     push @chunk_list, \@temp;
+}
+
+sub preprocess_tuple {
+
+    my $tuple = shift;
+
+    #move note numbers to the end of the key
+    if($tuple->[$KEYINDEX] =~ /.*note/i && $tuple->[$KEYINDEX + 1] =~ /[0-9]+/) {
+	$tuple->[$KEYINDEX] .= $tuple->[$KEYINDEX + 1];
+	splice @$tuple, $KEYINDEX + 1, 1;
+    }
 }
 
 sub finish_sweep {
@@ -313,12 +324,6 @@ sub try_eps_lexsearch {
 	my $keyval = $tuple_list[$index][$KEYINDEX];
 	my $value = $tuple_list[$index][$selection_offset];
 
-	if(extend_category_match($_)) {
-	    
-#	    $keyval = $keyval . $token_list[$_ + 1];
-#	    $value = $token_list[$_ + 1 + $selection_offset];
-	}
-
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
 
 	    if($keyval =~ /diluted/i && $keyval =~ /basic/i) {
@@ -346,12 +351,6 @@ sub try_eps_summation {
 	my $keyval = $tuple_list[$index][$KEYINDEX];
 	my $value = $tuple_list[$index][$selection_offset];
 
-	if(extend_category_match($_)) {
-	    
-#	    $keyval = $keyval . $token_list[$_ + 1];
-#	    $value = $token_list[$_ + 1 + $selection_offset];
-	}
-
 	if($value =~ /-?[0-9]*\.[0-9]+/) {
 	    $sum += $value;
 	    $last = $value;
@@ -375,12 +374,7 @@ sub search_shares_outstanding {
 
     for(my $index = 0; $index <= $#tuple_list; $index++) {
 
-	if(extend_category_match($_)) {
-#	    $shares = $token_list[$_ + $selection_offset + 1];
-#	    $index++;
-	} else {
-	    $shares = $tuple_list[$index][$selection_offset];
-	}
+	$shares = $tuple_list[$index][$selection_offset];
 
 	if(length $tuple_list[$index][$KEYINDEX] < 150 && $shares =~ /\d+/ && $shares > 1) {
 	    push @potential_hits, $index;
@@ -416,6 +410,15 @@ sub wrong_timeframe {
 	}
     }
 
+    if($three_index < 0) {
+
+	for(my $i = 0; $i <= $#tuple_list; $i++) {
+	    if($tuple_list[$i][$KEYINDEX] =~ /quarter ended/i) {
+		$three_index = $i;
+		last;
+	    }
+	}
+    }
 
     for(my $i = 0; $i <= $#tuple_list; $i++) {
 	if($tuple_list[$i][$KEYINDEX] =~ /six months/i) {
@@ -425,19 +428,6 @@ sub wrong_timeframe {
     }
 
     return $six_index >= 0 && $three_index < 0;
-}
-
-sub extend_category_match {
-
-#    my $hitindex = shift;
-    
-#    if($tuple_list[$hitindex + 1] =~ /.*(basic|diluted)/i || 
-#       $token_list[$hitindex] =~ /.*note$/i) {
-	
-#	return 1;
-#    }
-
-    return 0;
 }
 
 #count term hits and find term hits are utilities 

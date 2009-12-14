@@ -9,6 +9,7 @@ use Getopt::Long;
 use Net::FTP;
 use DBI;
 
+my $FILE_SIZE_CUTOFF = 5000000;
 
 my $dataroot, $skipunzip, $dumpchunks, $datafile;
 my $skipexisting, $skipdownload, $skipdb, $dumpfin;
@@ -50,8 +51,6 @@ for(my $year = $start_year; $year <= $end_year; $year++) {
 	fetch_quarter($year, $quarter);
     }
 }
-
-
 
 
 
@@ -116,6 +115,8 @@ sub process_data_file {
 
     my $file = shift;
     my %sql_vals;
+
+    return if -s $file > $FILE_SIZE_CUTOFF;
 
     $sql_vals{sec_file} = $file;
     $heuristics::sql_hash = \%sql_vals;
@@ -247,9 +248,15 @@ sub parse_sec_header {
 	$sql->{date} = $1;
     }
 
-    if($raw =~ /.*STANDARD INDUSTRIAL CLASSIFICATION:\s+(\D+)\[([0-9]+)\].*/) {
-	$sql->{sec_industry} = $1;
+    if($raw =~ /.*STANDARD INDUSTRIAL CLASSIFICATION:\s+(\D+)?\[([0-9]+)\].*/) {
+
 	$sql->{sic_code} = $2;
+
+	#has to come after to avoid overwriting $2
+	my $industry = $1;
+	$industry =~ s/'/\\'/g;
+	$sql->{sec_industry} = $industry;
+
     }
 }
 
@@ -258,8 +265,9 @@ sub write_sql {
     if(! $skipdb) {
 	
 	my $tablevals = shift;
-	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, eps_basic, eps_diluted) values";
-	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, $tablevals->{total_assets}, ";
+	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, eps_basic, eps_diluted) values";
+	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, ";
+	$cmd .= "$tablevals->{total_assets}, $tablevals->{current_assets}, ";
 	$cmd .= "$tablevals->{basic_eps}, $tablevals->{diluted_eps})";
 
 	$put_sql = $database->prepare($cmd) or update_log($tablevals);
