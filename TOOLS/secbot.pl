@@ -11,7 +11,7 @@ use DBI;
 
 my $FILE_SIZE_CUTOFF = 5000000;
 
-my $dataroot, $skipunzip, $dumpchunks, $datafile;
+my $dataroot, $skipunzip, $dumpchunks, $datafile, $dumpsql;
 my $skipexisting, $skipdownload, $skipdb, $dumpfin;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
@@ -22,7 +22,7 @@ GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' 
     'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
     'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
     'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
-    'dumptuples' => \$dumptuples);
+    'dumptuples' => \$dumptuples, 'dumpsql' => \$dumpsql);
 
 my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database" if not $skipdb;
 
@@ -265,10 +265,15 @@ sub write_sql {
     if(! $skipdb) {
 	
 	my $tablevals = shift;
+
 	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, eps_basic, eps_diluted) values";
 	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, ";
 	$cmd .= "$tablevals->{total_assets}, $tablevals->{current_assets}, ";
 	$cmd .= "$tablevals->{basic_eps}, $tablevals->{diluted_eps})";
+
+	if($dumpsql) {
+	    print "\n$cmd\n\n";
+	}
 
 	$put_sql = $database->prepare($cmd) or update_log($tablevals);
 	$put_sql->execute() or update_log($tablevals);
