@@ -117,4 +117,20 @@ sub backward_token_search {
     return -1;
 }
 
+
+sub forward_term_search {
+
+    my $self = shift;
+    my $searchval = shift;
+    my $start = shift;
+    my $endval = shift;
+
+    for(my $i = $start; $i <= $#tuple_list; $i++) {
+	return $i if $tuple_list[$i][$KEYINDEX] =~ /$searchval/i;
+	last if $tuple_list[$i][$KEYINDEX] =~ /.*$endval.*/i;
+    }
+
+    return -1;
+}
+
 1;

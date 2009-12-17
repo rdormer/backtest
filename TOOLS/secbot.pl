@@ -266,9 +266,9 @@ sub write_sql {
 	
 	my $tablevals = shift;
 
-	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, eps_basic, eps_diluted) values";
+	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, cash, eps_basic, eps_diluted) values";
 	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, ";
-	$cmd .= "$tablevals->{total_assets}, $tablevals->{current_assets}, ";
+	$cmd .= "$tablevals->{total_assets}, $tablevals->{current_assets}, $tablevals->{cash}, ";
 	$cmd .= "$tablevals->{basic_eps}, $tablevals->{diluted_eps})";
 
 	if($dumpsql) {

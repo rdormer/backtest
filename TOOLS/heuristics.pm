@@ -24,13 +24,16 @@ Algorithm::NaiveBayes->new();
 $keymod = AI::Categorizer::Learner::NaiveBayes->restore_state('keys.sav');
 
 my $epsrules = ruleset->new();
-$epsrules->init("eps_summation", "eps_txtsearch");
+$epsrules->init("eps_summation", "eps_txtsearch", "eps_lasttry");
 
 my $current_asset_rules = ruleset->new();
 $current_asset_rules->init("cur_asset_txtsearch");
 
 my $asset_rules = ruleset->new();
 $asset_rules->init("asset_txtsearch", "asset_unlabeled_total");
+
+my $cash_rules = ruleset->new();
+$asset_rules->init("cash_txtsearch");
 
 $sql_hash;
 
@@ -96,7 +99,7 @@ sub preprocess_tuple {
     my $tuple = shift;
 
     #move note numbers to the end of the key
-    if($tuple->[$KEYINDEX] =~ /.*note/i && $tuple->[$KEYINDEX + 1] =~ /[0-9]+/) {
+    if($tuple->[$KEYINDEX] =~ /.*note$/i && $tuple->[$KEYINDEX + 1] =~ /[0-9]+/) {
 	$tuple->[$KEYINDEX] .= $tuple->[$KEYINDEX + 1];
 	splice @$tuple, $KEYINDEX + 1, 1;
     }
@@ -116,6 +119,7 @@ sub find_best_matches {
     if($cat eq "balance sheets") {
 	$current_asset_rules->apply();
 	$asset_rules->apply();
+	$cash_rules->apply();
     }
 
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
