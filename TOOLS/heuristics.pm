@@ -35,6 +35,9 @@ $asset_rules->init("asset_txtsearch", "asset_unlabeled_total");
 my $cash_rules = ruleset->new();
 $asset_rules->init("cash_txtsearch");
 
+my $net_income_rules = ruleset->new();
+$net_income_rules->init("net_income_txtsearch");
+
 $sql_hash;
 
 sub add_token {
@@ -103,6 +106,17 @@ sub preprocess_tuple {
 	$tuple->[$KEYINDEX] .= $tuple->[$KEYINDEX + 1];
 	splice @$tuple, $KEYINDEX + 1, 1;
     }
+
+    #get rid of any extraneous delimiters (dots, dashes, etc)
+  RESTART:
+    for(my $ind = $KEYINDEX + 1; $ind < scalar @{$tuple}; $ind++) {
+	if($tuple->[$ind] !~ /\w/) {
+	    splice @$tuple, $ind, 1;
+	    goto RESTART;
+	}	
+    }
+
+    $tuple->[$KEYINDEX] =~ s/\.//g;
 }
 
 sub clear {
@@ -123,6 +137,7 @@ sub find_best_matches {
     }
 
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
+	$net_income_rules->apply();
 	$epsrules->apply();
     }
 }

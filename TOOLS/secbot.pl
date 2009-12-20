@@ -11,18 +11,18 @@ use DBI;
 
 my $FILE_SIZE_CUTOFF = 5000000;
 
-my $dataroot, $skipunzip, $dumpchunks, $datafile, $dumpsql;
+my $dataroot, $dumpchunks, $datafile, $dumpsql;
 my $skipexisting, $skipdownload, $skipdb, $dumpfin;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
 my $start_qtr = 1, $end_qtr = 4;
 $dumpkeys;
 
-GetOptions('dataroot=s' => \$dataroot, 'skipgzip' => \$skipunzip, 'startyear=i' => \$start_year,
-    'endyear=i' => \$end_year, 'skipexisting' => \$skipexisting, 'skipdownload' => \$skipdownload,
-    'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
-    'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
-    'dumptuples' => \$dumptuples, 'dumpsql' => \$dumpsql);
+GetOptions('dataroot=s' => \$dataroot, 'startyear=i' => \$start_year, 'endyear=i' => \$end_year, 
+	   'skipexisting' => \$skipexisting, 'skipindex' => \$skipdownload, 
+	   'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
+	   'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
+	   'dumptuples' => \$dumptuples, 'dumpsql' => \$dumpsql);
 
 my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database" if not $skipdb;
 
@@ -73,7 +73,7 @@ sub fetch_quarter {
 	print "OK"; 
     }
 
-    if(not $skipunzip) { 
+    if(not $skipdownload) { 
 	print "\nunzip index file";
 	`gunzip -c $index_name > index.txt`;
     }
@@ -265,6 +265,11 @@ sub write_sql {
     if(! $skipdb) {
 	
 	my $tablevals = shift;
+
+	if(! exists $tablevals->{basic_eps} && ! exists $tablevals->{diluted_eps}) {
+	    print "   skipping (no eps data)";
+	    return;
+	}
 
 	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, cash, eps_basic, eps_diluted) values";
 	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, ";
