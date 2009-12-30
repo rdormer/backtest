@@ -32,11 +32,17 @@ $current_asset_rules->init("cur_asset_txtsearch");
 my $asset_rules = ruleset->new();
 $asset_rules->init("asset_txtsearch", "asset_unlabeled_total");
 
+my $debt_rules = ruleset->new();
+$debt_rules->init("debt_txtsearch", "debt_subtract_equity", "debt_subtract_category", "debt_subtract_unlabeled");
+
 my $cash_rules = ruleset->new();
 $asset_rules->init("cash_txtsearch");
 
 my $net_income_rules = ruleset->new();
 $net_income_rules->init("net_income_txtsearch");
+
+my $equity_rules = ruleset->new();
+$equity_rules->init("equity_txtsearch", "equity_by_category");
 
 $sql_hash;
 
@@ -132,7 +138,9 @@ sub find_best_matches {
 
     if($cat eq "balance sheets") {
 	$current_asset_rules->apply();
+	$equity_rules->apply();
 	$asset_rules->apply();
+	$debt_rules->apply();
 	$cash_rules->apply();
     }
 
