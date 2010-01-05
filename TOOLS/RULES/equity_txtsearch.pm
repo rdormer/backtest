@@ -17,8 +17,6 @@ sub run {
 
 	    if($tuple_list[$index][$self->selection_offset] =~ /^-?[0-9]+\.?[0-9]?$/) {
 		$sql_hash->{total_equity} = $tuple_list[$index][$self->selection_offset] if not exists $sql_hash->{total_equity};
-
-		$val = $sql_hash->{total_equity};
 	    }
 	} 
     }

@@ -15,7 +15,7 @@ sub run {
 	$value = $tuples[$off][$self->selection_offset];
 	if($value !~ /.*[A-Z]+.*/i && ! exists $self->result_hash->{current_assets}) {
 
-	    $self->result_hash->{current_assets} = $value;;
+	    $self->result_hash->{current_assets} = $value;
 	}	
     }
 }

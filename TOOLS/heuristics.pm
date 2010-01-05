@@ -27,7 +27,7 @@ my $epsrules = ruleset->new();
 $epsrules->init("eps_summation", "eps_txtsearch", "eps_lasttry");
 
 my $current_asset_rules = ruleset->new();
-$current_asset_rules->init("cur_asset_txtsearch");
+$current_asset_rules->init("cur_asset_txtsearch", "cur_asset_sum");
 
 my $asset_rules = ruleset->new();
 $asset_rules->init("asset_txtsearch", "asset_unlabeled_total");
@@ -36,7 +36,7 @@ my $debt_rules = ruleset->new();
 $debt_rules->init("debt_txtsearch", "debt_subtract_equity", "debt_subtract_category", "debt_subtract_unlabeled");
 
 my $cash_rules = ruleset->new();
-$asset_rules->init("cash_txtsearch");
+$cash_rules->init("cash_txtsearch");
 
 my $net_income_rules = ruleset->new();
 $net_income_rules->init("net_income_txtsearch");
@@ -137,11 +137,11 @@ sub find_best_matches {
     parse_rule->set_data(\@tuple_list, $sql_hash);
 
     if($cat eq "balance sheets") {
+	$cash_rules->apply();
 	$current_asset_rules->apply();
 	$equity_rules->apply();
 	$asset_rules->apply();
 	$debt_rules->apply();
-	$cash_rules->apply();
     }
 
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
