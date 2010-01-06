@@ -29,6 +29,9 @@ $epsrules->init("eps_summation", "eps_txtsearch", "eps_lasttry");
 my $current_asset_rules = ruleset->new();
 $current_asset_rules->init("cur_asset_txtsearch", "cur_asset_sum");
 
+my $current_liabilities = ruleset->new();
+$current_liabilities->init("cur_debt_txtsearch", "cur_debt_sum");
+
 my $asset_rules = ruleset->new();
 $asset_rules->init("asset_txtsearch", "asset_unlabeled_total");
 
@@ -43,6 +46,9 @@ $net_income_rules->init("net_income_txtsearch");
 
 my $equity_rules = ruleset->new();
 $equity_rules->init("equity_txtsearch", "equity_by_category");
+
+#my $sharecount_rules = ruleset->new();
+#$sharecount_rules->init("shares_outstanding");
 
 $sql_hash;
 
@@ -139,6 +145,8 @@ sub find_best_matches {
     if($cat eq "balance sheets") {
 	$cash_rules->apply();
 	$current_asset_rules->apply();
+	$current_liabilities->apply();
+#	$sharecount_rules->apply();
 	$equity_rules->apply();
 	$asset_rules->apply();
 	$debt_rules->apply();

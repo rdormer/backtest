@@ -72,6 +72,7 @@ sub count_term_hits {
     return $count;
 }
 
+#does a search for a term, but only at indices specified by list argument
 sub find_term {
 
     my $searcharr = shift;
@@ -101,7 +102,7 @@ sub forward_token_search {
     return -1;
 }
 
-
+#does an exact match (string IS search value)
 sub backward_token_search {
 
     my $self = shift;
@@ -118,6 +119,7 @@ sub backward_token_search {
 }
 
 
+#does an approximate match (string CONTAINS search value)
 sub forward_term_search {
 
     my $self = shift;

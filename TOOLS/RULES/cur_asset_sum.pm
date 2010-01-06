@@ -21,8 +21,8 @@ sub run {
 	
 	if($key =~ /receivable/i ||
 	   $key =~ /inventory/i  ||
-	   $key =~ /prepaid/i ||
-	   $key =~ /securities/i
+	   $key =~ /prepaid/i    ||
+	   $key =~ /securities/i ||
 	   $key =~ /deposit/i) {
 
 	    $sum += $cur[$self->selection_offset];
