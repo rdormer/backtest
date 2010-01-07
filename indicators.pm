@@ -9,32 +9,32 @@ sub fetch_open_at { return $current_prices->[shift][2]; }
 sub fetch_high_at { return $current_prices->[shift][3]; }
 sub fetch_low_at { return $current_prices->[shift][4]; }
 sub fetch_close_at { return $current_prices->[shift][5]; }
-sub fetch_volume_at { return $current_prices->[shift][7]; }
+sub fetch_volume_at { return $current_prices->[shift][6]; }
 sub fetch_date_at { return $current_prices->[shift][1]; }
 
 sub max_open { return array_max(shift, 2); }
 sub max_high { return array_max(shift, 3); }
 sub max_low { return array_max(shift, 4); }
 sub max_close { return array_max(shift, 5); }
-sub max_volume { return array_max(shift, 7); }
+sub max_volume { return array_max(shift, 6); }
 
 sub min_open { return array_min(shift, 2); }
 sub min_high { return array_min(shift, 3); }
 sub min_low { return array_min(shift, 4); }
 sub min_close { return array_min(shift, 5); }
-sub min_volume { return array_min(shift, 7); }
+sub min_volume { return array_min(shift, 6); }
 
 sub avg_open { return array_avg(shift, 2); }
 sub avg_high { return array_avg(shift, 3); }
 sub avg_low { return array_avg(shift, 4); }
 sub avg_close { return array_avg(shift, 5); }
-sub avg_volume { return array_avg(shift, 7); }
+sub avg_volume { return array_avg(shift, 6); }
 
 sub exp_avg_open { return array_exponential_avg(shift, 2); }
 sub exp_avg_high { return array_exponential_avg(shift, 3); }
 sub exp_avg_low { return array_exponential_avg(shift, 4); }
 sub exp_avg_close { return array_exponential_avg(shift, 5); }
-sub exp_avg_volume { return array_exponential_avg(shift, 7); }
+sub exp_avg_volume { return array_exponential_avg(shift, 6); }
 
 sub index_max_close { return array_max_index(shift, 5); }
 sub index_min_close { return array_min_index(shift, 5); }
