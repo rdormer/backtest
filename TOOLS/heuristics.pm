@@ -50,6 +50,9 @@ $equity_rules->init("equity_txtsearch", "equity_by_category");
 my $avg_shares_rules = ruleset->new();
 $avg_shares_rules->init("avg_shares_txtsearch", "avg_shares_extend", "avg_shares_simple");
 
+my $revenue_rules = ruleset->new();
+$revenue_rules->init("revenue_txtsearch");
+
 $sql_hash;
 
 sub add_token {
@@ -154,6 +157,7 @@ sub find_best_matches {
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
 	$avg_shares_rules->apply();
 	$net_income_rules->apply();
+	$revenue_rules->apply();
 	$epsrules->apply();
     }
 }
