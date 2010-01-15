@@ -47,8 +47,8 @@ $net_income_rules->init("net_income_txtsearch");
 my $equity_rules = ruleset->new();
 $equity_rules->init("equity_txtsearch", "equity_by_category");
 
-#my $sharecount_rules = ruleset->new();
-#$sharecount_rules->init("shares_outstanding");
+my $avg_shares_rules = ruleset->new();
+$avg_shares_rules->init("avg_shares_txtsearch", "avg_shares_extend", "avg_shares_simple");
 
 $sql_hash;
 
@@ -146,13 +146,13 @@ sub find_best_matches {
 	$cash_rules->apply();
 	$current_asset_rules->apply();
 	$current_liabilities->apply();
-#	$sharecount_rules->apply();
 	$equity_rules->apply();
 	$asset_rules->apply();
 	$debt_rules->apply();
     }
 
     if($cat eq "earnings statements" && ! wrong_timeframe()) {
+	$avg_shares_rules->apply();
 	$net_income_rules->apply();
 	$epsrules->apply();
     }
