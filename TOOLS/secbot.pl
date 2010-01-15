@@ -11,7 +11,7 @@ use DBI;
 
 my $FILE_SIZE_CUTOFF = 5000000;
 
-my $dataroot, $dumpchunks, $datafile, $dumpsql;
+my $dataroot, $dumpchunks, $datafile, $dumpsql, $spiderwait;
 my $skipexisting, $skipdownload, $skipdb, $dumpfin;
 my $start_year = `date "+%Y"`;
 my $end_year = $start_year;
@@ -22,7 +22,7 @@ GetOptions('dataroot=s' => \$dataroot, 'startyear=i' => \$start_year, 'endyear=i
 	   'skipexisting' => \$skipexisting, 'skipindex' => \$skipdownload, 
 	   'dumpchunks' => \$dumpchunks, 'skipdb' => \$skipdb, 'start-quarter=i' => \$start_qtr, 
 	   'end-quarter=i' => \$end_qtr, 'datafile=s' => \$datafile, 'dumpfinancials' => \$dumpfin,
-	   'dumptuples' => \$dumptuples, 'dumpsql' => \$dumpsql);
+	   'dumptuples' => \$dumptuples, 'dumpsql' => \$dumpsql, 'spider-wait=s' => \$spiderwait);
 
 my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database" if not $skipdb;
 
@@ -99,6 +99,7 @@ sub download_filing {
     if($fields[2] eq "10-Q") {
 	print "\nprocess $fname";
 	if(not -e $fname) {
+	    sleep($spiderwait) if $spiderwait > 0;
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
 	    $ftpbot->get("/" . $fields[4]) or print "\n" . $ftpbot->message;
 	    
