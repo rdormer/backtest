@@ -264,24 +264,29 @@ sub write_sql {
 
     if(! $skipdb) {
 	
-	my $tablevals = shift;
+	my $vals = shift;
 
-	if(! exists $tablevals->{basic_eps} && ! exists $tablevals->{diluted_eps}) {
+	if(! exists $vals->{basic_eps} && ! exists $vals->{diluted_eps}) {
 	    print "   skipping (no eps data)";
 	    return;
 	}
 
-	my $cmd = "insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, current_assets, cash, eps_basic, eps_diluted) values";
-	$cmd .= "($tablevals->{date}, '$tablevals->{sec_file}', '$tablevals->{sec_name}', '$tablevals->{sec_industry}', $tablevals->{sic_code}, ";
-	$cmd .= "$tablevals->{total_assets}, $tablevals->{current_assets}, $tablevals->{cash}, ";
-	$cmd .= "$tablevals->{basic_eps}, $tablevals->{diluted_eps})";
+	$heresql = <<DONE;
+	insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, 
+	current_assets, total_debt, current_debt, cash, equity, net_income, revenue, avg_shares_basic, 
+	avg_shares_diluted, eps_basic, eps_diluted) values ($vals->{date}, '$vals->{sec_file}', 
+        '$vals->{sec_name}', '$vals->{sec_industry}', $vals->{sic_code}, $vals->{total_assets}, 
+        $vals->{current_assets}, $vals->{total_liabilities}, $vals->{current_liabilities}, $vals->{cash}, 
+        $vals->{total_equity}, $vals->{net_income}, $vals->{revenue}, $vals->{avg_shares_basic}, 
+        $vals->{avg_shares_diluted}, $vals->{basic_eps}, $vals->{diluted_eps});
+DONE
 
 	if($dumpsql) {
-	    print "\n$cmd\n\n";
+	    print "\n\n$heresql\n\n";
 	}
 
-	$put_sql = $database->prepare($cmd) or update_log($tablevals);
-	$put_sql->execute() or update_log($tablevals);
+	$put_sql = $database->prepare($heresql) or update_log($vals);
+	$put_sql->execute() or update_log($vals);
     }
 }
 
