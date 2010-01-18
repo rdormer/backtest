@@ -7,20 +7,21 @@ $stocktable = `wget -q -O - \"$getstring\"`;
 $flag = 1;
 
 do {
-        if($stocktable =~ /($urlend)([A-Z,-]+)(&amp)/) {
-                @stocks = split(/,/, $2);
-                foreach $i (@stocks) {
-                        print "$i\n";
-                }
-        }
-        else {
-                $flag = 0;
-        }
+
+    if($stocktable =~ /($urlend)([A-Z,-]+)(&amp)/) {
+	@stocks = split(/,/, $2);
+	foreach $i (@stocks) {
+	    print "$i\n" if length $i > 0;
+	}
+    }
+    else {
+	$flag = 0;
+    }
 
 
-        $url = $getstring . "&c=$ival";
-        $stocktable = `wget -q -O - \"$url\"`;
-        $ival++;
+    $url = $getstring . "&c=$ival";
+    $stocktable = `wget -q -O - \"$url\"`;
+    $ival++;
 
 } while ($flag);
 
