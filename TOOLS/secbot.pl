@@ -97,7 +97,9 @@ sub download_filing {
     $fname = substr $fields[4], rindex($fields[4], "/") + 1;
 
     if($fields[2] eq "10-Q") {
+
 	print "\nprocess $fname";
+
 	if(not -e $fname) {
 	    sleep($spiderwait) if $spiderwait > 0;
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
@@ -117,6 +119,7 @@ sub process_data_file {
     my $file = shift;
     my %sql_vals;
 
+    print "\nfile does not exist!\n" if ! -e $file;
     return if -s $file > $FILE_SIZE_CUTOFF;
 
     $sql_vals{sec_file} = $file;
@@ -166,7 +169,7 @@ sub extract_text {
 
 sub categorize_chunks {
 
-    my @chunks = split /(Condensed|Consolidated|Unaudited)/i, shift;
+    my @chunks = split /(Condensed|Consolidated)/i, shift;
 
 
     foreach (@chunks) {
@@ -257,8 +260,12 @@ sub parse_sec_header {
 	my $industry = $1;
 	$industry =~ s/'/\\'/g;
 	$sql->{sec_industry} = $industry;
-
     }
+
+    if($raw =~ /.*CENTRAL INDEX KEY:\s+([0-9]+).*/) {
+	$sql->{cik} = $1;
+    }
+    
 }
 
 sub write_sql {
@@ -266,17 +273,18 @@ sub write_sql {
     if(! $skipdb) {
 	
 	my $vals = shift;
-
-	if(! exists $vals->{basic_eps} && ! exists $vals->{diluted_eps}) {
-	    print "   skipping (no eps data)";
+	
+        my $error = heuristics::do_sanity_check();
+	if(length $error > 0) {
+	    update_log($vals, $error);
 	    return;
 	}
 
-	$heresql = <<DONE;
-	insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, total_assets, 
+$heresql = <<DONE;
+	insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, cik, total_assets, 
 	current_assets, total_debt, current_debt, cash, equity, net_income, revenue, avg_shares_basic, 
 	avg_shares_diluted, eps_basic, eps_diluted) values ($vals->{date}, '$vals->{sec_file}', 
-        '$vals->{sec_name}', '$vals->{sec_industry}', $vals->{sic_code}, $vals->{total_assets}, 
+        '$vals->{sec_name}', '$vals->{sec_industry}', $vals->{sic_code}, '$vals->{cik}', $vals->{total_assets}, 
         $vals->{current_assets}, $vals->{total_liabilities}, $vals->{current_liabilities}, $vals->{cash}, 
         $vals->{total_equity}, $vals->{net_income}, $vals->{revenue}, $vals->{avg_shares_basic}, 
         $vals->{avg_shares_diluted}, $vals->{basic_eps}, $vals->{diluted_eps});
@@ -295,7 +303,10 @@ DONE
 sub update_log {
 
     my $dbgvals = shift;
+    my $errstring = shift;
     open ERRORFILE, ">>secbot.log";
+
+    print ERRORFILE "\n$errstring\n\n";
     
     foreach (keys %$dbgvals) {
 	print ERRORFILE "$_ = $dbgvals->{$_}\n";

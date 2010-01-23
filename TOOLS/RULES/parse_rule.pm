@@ -8,6 +8,7 @@ our @tuple_list;
 
 my $selection_offset = 2;
 my $result_hash;
+my $multiplier;
 
 sub new {
 
@@ -41,6 +42,7 @@ sub set_data {
     my $self = shift;
     my $ref = shift;
     $result_hash = shift;
+    $multiplier = shift;
 
     @tuple_list = @{ $ref };
 }

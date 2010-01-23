@@ -11,6 +11,8 @@ $ch = $dbh->prepare("insert into dividends (date, ticker, divamt) value (?, ?, ?
 foreach(<INFILE>) {
 
     chomp;
+    
+    print "\n$_";
     $url = build_url($_);
     $rawdata = `wget -q "$url" -O -`;
 
