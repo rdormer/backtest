@@ -51,6 +51,7 @@ my $avg_shares_rules = ruleset->new();
 $avg_shares_rules->init("avg_shares_txtsearch", "avg_shares_extend", "avg_shares_simple");
 
 my $share_count_rules = ruleset->new();
+$share_count_rules->init("sharecount_respectively");
 
 my $revenue_rules = ruleset->new();
 $revenue_rules->init("revenue_txtsearch");
@@ -255,6 +256,20 @@ sub do_sanity_check {
 
     if(length $sql_hash->{cik} != 10) {
 	return "invalid CIK";
+    }
+
+    #force share counts to exist
+    
+    if(! exists $sql_hash->{shares_authorized} || $sql_hash->{shares_authorized} !~ /[0-9]+/) {
+	$sql_hash->{shares_authorized} = null;
+    }
+
+    if(! exists $sql_hash->{shares_issued} || $sql_hash->{shares_issued} !~ /[0-9]+/) {
+	$sql_hash->{shares_issued} = null;
+    }
+
+    if(! exists $sql_hash->{shares_outstanding} || $sql_hash->{shares_outstanding} !~ /[0-9]+/) {
+	$sql_hash->{shares_outstanding} = null;
     }
 
     return "";

@@ -283,11 +283,12 @@ sub write_sql {
 $heresql = <<DONE;
 	insert into fundamentals (date, sec_file, sec_name, sec_industry, sic_code, cik, total_assets, 
 	current_assets, total_debt, current_debt, cash, equity, net_income, revenue, avg_shares_basic, 
-	avg_shares_diluted, eps_basic, eps_diluted) values ($vals->{date}, '$vals->{sec_file}', 
-        '$vals->{sec_name}', '$vals->{sec_industry}', $vals->{sic_code}, '$vals->{cik}', $vals->{total_assets}, 
-        $vals->{current_assets}, $vals->{total_liabilities}, $vals->{current_liabilities}, $vals->{cash}, 
-        $vals->{total_equity}, $vals->{net_income}, $vals->{revenue}, $vals->{avg_shares_basic}, 
-        $vals->{avg_shares_diluted}, $vals->{basic_eps}, $vals->{diluted_eps});
+	avg_shares_diluted, eps_basic, eps_diluted, shares_authorized, shares_issued, shares_outstanding) 
+	values ($vals->{date}, '$vals->{sec_file}', '$vals->{sec_name}', '$vals->{sec_industry}', $vals->{sic_code}, 
+	'$vals->{cik}', $vals->{total_assets}, $vals->{current_assets}, $vals->{total_liabilities}, 
+	$vals->{current_liabilities}, $vals->{cash}, $vals->{total_equity}, $vals->{net_income}, $vals->{revenue}, 
+	$vals->{avg_shares_basic}, $vals->{avg_shares_diluted}, $vals->{basic_eps}, $vals->{diluted_eps}, 
+	$vals->{shares_authorized}, $vals->{shares_issued}, $vals->{shares_outstanding});
 DONE
 
 	if($dumpsql) {

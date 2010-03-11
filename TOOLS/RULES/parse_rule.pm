@@ -137,4 +137,23 @@ sub forward_term_search {
     return -1;
 }
 
+
+#inefficient, but sometimes necessary
+sub recombine_tuples {
+
+    my $self = shift;
+    my $raw;
+
+    foreach $tuple (@tuple_list) {
+
+	@tup = @{$tuple};
+
+	for($i = 1; $i <= $#tup; $i++) {
+	    $raw .= "$tup[$i] ";
+	}
+    }
+
+    return $raw;
+}
+
 1;
