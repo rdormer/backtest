@@ -1,37 +1,12 @@
 package sharecount_respectively;
-use parse_rule;
+use sharecount_mod;
 
-our @ISA = qw(parse_rule);
-
-
-sub run {
-
-    my $self = shift;
-    my @tuples = @{$self->get_tuples};
-    my $raw = $self->recombine_tuples();
-
-    if($raw =~ /.*(common.*paid).*/i) {
-	my ($authorized, $issue, $out) = process_hit($1);
-	print "  a $authorized i $issue o $out";
-	$self->result_hash->{shares_authorized} = $authorized;
-	$self->result_hash->{shares_outstanding} = $out;
-	$self->result_hash->{shares_issued} = $issue;
-	return;
-    }
-
-    if($raw =~ /.*(common.*retained).*/i) {
-	my ($authorized, $issue, $out) = process_hit($1);
-	print "  a $authorized i $issue o $out";
-	$self->result_hash->{shares_authorized} = $authorized;
-	$self->result_hash->{shares_outstanding} = $out;
-	$self->result_hash->{shares_issued} = $issue;
-	return;
-    }
-}
+our @ISA = qw(sharecount_mod);
 
 
 sub process_hit {
 
+    my $self = shift;
     my $hit = shift;
     my $auth, $issued, $outstanding;
 

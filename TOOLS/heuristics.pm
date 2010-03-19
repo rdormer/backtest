@@ -51,7 +51,7 @@ my $avg_shares_rules = ruleset->new();
 $avg_shares_rules->init("avg_shares_txtsearch", "avg_shares_extend", "avg_shares_simple");
 
 my $share_count_rules = ruleset->new();
-$share_count_rules->init("sharecount_respectively");
+$share_count_rules->init("sharecount_respectively", "sharecount_simple", "sharecount_last_try");
 
 my $revenue_rules = ruleset->new();
 $revenue_rules->init("revenue_txtsearch");
