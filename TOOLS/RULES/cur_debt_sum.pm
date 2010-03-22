@@ -26,7 +26,7 @@ sub run {
     }
 
     if($sum > 0) {
-	$self->result_hash->{current_liabilities} = $sum;
+	$self->result_hash->{current_liabilities} = $self->apply_multiplier($sum);
     }
 }
 

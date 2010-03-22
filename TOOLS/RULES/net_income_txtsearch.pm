@@ -19,7 +19,9 @@ sub run {
 	   $curtoken =~ /net income$/i) {
 
 	    if($tuple_list[$index][$self->selection_offset] =~ /^-?[0-9]+\.?[0-9]?$/) {
-		$sql_hash->{net_income} = $tuple_list[$index][$self->selection_offset] if not exists $sql_hash->{net_income};
+
+		my $val = $tuple_list[$index][$self->selection_offset];
+		$sql_hash->{net_income} = $self->apply_multiplier($val) if not exists $sql_hash->{net_income};
 	    }
 	} 
     }

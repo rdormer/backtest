@@ -18,7 +18,7 @@ sub run {
 	    if($token =~ /liabilities/i && $token =~ /equity/i && $token =~ /total/i) {
 
 		$debtval = $tuples[$off][$self->selection_offset] - $res_hash->{total_equity};
-		$res_hash->{total_liabilities} = $debtval;
+		$res_hash->{total_liabilities} = $self->apply_multiplier($debtval);
 		return;
 	    }
 	}

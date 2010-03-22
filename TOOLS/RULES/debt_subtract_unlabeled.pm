@@ -24,7 +24,7 @@ sub run {
 
 	    my $value = $last[$self->selection_offset + 2];
 	    my $dif = $value - $res_hash->{total_equity};
-	    $res_hash->{total_liabilities} = $dif;
+	    $res_hash->{total_liabilities} = $self->apply_multiplier($dif);
 	    return;
 	}
     }

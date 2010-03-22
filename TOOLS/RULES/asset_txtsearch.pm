@@ -16,7 +16,9 @@ sub run {
     if($off >= 0 && $tuples[$off][$self->selection_offset] !~ /.*[A-Z]+.*/i && 
        ! exists $self->result_hash->{total_assets}) {
 
-	$self->result_hash->{total_assets} = $tuples[$off][$self->selection_offset];
+	my $value = $tuples[$off][$self->selection_offset];
+	$self->result_hash->{total_assets} = $self->apply_multiplier($value);
+
     }
 }
 

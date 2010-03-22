@@ -21,7 +21,7 @@ sub run {
     my $assetval = $tuples[$off - 1][$tuplesize - $self->selection_offset]; #TODO <-- check this
 
     if($assetval =~ /[0-9]+/) {
-	$self->result_hash->{total_assets} = $assetval;
+	$self->result_hash->{total_assets} = $self->apply_multiplier($assetval);
     }
 }
 

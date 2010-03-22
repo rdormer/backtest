@@ -30,7 +30,7 @@ sub run {
     }
 
     if($sum > $self->result_hash->{cash}) {
-	$self->result_hash->{current_assets} = $sum;
+	$self->result_hash->{current_assets} = $self->apply_multiplier($sum);
     }
 }
 

@@ -18,7 +18,7 @@ sub run {
 
 	my $value = look_for_term($_);
 	if($value =~ /[0-9]+/) {
-	    $sql_hash->{revenue} = $value if ! exists $sql_hash->{revenue};
+	    $sql_hash->{revenue} = $self->apply_multiplier($value) if ! exists $sql_hash->{revenue};
 	    return;
 	}
     }
@@ -28,7 +28,7 @@ sub run {
 
 	my $value = grep_for_term($_);
 	if($value =~ /[0-9]+/) {
-	    $sql_hash->{revenue} = $value if ! exists $sql_hash->{revenue};
+	    $sql_hash->{revenue} = $self->apply_multiplier($value) if ! exists $sql_hash->{revenue};
 	    return;
 	}
     }

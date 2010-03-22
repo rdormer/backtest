@@ -53,6 +53,12 @@ sub get_tuples {
     return \@tuple_list;
 }
 
+sub apply_multiplier {
+
+    my $self = shift;
+    my $inval = shift;
+    return $inval * $multiplier;
+}
 
 #count term hits and find term hits are utilities 
 #that check an array of indices into the token list

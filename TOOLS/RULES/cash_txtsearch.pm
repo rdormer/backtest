@@ -13,9 +13,15 @@ sub run {
     my $c = $self->forward_term_search("cash", 0, "liabilities");
 
     if($cae >= 0 && ! exists $self->result_hash->{cash}) {
-	$self->result_hash->{cash} = $tuples[$cae][$self->selection_offset];
+
+	my $value = $tuples[$cae][$self->selection_offset];
+	$self->result_hash->{cash} = $self->apply_multiplier($value); 
+
     } elsif ($c >= 0 && ! exists $self->result_hash->{cash}) {
-	$self->result_hash->{cash} = $tuples[$c][$self->selection_offset];
+
+	my $value = $tuples[$c][$self->selection_offset];
+	$self->result_hash->{cash} = $self->apply_multiplier($value);
+
     }
 }
 

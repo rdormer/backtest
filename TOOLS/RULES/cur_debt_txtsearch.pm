@@ -15,7 +15,7 @@ sub run {
 	my $value = $tuples[$off][$self->selection_offset];
 	if($value !~ /.*[A-Z]+.*/i && ! exists $self->result_hash->{current_liabilities}) {
 
-	    $self->result_hash->{current_liabilities} = $value;
+	    $self->result_hash->{current_liabilities} = $self->apply_multiplier($value);
 	}	
     }
 }
