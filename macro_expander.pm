@@ -44,8 +44,6 @@ sub tokenize {
 
     my $raw_screen = "";
     my $file = shift;
-
-    die "could not open $file" if (! -e  $file);
     open(INFILE, $file);
 
 

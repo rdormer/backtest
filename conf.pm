@@ -1,13 +1,12 @@
 package conf;
 require Exporter;
+use Getopt::Long;
 
 use vars qw/@ISA @EXPORT $VERSION/;
 @ISA = qw/Exporter/;
 @EXPORT = qw/process_commandline/;
-
 $VERSION = 1.0;
 
-my %configure_info;
 $~ = 'HELPTEXT';
 
 sub process_commandline {
@@ -17,78 +16,91 @@ sub process_commandline {
 	exit();
     }
 
-    while($_ = shift @_) {
+    GetOptions('date=s' => \$date, 'screen=s' => \$screenfile, 'list=s' => \$tickers, 'entry=s' => \$entryfile,
+	'exit=s' => \$exitfile, 'start=s' => \$startdate, 'finish=s' => \$enddate, 'replay=s' => \$replay_list,
+	'short-entry=s' => \$short_entry, 'short-exit=s' => \$short_exit, 'showreward' => \$showreward, 
+	'init-margin=s' => \$initial_margin, 'maint-margin' => \$maint_margin, 'portfolio=s' => \$portfolio,
+	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
+	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user );
 
-	if($_ =~ /-(.+)/) {
-	    $configure_info{$_} = shift @_;
-	}
-    }
+    die "Couldn't open $tickers" if (! -e $tickers);
+    die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
+    die "Couldn't open $short_entry" if $short_entry && ! -e $short_entry;
+    die "Couldn't open $replay_list" if $replay_list && ! -e $replay_list;
+    die "Coudln't open $short_exit" if $short_exit && ! -e $short_exit;
+    die "Couldn't open $entryfile" if $entryfile && ! -e $entryfile;
+    die "Couldn't open $exitfile" if $exitfile && ! -e $exitfile;
 }
 
-sub date { return $configure_info{'-date'}; }
-sub screen { return $configure_info{'-screen'}; }
-sub list { return $configure_info{'-list'}; }
-sub enter_sig { return $configure_info{'-entry'}; }
-sub exit_sig { return $configure_info{'-exit'}; }
-sub start { return $configure_info{'-start'}; }
-sub finish { return $configure_info{'-finish'}; }
-sub replay_list { return $configure_info{'-replay'}; }
-sub short_enter_sig { return $configure_info{'-short-entry'}; }
-sub short_exit_sig { return $configure_info{'-short-exit'}; }
-sub long_positions { return exists $configure_info{'-entry'} || exists $configure_info{'-exit'}; }
-sub short_positions { return exists $configure_info{'-short-entry'} || exists $configure_info{'-short-exit'}; }
-sub show_reward_ratio { return exists $configure_info{'-showreward'}; }
+sub date { return $date; }
+sub screen { return $screenfile; }
+sub list { return $tickers; }
+sub enter_sig { return $entryfile; }
+sub exit_sig { return $exitfile; }
+sub start { return $startdate; }
+sub finish { return $enddate; }
+sub replay_list { return $replay_list; }
+sub short_enter_sig { return $short_entry; }
+sub short_exit_sig { return $short_exit; }
+sub long_positions { return $entryfile || $exitfile; }
+sub short_positions { return $short_entry || $short_exit; }
+sub show_reward_ratio { return $showreward; }
+sub draw_curve { return $curve; }
+
+sub connect_string {
+    return $connect_string if $connect_string;
+    return "DBI:mysql:finance";
+}
+
+sub connect_user {
+    return $connect_user if $connect_user;
+    return "perldb";
+}
 
 sub initial_margin {
-    return $configure_info{'-init-margin'} if exists $configure_info{'-init-margin'};
+    return $initial_margin if $initial_margin;
     return 0.5;
 }
 
 sub maint_margin {
-    return $configure_info{'-maint-margin'} if exists $configure_info{'-maint-margin'};
+    return $maint_margin if $maint_margin;
     return 0.3;
 }
 
 sub portfolio { 
-    return $configure_info{'-portfolio'} if exists $configure_info{'-portfolio'};
+    return $portfolio if $portfolio;
     return "portfolio";
 }
 
 sub strategy { 
-    return $configure_info{'-strategy'} if exists $configure_info{'-strategy'};
+    return $strategy if $strategy;
     return "default";
 }
 
 sub startwith {
 
-    return $configure_info{'-startwith'} if exists $configure_info{'-startwith'};
+    return $startwith if $startwith;
     return 5000;
 }
 
 sub risk_percent {
 
-    return ($configure_info{'-risk'} / 100) if exists $configure_info{'-risk'};
+    return ($risk / 100) if $risk;
     return 0.01;
-}
-
-sub draw_curve {
-
-    return $configure_info{'-curve'} if exists $configure_info{'-curve'};
-    return 0;
 }
 
 sub check_backtest_args {
 
-    die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-exit'} and exists $configure_info{'-short-entry'};
-    die "Are you trying to go short, or long?  Arguments are inconclusive" if exists $configure_info{'-entry'} and exists $configure_info{'-short-exit'};
-    die "You are using the same entry and exit" if $configure_info{'-exit'} eq $configure_info{'-entry'};
+    die "Are you trying to go short, or long?  Arguments are inconclusive" if $exitfile and $short_entry;
+    die "Are you trying to go short, or long?  Arguments are inconclusive" if $entryfile and $short_exit;
+    die "You are using the same entry and exit" if $exitfile eq $entryfile;
 
-    die "missing -list (ticker list file)" if not exists $configure_info{'-list'};
-    die "missing -start (start date)" if not exists $configure_info{'-start'};
-    die "missing -entry (entry signal)" if not exists $configure_info{'-entry'} and long_positions();
-    die "missing -exit (exit signal)" if not exists $configure_info{'-exit'} and long_positions();
-    die "missing -short-exit (exit signal)" if not exists $configure_info{'-short-exit'} and exists $configure_info{'-short-entry'} and short_positions();
-    die "missing -short-entry (entry signal)" if not exists $configure_info{'-short-entry'} and exists $configure_info{'-short-exit'} and short_positions();
+    die "missing -list (ticker list file)" if not $tickers;
+    die "missing -start (start date)" if not $date;
+    die "missing -entry (entry signal)" if not $entryfile and long_positions();
+    die "missing -exit (exit signal)" if not $exitfile and long_positions();
+    die "missing -short-exit (exit signal)" if not $short_exit and $short_entry and short_positions();
+    die "missing -short-entry (entry signal)" if not $short_entry and $short_exit and short_positions();
 }
 
 

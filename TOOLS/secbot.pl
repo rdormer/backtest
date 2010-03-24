@@ -98,8 +98,6 @@ sub download_filing {
 
     if($fields[2] eq "10-Q") {
 
-	print "\nprocess $fname";
-
 	if(not -e $fname) {
 	    sleep($spiderwait) if $spiderwait > 0;
 	    print "\nFetch $fields[4]\t[ $fields[1] ]";	
@@ -109,6 +107,7 @@ sub download_filing {
 	    return;
 	}
 
+	print "\nprocess $fname";
 	process_data_file($fname);
     } 
 }

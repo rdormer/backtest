@@ -1,6 +1,6 @@
 use DBI;
 use Date::Business;
-
+use conf;
 
 my $history_table = "historical";
 my $fundamental_table = "fundamentals";
@@ -41,13 +41,11 @@ my @file_ticker_list;
 sub init_sql {
 
     my $file = shift;
+    open(INFILE, $file);
     
-    $dbh = DBI->connect("DBI:mysql:finance", "perldb");
+    $dbh = DBI->connect(conf::connect_string(), conf::connect_user() );
     $date_index = -1;
     $max_limit = 1;
-
-    die "Couldn't open $file" if (! -e $file);
-    open(INFILE, $file);
 
     while(<INFILE>) {
 	chomp;
