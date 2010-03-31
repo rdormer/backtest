@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 
 use conf;
-use screen_sql;
+use screen_data;
 use macro_expander;
 
 conf::process_commandline(@ARGV);

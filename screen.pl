@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-use screen_sql;
+use screen_data;
 use macro_expander;
 use conf;
 
