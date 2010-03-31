@@ -6,11 +6,11 @@ my $dbh;
 my $history_table = "historical";
 my $fundamental_table = "fundamentals";
 
-$pull_cmd = "select ticker,date,open,high,low,close,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
-$cache_cmd = "select ticker,date,open,high,low,close,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
-$fundamental_cmd = "select * from $fundamental_table where ticker=? and date <= ? order by date desc limit 1";
-$div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
-
+my $pull_cmd = "select ticker,date,open,high,low,close,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
+my $cache_cmd = "select ticker,date,open,high,low,close,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
+my $fundamental_cmd = "select * from $fundamental_table where ticker=? and date <= ? order by date desc limit 1";
+my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
+my $split_cmd = "select date,bef,after from splits where ticker=? and date >= ? and date <= ?";
 
 sub init_mod {    
 
@@ -57,7 +57,7 @@ sub pull_splits {
     my $start = shift;
     my $end = shift;
 
-    $split_sql = $dbh->prepare("select date,bef,after from splits where ticker=? and date >= ? and date <= ?");
+    $split_sql = $dbh->prepare($split_cmd);
     $split_sql->execute($ticker, $start, $end);
     return $split_sql->fetchall_arrayref();
 }
