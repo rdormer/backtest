@@ -254,12 +254,7 @@ sub get_exit_date {
 sub change_over_period {
 
     my $ticker = shift;
-
-    my @t = $dbh->selectrow_array("select close from $history_table where ticker='$ticker' and date='$date_range[0]'");
-    my $start = $t[0];
-
-    @t = $dbh->selectrow_array("select close from $history_table where ticker='$ticker' and date='$date_range[$#date_range]'");
-    my $end = $t[0];
+    my ($start, $end) = pull_close_on_date($ticker, $date_range[0], $date_range[$#date_range]);
 
     if($start > 0) {
 	return (($end - $start) / $start) * 100;
