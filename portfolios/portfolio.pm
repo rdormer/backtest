@@ -1,6 +1,6 @@
 use macro_expander;
 use screen_sql;
-use Charting;
+use charting;
 use POSIX;
 use conf;
 

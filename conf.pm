@@ -96,7 +96,7 @@ sub check_backtest_args {
     die "You are using the same entry and exit" if $exitfile eq $entryfile;
 
     die "missing -list (ticker list file)" if not $tickers;
-    die "missing -start (start date)" if not $date;
+    die "missing -start (start date)" if not $startdate;
     die "missing -entry (entry signal)" if not $entryfile and long_positions();
     die "missing -exit (exit signal)" if not $exitfile and long_positions();
     die "missing -short-exit (exit signal)" if not $short_exit and $short_entry and short_positions();
