@@ -36,9 +36,6 @@ sub exp_avg_low { return array_exponential_avg(shift, 4); }
 sub exp_avg_close { return array_exponential_avg(shift, 5); }
 sub exp_avg_volume { return array_exponential_avg(shift, 6); }
 
-sub index_max_close { return array_max_index(shift, 5); }
-sub index_min_close { return array_min_index(shift, 5); }
-
 sub fundamental_eps { return $current_fundamentals{'eps'}; }
 sub fundamental_roe { return $current_fundamentals{'return_on_equity'}; }
 sub fundamental_mcap { return $current_fundamentals{'mcap'}; }
@@ -66,7 +63,8 @@ sub array_max {
     my $n = "$in$total" . "max";
 
     if(!exists $value_cache{$n}) {
-	scan_array_max($total, $in);
+	my @sorted = sort { $b->[$in] <=> $a->[$in] } @$current_prices[0..$total];
+	$value_cache{$n} = $sorted[0][$in];
     }
 
     return $value_cache{$n};
@@ -79,80 +77,12 @@ sub array_min {
     my $n = "$in$total" . "min";
 
     if(!exists $value_cache{$n}) {
-	scan_array_min($total, $in);
+	my @sorted = sort { $b->[$in] <=> $a->[$in] } @$current_prices[0..$total];
+	$value_cache{$n} = $sorted[$#sorted][$in];
     }
 
     return $value_cache{$n};
 }
-
-sub array_max_index {
-    my $total = shift;
-    my $in = shift;
-
-    my $n = "$in$total" . "maxin";
-
-    if(!exists $value_cache{$n}) {
-	scan_array_max($total, $in);
-    }
-
-    return $value_cache{$n};
-}
-
-sub array_min_index {
-    my $total = shift;
-    my $in = shift;
-
-    my $n = "$in$total" . "minin";
-
-    if(!exists $value_cache{$n}) {
-	scan_array_max($total, $in);
-    }
-
-    return $value_cache{$n};
-}
-
-
-
-sub scan_array_max {
-
-    my $limit = shift;
-    my $index = shift;
-    my $max = 0;
-    my $loc = 0;
-
-    for($i = 0; $i < $limit; $i++) {
-	
-	@t = @$current_prices[$i];
-	if($t[0][$index] > $max) {
-	    $max = $t[0][$index];
-	    $loc = $i;
-	}
-    }
-
-    $value_cache{"$index$limit" . "max"} = $max;
-    $value_cache{"$index$limit" . "maxin"} = $loc;
-}
-
-sub scan_array_min {
-
-    my $limit = shift;
-    my $index = shift;
-    my $min = 10000000;
-    my $loc = 0;
-
-     for($i = 0; $i < $limit; $i++) {
-	
-	@t = @$current_prices[$i];
-	if($t[0][$index] < $min) {
-	    $min = $t[0][$index];
-	    $loc = $i;
-	}
-    }
-
-    $value_cache{"$index$limit" . "min"} = $min;
-    $value_cache{"$index$limit" . "minin"} = $loc;
-}
-
 
 sub array_avg {
 
