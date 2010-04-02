@@ -19,6 +19,7 @@ my @fundamental_list;
 my $sweep_statement;
 
 my $current_date;
+my $today_obj;
 my $date_index;
 my @date_range;
 my $current_ticker;
@@ -59,16 +60,21 @@ sub ticker_list {
 
 sub next_test_day {
 
-    if($date_index < @date_range) {
+    my $notdone = $date_index < @date_range;
+
+    if($notdone) {
 	$date_index++;
 	$current_date = $date_range[$date_index];
 	print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
-#	print "\n$current_date";
-	return 1;
+    } else {
+	$current_date = $date_range[$#date_range];
     }
 
-    $current_date = $date_range[$#date_range];
-    return 0;
+    $d = $current_date;
+    $d =~ s/-//g;
+    $today_obj = new Date::Business(DATE => $d);
+
+    return $notdone;
 }
 
 sub set_date {
@@ -111,7 +117,7 @@ sub pull_ticker_history {
 	$current_prices = pull_history_by_limit($current_ticker, $current_date, $maximum);
 	pull_fundamental();
 
-	process_splits($current_ticker, days_ago($current_date, $maximum), $current_date, $current_prices);
+	process_splits($current_ticker, days_ago($maximum), $current_date, $current_prices);
     }
 
     %value_cache = ();
@@ -143,9 +149,7 @@ sub cache_ticker_history {
 
     my $ticker = shift;
 
-    $s = $current_date;
-    $s =~ s/-//g;
-    $sd = new Date::Business(DATE => $s);
+    $sd = new Date::Business(DATE => $today_obj);
     $sd->subb($max_limit + 1);
     $sdate = $sd->image();
 
@@ -189,10 +193,7 @@ sub process_splits {
 
 sub days_ago {
 
-    my $d = shift;
-
-    $d =~ s/-//g;
-    my $date = new Date::Business(DATE => $d);
+    my $date = new Date::Business(DATE => $today_obj);
     $date->subb(shift);
     
     my $rval = $date->image();
