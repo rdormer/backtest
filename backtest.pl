@@ -25,11 +25,13 @@ init_portfolio(\@long_exit, \@short_exit);
 set_date_range(conf::start(), conf::finish());
 build_sweep_statement();
 
+$tref = sub { return @result_list >= positions_available(); };
+
 while(next_test_day()) {
 
     if(positions_available()) {
-    	@longs = run_screen_loop(@long_actions) if conf::long_positions();
-	@shorts = run_screen_loop(@short_actions) if conf::short_positions();
+    	@longs = run_screen_loop($tref, @long_actions) if conf::long_positions();
+	@shorts = run_screen_loop($tref, @short_actions) if conf::short_positions();
 	add_positions(\@longs, \@shorts);
     }
 
@@ -43,18 +45,4 @@ sub salvage_interrupt {
     print_portfolio_state();
     print "\n";
     exit();
-}
-
-sub run_screen_loop() {
-
-    init_filter();
-    do_initial_sweep();
-
-    foreach $ticker (@ticker_list) {
-	filter_results($ticker, @_) if pull_ticker_history($ticker);
-	break if @result_list >= positions_available();
-    }
-
-    my @results = do_final_actions();
-    return @results;
 }

@@ -27,7 +27,7 @@ my $current_ticker;
 my $pull_fundamentals;
 
 my @file_ticker_list;
-@ticker_list;
+my @ticker_list;
 
 sub init_sql {
 
@@ -105,6 +105,23 @@ sub set_date_range {
 	push @date_range, $d;
     }
 }
+
+sub run_screen_loop {
+
+    my $stop = shift;
+
+    init_filter();
+    do_initial_sweep();
+
+    foreach $ticker (@ticker_list) {
+	filter_results($ticker, @_) if pull_ticker_history($ticker);
+	break if &$stop();
+    }
+
+    my @results = do_final_actions();
+    return @results;
+}
+
 
 sub pull_ticker_history {
 

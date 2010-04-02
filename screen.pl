@@ -16,7 +16,8 @@ init_sql(conf::list());
 @actions = parse_screen(conf::screen());
 build_sweep_statement();
 
-@results = run_screen_loop();
+$tref = sub { return false; };
+@results = run_screen_loop($tref, @actions);
 
 foreach $ticker (sort @results) {
     print "\n$ticker";
@@ -25,18 +26,4 @@ foreach $ticker (sort @results) {
 print "\n";
 
 
-
-sub run_screen_loop() {
-
-    init_filter();
-    do_initial_sweep();
-    
-    foreach $ticker (@ticker_list) {
-	pull_ticker_history($ticker);
-	filter_results($ticker, @actions);
-    }
-
-    my @results = do_final_actions();
-    return @results;
-}
 
