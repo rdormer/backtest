@@ -25,7 +25,7 @@ init_portfolio(\@long_exit, \@short_exit);
 set_date_range(conf::start(), conf::finish());
 build_sweep_statement();
 
-$tref = sub { return @result_list >= positions_available(); };
+$tref = sub { return $_[0] >= positions_available(); };
 
 while(next_test_day()) {
 

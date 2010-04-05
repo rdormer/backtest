@@ -25,8 +25,6 @@ my @date_range;
 my $current_ticker;
 
 my $pull_fundamentals;
-
-my @file_ticker_list;
 my @ticker_list;
 
 sub init_sql {
@@ -41,7 +39,7 @@ sub init_sql {
 
     while(<INFILE>) {
 	chomp;
-	push @file_ticker_list, $_;
+	push @ticker_list, $_;
     }
 }
 
@@ -109,16 +107,18 @@ sub set_date_range {
 sub run_screen_loop {
 
     my $stop = shift;
+    my @results;
 
     init_filter();
-    do_initial_sweep();
 
     foreach $ticker (@ticker_list) {
-	filter_results($ticker, @_) if pull_ticker_history($ticker);
-	break if &$stop();
+
+	if(pull_ticker_history($ticker) && filter_results($ticker, @_)) {
+	    push @results, $ticker;
+	    last if &$stop(scalar @results);
+	}
     }
 
-    my @results = do_final_actions();
     return @results;
 }
 
@@ -302,24 +302,6 @@ sub build_sweep_statement {
     }
 
     $sweep_statement .= "date <= ? order by date desc limit 1";
-}
-
-sub do_initial_sweep {
-
-    my $sweep_results;
-
-    if($sweep_statement) {
-	$sweep = $dbh->prepare($sweep_statement);
-	$sweep->execute($current_date);
-	$sweep_results = $sweep->fetchall_hashref("ticker");
-    } else {
-	@ticker_list = @file_ticker_list;
-	return;
-    }
-
-    foreach (@file_ticker_list) {
-	push(@ticker_list, $_) if exists $sweep_results->{$_};
-    }
 }
 
 sub set_pull_limit {

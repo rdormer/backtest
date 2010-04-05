@@ -36,7 +36,6 @@ my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" =
 );
 
 my @token_list;
-my @result_list;
 my $current_action;
 
 
@@ -210,15 +209,10 @@ sub filter_results {
     my $ticker = shift;
 
     foreach $action (@_) {
-	return if not eval($action);
+	return 0 if not eval($action);
     }
 
-    push @result_list, $ticker;
-}
-
-sub do_final_actions {
-    
-    return @result_list;
+    return 1;
 }
 
 
