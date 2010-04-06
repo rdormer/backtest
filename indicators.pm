@@ -2,39 +2,48 @@ use rstrength;
 use screen_sql;
 use Finance::TA;
 
+use constant {
+DATE_IND => 0,
+OPEN_IND => 1,
+HIGH_IND => 2,
+LOW_IND => 3,
+CLOSE_IND => 4,
+VOL_IND => 5
+};
+
 sub fetch_strength { return relative_strength(current_ticker(), shift); }
 sub fetch_volatility { return statistical_volatility(shift); }
 
-sub fetch_open_at { return $current_prices->[shift][2]; }
-sub fetch_high_at { return $current_prices->[shift][3]; }
-sub fetch_low_at { return $current_prices->[shift][4]; }
-sub fetch_close_at { return $current_prices->[shift][5]; }
-sub fetch_volume_at { return $current_prices->[shift][6]; }
-sub fetch_date_at { return $current_prices->[shift][1]; }
+sub fetch_open_at { return $current_prices->[shift][OPEN_IND]; }
+sub fetch_high_at { return $current_prices->[shift][HIGH_IND]; }
+sub fetch_low_at { return $current_prices->[shift][LOW_IND]; }
+sub fetch_close_at { return $current_prices->[shift][CLOSE_IND]; }
+sub fetch_volume_at { return $current_prices->[shift][VOL_IND]; }
+sub fetch_date_at { return $current_prices->[shift][DATE_IND]; }
 
-sub max_open { return array_max(shift, 2); }
-sub max_high { return array_max(shift, 3); }
-sub max_low { return array_max(shift, 4); }
-sub max_close { return array_max(shift, 5); }
-sub max_volume { return array_max(shift, 6); }
+sub max_open { return array_max(shift, OPEN_IND); }
+sub max_high { return array_max(shift, HIGH_IND); }
+sub max_low { return array_max(shift, LOW_IND); }
+sub max_close { return array_max(shift, CLOSE_IND); }
+sub max_volume { return array_max(shift, VOL_IND); }
 
-sub min_open { return array_min(shift, 2); }
-sub min_high { return array_min(shift, 3); }
-sub min_low { return array_min(shift, 4); }
-sub min_close { return array_min(shift, 5); }
-sub min_volume { return array_min(shift, 6); }
+sub min_open { return array_min(shift, OPEN_IND); }
+sub min_high { return array_min(shift, HIGH_IND); }
+sub min_low { return array_min(shift, LOW_IND); }
+sub min_close { return array_min(shift, CLOSE_IND); }
+sub min_volume { return array_min(shift, VOL_IND); }
 
-sub avg_open { return array_avg(shift, 2); }
-sub avg_high { return array_avg(shift, 3); }
-sub avg_low { return array_avg(shift, 4); }
-sub avg_close { return array_avg(shift, 5); }
-sub avg_volume { return array_avg(shift, 6); }
+sub avg_open { return array_avg(shift, OPEN_IND); }
+sub avg_high { return array_avg(shift, HIGH_IND); }
+sub avg_low { return array_avg(shift, LOW_IND); }
+sub avg_close { return array_avg(shift, CLOSE_IND); }
+sub avg_volume { return array_avg(shift, VOL_IND); }
 
-sub exp_avg_open { return array_exponential_avg(shift, 2); }
-sub exp_avg_high { return array_exponential_avg(shift, 3); }
-sub exp_avg_low { return array_exponential_avg(shift, 4); }
-sub exp_avg_close { return array_exponential_avg(shift, 5); }
-sub exp_avg_volume { return array_exponential_avg(shift, 6); }
+sub exp_avg_open { return array_exponential_avg(shift, OPEN_IND); }
+sub exp_avg_high { return array_exponential_avg(shift, HIGH_IND); }
+sub exp_avg_low { return array_exponential_avg(shift, LOW_IND); }
+sub exp_avg_close { return array_exponential_avg(shift, CLOSE_IND); }
+sub exp_avg_volume { return array_exponential_avg(shift, VOL_IND); }
 
 sub fundamental_eps { return $current_fundamentals{'eps'}; }
 sub fundamental_roe { return $current_fundamentals{'return_on_equity'}; }
@@ -209,7 +218,7 @@ sub compute_bollinger_bands {
     my $dev = shift;
     my @upper, @middle, @lower;
 
-    @closes = reverse map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($per);
     my ($rcode, $start, $uband, $midband, $lband) = TA_BBANDS(0, $per, \@closes, $per, $dev, $dev, $TA_MAType_SMA);
 
@@ -227,9 +236,9 @@ sub compute_williams_r {
     my $n = "willr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     
     @highs = splice @highs, -($period);
     @lows = splice @lows, -($period);
@@ -248,7 +257,7 @@ sub compute_rsi {
     my $n = "rsi$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @closes = reverse map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($period * 4);
     $len = @closes - 1;
 
@@ -264,9 +273,9 @@ sub compute_atr {
     my $n = "atr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
@@ -330,7 +339,7 @@ sub compute_macd_values {
     my $slow = shift;
     my $sig = shift;    
 
-    @closes = reverse map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($slow * 4);
     $len = @closes - 1;
 
@@ -354,7 +363,7 @@ sub compute_momentum {
     my $n = "mom$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @closes = map @$_->[5], @$current_prices;
+    @closes = map @$_->[CLOSE_IND], @$current_prices;
     my ($rcode, $start, $mom) = TA_MOM(0, $period, \@closes, $period);
 
     $value_cache{$n} = $mom->[0] * -1;
@@ -369,8 +378,8 @@ sub compute_sar {
     my $n = "sar$stepval$maxval";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
     $len = @highs - 1;
 
     my ($rcode, $start, $sar) = TA_SAR(0, $len, \@highs, \@lows, $stepval, $maxval);
@@ -387,7 +396,7 @@ sub compute_roc {
     my $n = "roc$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @closes = reverse map @$_->[5], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($period + 1);
 
     my ($rcode, $start, $roc) = TA_ROC(0, $period, \@closes, $period);
@@ -402,8 +411,8 @@ sub compute_obv {
     my $n = "obv$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @closes = map @$_->[5], @$current_prices;
-    @volume = map @$_->[7], @$current_prices;
+    @closes = map @$_->[CLOSE_IND], @$current_prices;
+    @volume = map @$_->[VOL_IND], @$current_prices;
 
     my ($rcode, $start, $count, $obv) = TA_OBV(0, $period, \@closes, \@volume);
 
@@ -418,10 +427,10 @@ sub compute_bop {
     my $n = "bop";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @opens = map @$_->[2], @$current_prices;
-    @highs = map @$_->[3], @$current_prices;
-    @lows = map @$_->[4], @$current_prices;
-    @closes = map @$_->[5], @$current_prices;
+    @opens = map @$_->[OPEN_IND], @$current_prices;
+    @highs = map @$_->[HIGH_IND], @$current_prices;
+    @lows = map @$_->[LOW_IND], @$current_prices;
+    @closes = map @$_->[CLOSE_IND], @$current_prices;
 
     my ($rcode, $start, $bop) = TA_BOP(0, $#closes, \@opens, \@highs, \@lows, \@closes);
 
@@ -437,9 +446,9 @@ sub compute_adx {
     my $n = "adx$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
 
     my ($rcode, $start, $adx) = TA_ADX(0, $#closes, \@highs, \@lows, \@closes, $period);
 
@@ -456,9 +465,9 @@ sub compute_adx_r {
     my $n = "adxr$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
 
     my ($rcode, $start, $adxr) = TA_ADXR(0, $#closes, \@highs, \@lows, \@closes, $period);
 
@@ -476,9 +485,9 @@ sub compute_ultosc {
     my $n = "ultosc$period1$period2$period3";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs =  reverse map @$_->[3], @$current_prices;
-    @lows =  reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs =  reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows =  reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
 
     @highs = splice @highs, 0, $period3 + 1;
     @lows = splice @lows, 0, $period3 + 1;
@@ -520,9 +529,9 @@ sub compute_acceleration_bands {
     my $per = shift;
     my @upper, @middle, @lower;
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
 
     my ($rcode, $start, $uband, $midband, $lband) = TA_ACCBANDS(0, $#closes, \@highs, \@lows, \@closes, $per);
 
@@ -560,9 +569,9 @@ sub compute_fast_stoch {
     my $d_period = shift;
     my $k_period = shift;
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
-    @closes = reverse map @$_->[5], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
+    @closes = reverse map @$_->[CLOSE_IND], @$current_prices;
 
     my ($rcode, $start, $fast_k, $fast_d) = TA_STOCHF(0, $#closes, \@highs, \@lows, \@closes, $k_period, $d_period, $TA_MAType_SMA);
 
@@ -597,8 +606,8 @@ sub compute_aroon {
 
     my $period = shift;
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
 
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
@@ -617,8 +626,8 @@ sub compute_aroon_osc {
     my $n = "aroono$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    @highs = reverse map @$_->[3], @$current_prices;
-    @lows = reverse map @$_->[4], @$current_prices;
+    @highs = reverse map @$_->[HIGH_IND], @$current_prices;
+    @lows = reverse map @$_->[LOW_IND], @$current_prices;
 
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
@@ -633,11 +642,11 @@ sub compute_efficiency_ratio {
     my $period = shift;
     $period--;
 
-    my $enumerator = $current_prices->[0][5] - @$current_prices->[$#current_prices][5];
+    my $enumerator = $current_prices->[0][CLOSE_IND] - @$current_prices->[$#current_prices][CLOSE_IND];
     my $denominator = 0;
 
     for(my $i = 0; $i < $period; $i++) {
-	$denominator += abs( $current_prices->[$i][5] - $current_prices[$i + 1][5] );
+	$denominator += abs( $current_prices->[$i][CLOSE_IND] - $current_prices[$i + 1][CLOSE_IND] );
     }
 
     return ($enumerator / $denominator) * 100;

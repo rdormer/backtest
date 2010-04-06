@@ -188,6 +188,10 @@ sub cache_dividends {
 }
 
 
+#grab split data and apply it to the price data we've pulled.
+#note that this is the only remaining routine not using the
+#index constants defined in indicators.pm
+
 sub process_splits {
 
     my $ticker = shift;
@@ -202,8 +206,8 @@ sub process_splits {
 	$ind = search_array_date($split->[0], $hist);
 	$splitratio = $split->[2] / $split->[1];
 	for(my $i = 0; $i <= $ind; $i++) {
-	    @tt = map $_ * $splitratio, ($hist->[$i][2], $hist->[$i][3], $hist->[$i][4], $hist->[$i][5]);
-	    splice @{$hist->[$i]}, 2, 4, @tt;
+	    @tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
+	    splice @{$hist->[$i]}, 1, 4, @tt;
 	}
     }
 }
@@ -232,7 +236,7 @@ sub search_array_date {
 
 	$mid = int(($low + $high) / 2);
 
-	$buf = $array->[$mid][1];
+	$buf = $array->[$mid][DATE_IND];
 
 	if($buf gt $target) {
 	    $low = $mid + 1;
