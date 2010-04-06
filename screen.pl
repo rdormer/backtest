@@ -16,7 +16,7 @@ init_sql(conf::list());
 @actions = parse_screen(conf::screen());
 build_sweep_statement();
 
-$tref = sub { return false; };
+$tref = sub { return 0; };
 @results = run_screen_loop($tref, @actions);
 
 foreach $ticker (sort @results) {
