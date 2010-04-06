@@ -14,6 +14,7 @@ perl -MCPAN -e "install GD"
 perl -MCPAN -e "install Chart::Lines"
 perl -MCPAN -e "install POSIX"
 perl -MCPAN -e "install inline"
+perl -MCPAN -e "install Finance::QuoteHist::Yahoo"
 
 perl -MCPAN -e "install Algorithm::NaiveBayes"
 perl -MCPAN -e "install AI::Categorizer"
