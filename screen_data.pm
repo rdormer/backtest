@@ -24,7 +24,7 @@ my $date_index;
 my @date_range;
 my $current_ticker;
 
-my $pull_fundamentals;
+my $fund_pull_limit;
 my @ticker_list;
 
 sub init_sql {
@@ -130,11 +130,15 @@ sub pull_ticker_history {
     if(exists $history_cache{$current_ticker}) {
 	pull_from_cache($current_ticker);
     } else {
+
 	$maximum = $max_limit + 1;
 	$current_prices = pull_history_by_limit($current_ticker, $current_date, $maximum);
-	pull_fundamental();
 
 	process_splits($current_ticker, days_ago($maximum), $current_date, $current_prices);
+	
+	if($fund_pull_limit > 0) {
+	    $current_fundamentals = pull_fundamentals($current_ticker, $current_date, $fund_pull_limit);
+	}
     }
 
     %value_cache = ();
@@ -285,14 +289,6 @@ sub change_over_period {
     return -100;
 }
 
-sub pull_fundamental {
-
-    if($pull_fundamentals) {
-
-
-    }
-}
-
 sub build_sweep_statement {
 
     if(@fundamental_list == 0) {
@@ -310,8 +306,13 @@ sub build_sweep_statement {
 
 sub set_pull_limit {
 
-    $lim = shift;
+    my $lim = shift;
     $max_limit = $lim if $lim > $max_limit;
+}
+
+sub set_fundamentals_limit {
+    my $lim = shift;
+    $fund_pull_limit = $lim if $lim > $fund_pull_limit;
 }
 
 sub parse_two_dates {

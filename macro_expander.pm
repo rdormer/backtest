@@ -1,10 +1,10 @@
 use indicators;
 use fundamentals;
 
-my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] 
-		[VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH 
-		MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN
-                AROON_OSC EFFICIENCY_RATIO
+my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] 
+                AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER
+                RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC 
+                ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN AROON_OSC EFFICIENCY_RATIO
 );
 
 
@@ -27,12 +27,14 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 
 
 my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_eps()", "MCAP" => "fundamental_mcap()",     
-			  "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", "OR" => "||", 
-			  "AND" => "&&", "BOP" => "compute_bop()", "CURRENT_RATIO" => "fundamental_current_ratio()", "OBV" => "compute_obv",
+			  "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", 
+			  "OR" => "||", "AND" => "&&", "BOP" => "compute_bop()", "OBV" => "compute_obv", 
+			  "CURRENT_RATIO" => "fundamental_current_ratio()"
 );
 
-my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", "ACCELERATION_UPPER" => "TA_ACCBANDS", 
-		       "ACCELERATION_LOWER" => "TA_ACCBANDS", "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
+my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
+		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
+		       "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
 );
 
 my @token_list;
@@ -106,7 +108,7 @@ sub parse_scan {
 
 	    $current_action .= "$noarg_macro_table{$token}";
 	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
-		$add_function = sub { add_with_sweep($actions, $current_action) };
+		$add_function = sub { set_fundamentals_limit(2); };
 	    }
 
 	} elsif(exists $arg_macro_table{$token}) {
@@ -190,15 +192,6 @@ sub lookback_custom {
     set_pull_limit($pullval);
 }
 
-
-sub add_with_sweep {
-
-    $acts = shift;
-    $cur = shift;
-
-    add_fundamental($cur);
-    unshift @$acts, $cur;
-}
 
 sub init_filter {
     @result_list = ();

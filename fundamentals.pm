@@ -1,15 +1,39 @@
 use screen_data;
+use indicators;
 
-sub fundamental_eps { return $current_fundamentals{'eps'}; }
-sub fundamental_roe { return $current_fundamentals{'return_on_equity'}; }
-sub fundamental_mcap { return $current_fundamentals{'mcap'}; }
-sub fundamental_float { return $current_fundamentals{'total_float'}; };
-sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'}; }
-sub fundamental_current_ratio { return $current_fundamentals{'current_ratio'}; }
+sub fundamental_eps { return $current_fundamentals{'eps_diluted'}; }
+sub fundamental_dcf { return compute_dcf_valuation($current_fundamentals{'eps_diluted'}, 0, 1, 7); }
+sub fundamental_mcap { return $current_fundamentals{'shares_outstanding'} * fetch_close_at(0); }
 
-sub fundamental_dcf { return indicator_dcf_valuation($current_fundamentals{'eps'}, 0, 1, 7); }
+sub fundamental_current_ratio { 
+    return $current_fundamentals{'current_assets'} / $current_fundamentals{'current_debt'}; 
+}
 
-sub indicator_dcf_valuation {
+sub fundamental_pershare_revenue {
+    return $current_fundamentals{'revenue'} / $current_fundamentals{'avg_shares_diluted'};
+}
+
+sub fundamental_price_sales {
+    return fetch_close_at(0) / fundamental_pershare_revenue();
+}
+
+sub fundamental_profit_margin {
+    return ($current_fundamentals{'net_income'} / $current_fundamentals{'revenue'}) * 100;
+}
+
+sub fundamental_roa {
+    return $current_fundamentals{'net_income'} / $current_fundamentals{'total_assets'};
+}
+
+sub fundamental_roe { 
+    return $current_fundamentals{'net_income'} / $current_fundamentals{'equity'};
+}
+
+sub fundamental_pershare_book {
+    return $current_fundamentals{'equity'} / $current_fundamentals{'shares_outstanding'};
+}
+
+sub compute_dcf_valuation {
 
     my $eps = shift;
     my $init_growth = shift;
@@ -30,5 +54,8 @@ sub indicator_dcf_valuation {
 
     return $dcf;
 }
+
+sub fundamental_float { return $current_fundamentals{'total_float'}; };
+sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'}; }
 
 1;
