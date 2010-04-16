@@ -1,0 +1,110 @@
+use Date::Business;
+use TokyoCabinet;
+use DBI;
+
+#create epoch starting 1/2/1950
+$d1 = new Date::Business(DATE => "19700101");
+$d1->subb(5218);
+
+$dbh = DBI->connect("DBI:mysql:finance", "perldb");
+$sh = $dbh->prepare("select * from historical where ticker = ? and date >= $ARGV[2]");
+$si = $dbh->prepare("select date,bef,after from splits where ticker = ? and date >= $ARGV[2]");
+$di = $dbh->prepare("select date,divamt from dividends where ticker = ? and date >= $ARGV[2]");
+
+open INFILE, $ARGV[0];
+chdir $ARGV[1];
+
+my $index = TokyoCabinet::HDB->new();
+$index->open("epoch-index", $index->OWRITER | $index->OCREAT);
+
+my $splits = TokyoCabinet::HDB->new();
+$splits->open("splits", $splits->OWRITER | $splits->OCREAT);
+
+my $dividends = TokyoCabinet::HDB->new();
+$dividends->open("dividends", $dividends->OWRITER | $dividends->OCREAT);
+
+foreach(<INFILE>) {
+    
+    chomp;
+    print "\n$_";
+    my $basedate = save_history_tocab($_);
+    save_splits_tocab($_, $basedate);
+    save_dividends_tocab($_, $basedate);
+}
+
+$index->close();
+$splits->close();
+$dividends->close();
+
+sub save_history_tocab {
+
+    my $ticker = shift;
+
+    $sh->execute($ticker);
+    $res = $sh->fetchall_arrayref();
+    my $baseday = get_epoch_date($res->[0][0]);
+    $index->putkeep($ticker, $baseday);
+
+    my $fdb = TokyoCabinet::FDB->new();
+    $fdb->tune(36);
+    $fdb->open($ticker, $fdb->OWRITER | $fdb->OCREAT);
+    
+    foreach (@$res) {
+    	    
+	$day = get_epoch_date($_->[0]);
+	$id = $day - $baseday;	
+	@foo = ($_->[2],$_->[3],$_->[4],$_->[5],$_->[6]);
+	$fdb->put($id, pack("FFFFL", @foo));
+    }
+
+    $fdb->close();
+    return $baseday;
+}
+
+sub save_splits_tocab {
+
+    my $ticker = shift;
+    my $baseday = shift;
+    my $sdata;
+
+    $si->execute($ticker);
+    $res = $si->fetchall_arrayref();
+
+    foreach(@$res) {
+        my $splitdate = get_epoch_date(@$_[0]) - $baseday;
+	@$_[0] = $splitdate;
+	my $s =	pack("LSS", @$_);
+	$sdata .= $s;	
+    } 
+
+    $splits->putcat($ticker, $sdata);
+}
+
+sub save_dividends_tocab {
+
+    my $ticker = shift;
+    my $baseday = shift;
+    my $divdata;
+
+    $di->execute($ticker);
+    $divs = $di->fetchall_arrayref();
+
+    foreach(@$divs) {
+       my $divdate = get_epoch_date(@$_[0]) - $baseday;
+       @$_[0] = $divdate;
+       my $dat = pack("LF", @$_);
+       $divdata .= $dat;
+    }   
+
+    $dividends->putcat($ticker, $divdata);
+}
+
+sub get_epoch_date {
+
+    my $date = shift;
+    $date =~ s/-//g;
+    
+    my $d2 = new Date::Business(DATE => $date);
+    return $d2->diffb($d1);
+}
+

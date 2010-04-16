@@ -88,8 +88,8 @@ sub pull_fundamentals {
     my $sdate = shift;
     my $count = shift;
 
-    $fund_sql->execute($ticker, $sdate, $count);
-    return $fund_sql->fetchall_hashref('quarter_date');
+#    $fund_sql->execute($ticker, $sdate, $count);
+#    return $fund_sql->fetchall_hashref('quarter_date');
 }
 
 1;
