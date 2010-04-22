@@ -80,8 +80,7 @@ sub pull_history_by_limit {
 
 	if($row[0] != "") {
 
-	    my $date = $date_lookup{ ($curdate + $base_dates{$ticker}) };
-	    unshift @row, $date;
+	    unshift @row, $date_lookup{ ($curdate + $base_dates{$ticker}) };
 	    unshift @rval, \@row; 
 	}
     }
@@ -95,8 +94,7 @@ sub pull_history_by_limit {
 
 	if($row[0] != "") {
 
-	    my $date = $date_lookup{ ($i + $base_dates{$ticker}) };
-	    unshift @row, $date;
+	    unshift @row, $date_lookup{ ($i + $base_dates{$ticker}) };
 	    push @rval, \@row; 
 	    $left--;
 	}
