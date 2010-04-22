@@ -1,5 +1,4 @@
 use macro_expander;
-use screen_sql;
 use charting;
 use POSIX;
 use conf;

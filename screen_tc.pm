@@ -68,22 +68,40 @@ sub pull_history_by_limit {
     my $tchandle = TokyoCabinet::FDB->new();
     $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
     
-    my $curdate = get_epoch_date($date) - $base_dates{$ticker};
-    my $count = 0;
+    my $last = get_epoch_date($date) - $base_dates{$ticker};
+    my $first = $last - $limit;
 
-    while($count < $limit && $curdate >= 0) {
-    
+    return if $last < $limit || $first > $tchandle->rnum();
+    $first = 0 if $first < 0;
+
+    foreach $curdate ($first..$last) {
+
 	my @row = unpack("FFFFL", $tchandle->get($curdate));
 
 	if($row[0] != "") {
 
 	    my $date = $date_lookup{ ($curdate + $base_dates{$ticker}) };
 	    unshift @row, $date;
-	    push @rval, \@row; 
-	    $count++;
+	    unshift @rval, \@row; 
 	}
-	
-	$curdate--;
+    }
+
+    my $left = $limit - @rval;
+    my $i = $first - 1;
+
+    while($left >= 0 && $i >= 0) {
+
+	my @row = unpack("FFFFL", $tchandle->get($i));
+
+	if($row[0] != "") {
+
+	    my $date = $date_lookup{ ($i + $base_dates{$ticker}) };
+	    unshift @row, $date;
+	    push @rval, \@row; 
+	    $left--;
+	}
+
+	$i--;
     }
 
     $tchandle->close();
