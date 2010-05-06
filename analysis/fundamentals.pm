@@ -1,5 +1,5 @@
 use screen_data;
-use indicators;
+use analysis::indicators;
 
 sub fundamental_eps { return $current_fundamentals{'eps_diluted'}; }
 sub fundamental_dcf { return compute_dcf_valuation($current_fundamentals{'eps_diluted'}, 0, 1, 7); }

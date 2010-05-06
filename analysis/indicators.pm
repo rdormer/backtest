@@ -1,4 +1,4 @@
-use rstrength;
+#use rstrength;
 use screen_data;
 use Finance::TA;
 

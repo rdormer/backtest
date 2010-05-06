@@ -1,5 +1,5 @@
-use indicators;
-use fundamentals;
+use analysis::indicators;
+use analysis::fundamentals;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] 
                 AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER
