@@ -63,9 +63,12 @@ sub next_test_day {
     if($notdone) {
 	$date_index++;
 	$current_date = $date_range[$date_index];
-	print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
     } else {
 	$current_date = $date_range[$#date_range];
+    }
+
+    if(! conf::noprogress()) {
+	print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
     }
 
     $d = $current_date;

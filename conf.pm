@@ -21,7 +21,8 @@ sub process_commandline {
 	'short-entry=s' => \$short_entry, 'short-exit=s' => \$short_exit, 'showreward' => \$showreward, 
 	'init-margin=s' => \$initial_margin, 'maint-margin' => \$maint_margin, 'portfolio=s' => \$portfolio,
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
-	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user );
+	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
+	'skip-progress' => \$skip_progress );
 
     die "Couldn't open $tickers" if (! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -45,7 +46,9 @@ sub short_exit_sig { return $short_exit; }
 sub long_positions { return $entryfile || $exitfile; }
 sub short_positions { return $short_entry || $short_exit; }
 sub show_reward_ratio { return $showreward; }
+sub noprogress { return $skip_progress; }
 sub draw_curve { return $curve; }
+
 
 sub connect_string {
     return $connect_string if $connect_string;
