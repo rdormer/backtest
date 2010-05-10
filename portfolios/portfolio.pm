@@ -300,8 +300,8 @@ sub end_position {
 	return;
     }
 
-    $price = adjust_for_slippage($price);
     $amt = $positions{$target}{'shares'} * $price;
+    $amt = adjust_for_slippage($amt, $positions{$target}{'shares'}, $price);
     $current_cash -= $amt if $positions{$target}{'short'};
     $current_cash += $amt if ! $positions{$target}{'short'};
 
