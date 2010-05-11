@@ -85,7 +85,7 @@ sub pull_history_by_limit {
 	}
     }
 
-    my $left = $limit - @rval;
+    my $left = $limit - @rval - 1;
     my $i = $first - 1;
 
     while($left >= 0 && $i >= 0) {
