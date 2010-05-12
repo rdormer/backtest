@@ -1,10 +1,12 @@
 use analysis::indicators;
 use analysis::fundamentals;
+use analysis::demark;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] 
                 AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER
                 RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC 
-                ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN AROON_OSC EFFICIENCY_RATIO
+                ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL
+                TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY
 );
 
 
@@ -29,12 +31,17 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_eps()", "MCAP" => "fundamental_mcap()",     
 			  "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", 
 			  "OR" => "||", "AND" => "&&", "BOP" => "compute_bop()", "OBV" => "compute_obv", 
-			  "CURRENT_RATIO" => "fundamental_current_ratio()"
+			  "CURRENT_RATIO" => "fundamental_current_ratio()", "TD_SEQUENTIAL_BUY" => "td_sequential_buy()",
+			  "TD_SEQUENTIAL_SELL" => "td_sequential_sell()", "TD_COMBO_BUY" => "td_combo_buy()", 
+			  "TD_COMBO_SELL" => "td_combo_sell()", "TD_SETUP_BUY" => "td_buy_setup()", 
+			  "TD_SETUP_SELL" => "td_sell_setup()"
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
 		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
-		       "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC"
+		       "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC",
+		       "TD_COMBO_BUY" => "DEMARK", "TD_COMBO_SELL" => "DEMARK", "TD_SEQUENTIAL_BUY" => "DEMARK",
+		       "TD_SEQUENTIAL_SELL" => "DEMARK", "TD_SETUP_SELL" => "DEMARK_SETUP", "TD_SETUP_BUY" => "DEMARK_SETUP"
 );
 
 my @token_list;
@@ -100,7 +107,7 @@ sub parse_scan {
 
     my $actions = shift;
     $token = next_token();
-    my $add_function;
+    my $add_function  = sub { push @$actions, "if($current_action) {return 1} else {return 0}" };
 
     while($token ne ";") {
 
@@ -109,11 +116,13 @@ sub parse_scan {
 	    $current_action .= "$noarg_macro_table{$token}";
 	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
 		$add_function = sub { set_fundamentals_limit(2); };
+	    } elsif(exists $lookback_table{$token}) {
+		$lcall = $lookback_table{$token} . "_Lookback()";
+		set_pull_limit(eval($lcall));
 	    }
 
 	} elsif(exists $arg_macro_table{$token}) {
 
-	    $add_function  = sub { push @$actions, "if($current_action) {return 1} else {return 0}" };
 	    $current_action .= "$arg_macro_table{$token}(";
 	    capture_args($token);
 
