@@ -6,7 +6,7 @@ use macro_expander;
 
 conf::process_commandline(@ARGV);
 conf::check_backtest_args();
-init_sql(conf::list());
+init_data(conf::list());
 
 eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
@@ -22,7 +22,6 @@ if(conf::short_positions()) {
 }
 
 init_portfolio(\@long_exit, \@short_exit);
-set_date_range(conf::start(), conf::finish());
 build_sweep_statement();
 
 $tref = sub { return $_[0] >= positions_available(); };

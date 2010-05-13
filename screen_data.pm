@@ -1,5 +1,5 @@
 use Date::Business;
-use screen_sql;
+use screen_tc;
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional
@@ -27,20 +27,21 @@ my $current_ticker;
 my $fund_pull_limit;
 my @ticker_list;
 
-sub init_sql {
+sub init_data {
 
     my $file = shift;
     open(INFILE, $file);
     
-    init_mod();
-
-    $date_index = -1;
-    $max_limit = 1;
-
     while(<INFILE>) {
 	chomp;
 	push @ticker_list, $_;
     }
+
+    set_date_range(conf::start(), conf::finish());
+
+    $date_index = -1;
+    $max_limit = 1;
+    init_mod();
 }
 
 sub set_ticker_list {
@@ -121,6 +122,8 @@ sub set_date_range {
 	push @date_range, $d;
 	$date->nextb();
     }
+
+    conf::override_date_range($date_range[0], $date_range[$#date_range]);
 }
 
 sub run_screen_loop {
@@ -346,6 +349,17 @@ sub parse_two_dates {
     $date2 = new Date::Business(DATE => $d2);
 
     return ($date1, $date2);
+}
+
+sub get_date_image {
+
+    my $d = shift;
+    
+    my $rval = $d->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";
+
+    return $rval;
 }
 
 1;

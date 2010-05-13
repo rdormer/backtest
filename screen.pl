@@ -12,7 +12,7 @@ if(conf::date()) {
     set_date(`date "+%Y-%m-%d"`);
 }
 
-init_sql(conf::list());
+init_data(conf::list());
 @actions = parse_screen(conf::screen());
 build_sweep_statement();
 

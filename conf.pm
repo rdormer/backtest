@@ -106,6 +106,12 @@ sub check_backtest_args {
     die "missing -short-entry (entry signal)" if not $short_entry and $short_exit and short_positions();
 }
 
+sub override_date_range{
+
+    $startdate = shift;
+    $enddate = shift;
+}
+
 
 format HELPTEXT =
 
