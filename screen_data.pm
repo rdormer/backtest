@@ -2,7 +2,7 @@ use Date::Business;
 use screen_sql;
 
 #these have to stay non-local for indicators.pm to work
-#a quick word about $current_prices - it's a reference to a multidimensinoal
+#a quick word about $current_prices - it's a reference to a multidimensional
 #array containing the price data for the current ticker - index 0 is the most
 #recent day, and incrementing the index decrements the day - in other words
 #going forward through the array goes backwards through time
@@ -97,18 +97,15 @@ sub adjust_start {
     substr $t, 4, 0, "-";
     substr $t, 7, 0, "-";
 
-    if($t eq conf::start()) {
-	return $date;
-    } else {
+    if($t ne conf::start()) {
 	$date->nextb();
-	return $date;
     }
 }
 
 sub set_date_range {
 
     ($date, $end_date) = parse_two_dates(shift, shift);
-    $date = adjust_start($date);
+    adjust_start($date);
 
   DATELOOP:
     while($date->lt($end_date)) {
