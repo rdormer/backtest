@@ -86,15 +86,33 @@ sub get_date {
     return $current_date;
 }
 
+sub adjust_start {
+
+    my $date = shift;
+    
+    $date->nextb();
+    $date->prevb();
+
+    my $t = $date->image();
+    substr $t, 4, 0, "-";
+    substr $t, 7, 0, "-";
+
+    if($t eq conf::start()) {
+	return $date;
+    } else {
+	$date->nextb();
+	return $date;
+    }
+}
+
 sub set_date_range {
 
     ($date, $end_date) = parse_two_dates(shift, shift);
-    $date->prevb();
+    $date = adjust_start($date);
 
   DATELOOP:
     while($date->lt($end_date)) {
 
-	$date->nextb();
 	$d = $date->image();
 
 #	foreach (@trading_holidays) {
@@ -104,6 +122,7 @@ sub set_date_range {
 	substr $d, 4, 0, "-";
 	substr $d, 7, 0, "-";
 	push @date_range, $d;
+	$date->nextb();
     }
 }
 
@@ -138,7 +157,7 @@ sub pull_ticker_history {
 	$current_prices = pull_history_by_limit($current_ticker, $current_date, $maximum);
 
 	process_splits($current_ticker, days_ago($maximum), $current_date, $current_prices);
-	
+
 	if($fund_pull_limit > 0) {
 	    $current_fundamentals = pull_fundamentals($current_ticker, $current_date, $fund_pull_limit);
 	}
