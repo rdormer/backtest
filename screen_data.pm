@@ -1,5 +1,5 @@
 use Date::Business;
-use screen_tc;
+use screen_sql;
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional
@@ -131,8 +131,6 @@ sub run_screen_loop {
     my $stop = shift;
     my @results;
 
-    init_filter();
-
     foreach $ticker (@ticker_list) {
 
 	if(pull_ticker_history($ticker) && filter_results($ticker, @_)) {
@@ -144,6 +142,16 @@ sub run_screen_loop {
     return @results;
 }
 
+sub filter_results {
+
+    my $ticker = shift;
+
+    foreach $action (@_) {
+	return 0 if not eval($action);
+    }
+
+    return 1;
+}
 
 sub pull_ticker_history {
 

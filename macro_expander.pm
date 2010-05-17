@@ -201,21 +201,4 @@ sub lookback_custom {
     set_pull_limit($pullval);
 }
 
-
-sub init_filter {
-    @result_list = ();
-}
-
-sub filter_results {
-
-    my $ticker = shift;
-
-    foreach $action (@_) {
-	return 0 if not eval($action);
-    }
-
-    return 1;
-}
-
-
 1;

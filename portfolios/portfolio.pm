@@ -164,8 +164,6 @@ sub update_positions {
     @temp = keys %positions;
     @tlist = @ {set_ticker_list(\@temp)};
 
-    init_filter();
-
     #we update our cash position before selling because interest payments, etc.
     #would tend to happen before settlement of a trade.  Then we loop through
     #each position to see if it hit a sell rule or was stopped out, calling our
