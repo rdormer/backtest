@@ -7,12 +7,15 @@ sub initial_stop {
 
     my $initial_price = shift;
     my $isshort = shift;
+    my $stop;
 
     if($isshort) {
-	return $initial_price * 1.1;
+	$stop = $initial_price * 1.1;
     } else {
-	return $initial_price * 0.9;
+	$stop = $initial_price * 0.9;
     }
+
+    return sprintf("%.2f", $stop);
 }
 
 sub update_stop {

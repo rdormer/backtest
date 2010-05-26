@@ -90,12 +90,14 @@ sub add_positions {
 
 sub start_long_position {
 
-    if(start_position($_[0])) {
+    my $count = start_position($_[0]);
+
+    if($count > 0) {
 
 	my $price = $positions{$_[0]}{'start'};
 	my $stop = initial_stop($price, 0);
 
-	$current_cash -= $sharecount * $price;
+	$current_cash -= $count * $price;
 	$positions{$_[0]}{'short'} = 0;
 	$positions{$_[0]}{'exit'} = \@long_exits;
 	$positions{$_[0]}{'stop'} = initial_stop($price, 0);
@@ -105,12 +107,13 @@ sub start_long_position {
 
 sub start_short_position {
 
-    if($current_cash >= 2000 && start_position($_[0])) {
+    my $count = start_position($_[0]);
+    if($current_cash >= 2000 && $count > 0) {
 
 	#we have to check to see if this new position takes us over the initial margin
 	#requirement, and if it does, back out the trade
 
-	if($current_cash < $total_short_equity + ($sharecount * $price) * conf::initial_margin()) {
+	if($current_cash < $total_short_equity + ($count * $price) * conf::initial_margin()) {
 	    delete $positions{$_[0]};
 	    clear_history_cache($_[0]);
 	} else {
@@ -118,7 +121,7 @@ sub start_short_position {
 	    my $price = $positions{$_[0]}{'start'};
 	    my $stop = initial_stop($price, 1);
 
-	    $current_cash += $sharecount * $price;
+	    $current_cash += $count * $price;
 	    $positions{$_[0]}{'short'} = 1;
 	    $positions{$_[0]}{'exit'} = \@short_exits;
 	    $positions{$_[0]}{'stop'} = $stop;
@@ -130,6 +133,7 @@ sub start_short_position {
 sub start_position {
 
     my $ticker = shift;
+    my $sharecount = 0;
 
     cache_ticker_history($ticker);
     current_from_cache($ticker);
@@ -138,23 +142,21 @@ sub start_position {
     my $volume = fetch_volume_at($dindex);
 
     if($price > 0) {
+
 	$sharecount = int($position_size / $price);
-    } else {
-	$sharecount = 0;
+
+	if($sharecount >= 1 && $sharecount < $volume) {
+
+	    $positions{$ticker}{'sdate'} = get_exit_date();
+	    $positions{$ticker}{'shares'} = $sharecount;
+	    $positions{$ticker}{'start'} = $price;
+	    $positions{$ticker}{'mae'} = $price;
+	    return $sharecount;
+	}
     }
 
-    if($sharecount >= 1 && $sharecount < $volume) {
-
-	$positions{$ticker}{'sdate'} = get_exit_date();
-	$positions{$ticker}{'shares'} = $sharecount;
-	$positions{$ticker}{'start'} = $price;
-	$positions{$ticker}{'mae'} = $price;
-	
-    } else {
-	clear_history_cache($ticker);
-    }
-
-    return $sharecount >= 1;
+    clear_history_cache($ticker);
+    return 0;
 }
 
 
