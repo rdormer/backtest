@@ -135,6 +135,7 @@ sub start_position {
     current_from_cache($ticker);
     my $dindex = search_array_date(get_exit_date(), $current_prices);
     my $price = fetch_open_at($dindex);
+    my $volume = fetch_volume_at($dindex);
 
     if($price > 0) {
 	$sharecount = int($position_size / $price);
@@ -142,7 +143,7 @@ sub start_position {
 	$sharecount = 0;
     }
 
-    if($sharecount >= 1) {
+    if($sharecount >= 1 && $sharecount < $volume) {
 
 	$positions{$ticker}{'sdate'} = get_exit_date();
 	$positions{$ticker}{'shares'} = $sharecount;

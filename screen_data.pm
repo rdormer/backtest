@@ -157,7 +157,7 @@ sub filter_results {
 	my $maximum = $_[$i][1] + 1;
 	my $data = pull_history_by_limit($current_ticker, $date, $maximum);
 
-	if(scalar @$data > 0 && fetch_volume_at(0) > 0) {
+	if(scalar @$data > 0 && $data->[0][VOLUME_IND] > 0) {
 	    
 	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
 
