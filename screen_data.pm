@@ -123,7 +123,9 @@ sub set_date_range {
 	$date->nextb();
     }
 
-    conf::override_date_range($date_range[0], $date_range[$#date_range]);
+    if($#date_range > 0) {
+	conf::override_date_range($date_range[0], $date_range[$#date_range]);
+    }
 }
 
 sub run_screen_loop {
