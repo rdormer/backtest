@@ -176,33 +176,30 @@ sub update_positions {
 
     foreach $ticker (@temp) {
 
-	if(pull_ticker_history($ticker)) {
+	pull_from_cache($ticker);
+	update_balance_dividend($ticker);
 
-	    update_balance_dividend($ticker);
+	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
+	    sell_position($ticker);
+	} else {
 
-	    if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
-		sell_position($ticker);
-	    } else {
+	    update_stop(\%positions, $ticker);
+	    $cur_ticker_index = current_index();
+	    $low = fetch_low_at($cur_ticker_index);
+	    $high = fetch_high_at($cur_ticker_index);
+	    $isshort = $positions{$ticker}{'short'};
 
-		update_stop(\%positions, $ticker);
-		$cur_ticker_index = current_index();
-		$low = fetch_low_at($cur_ticker_index);
-		$high = fetch_high_at($cur_ticker_index);
-		$isshort = $positions{$ticker}{'short'};
+	    if(! $isshort && ! stop_position($ticker, $low)) {
+		$equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		$positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
+	    } 
 
-		if(! $isshort && ! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
-		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
-		} 
-
-		if($isshort && ! stop_position($ticker, $high)) {
-		    $total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
-		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
-		} 
-	    }
+	    if($isshort && ! stop_position($ticker, $high)) {
+		$total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		$positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
+	    } 
 	}
     }
-
 
     $equity += $current_cash;
     push @equity_curve,$equity;
@@ -326,7 +323,7 @@ sub get_total_equity {
     my $total_equity = $current_cash;
     my $index = 0;#current_index();
     foreach (keys %positions) {
-	pull_ticker_history($_);
+	pull_from_cache($_);
 	$total_equity += (fetch_close_at($index) * $positions{$_}{'shares'}) if ! $positions{$_}{'short'};
     }
 

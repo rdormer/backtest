@@ -131,9 +131,11 @@ sub run_screen_loop {
     my $stop = shift;
     my @results;
 
+    $max_limit = $_[$#_][1];
+
     foreach $ticker (@ticker_list) {
 
-	if(pull_ticker_history($ticker) && filter_results($ticker, @_)) {
+	if(filter_results($ticker, @_)) {
 	    push @results, $ticker;
 	    last if &$stop(scalar @results);
 	}
@@ -144,36 +146,34 @@ sub run_screen_loop {
 
 sub filter_results {
 
-    my $ticker = shift;
+    $current_ticker = shift;
+    $current_prices = ();
+    %value_cache = ();
+    
+    my $date = $current_date;
 
-    foreach $action (@_) {
-	return 0 if not eval($action);
+    for(my $i = 0; $i <= $#_; $i++) {
+
+	my $maximum = $_[$i][1] + 1;
+	my $data = pull_history_by_limit($current_ticker, $date, $maximum);
+
+	if(scalar @$data > 0) {
+	    
+	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
+
+	    splice @$data, 0, 1 if $i > 0;
+	    push @$current_prices, @$data;
+	    return 0 if not eval($_[$i][0]);
+
+	    $date = $data->[$#data][DATE_IND];
+	
+	} else {
+	    return 0;
+	}
     }
 
     return 1;
 }
-
-sub pull_ticker_history {
-
-    $current_ticker = shift;
-
-    if(exists $history_cache{$current_ticker}) {
-	pull_from_cache($current_ticker);
-    } else {
-
-	$maximum = $max_limit + 1;
-	$current_prices = pull_history_by_limit($current_ticker, $current_date, $maximum);
-
-	process_splits($current_ticker, days_ago($maximum), $current_date, $current_prices);
-
-	if($fund_pull_limit > 0) {
-	    $current_fundamentals = pull_fundamentals($current_ticker, $current_date, $fund_pull_limit);
-	}
-    }
-
-    %value_cache = ();
-    return scalar @$current_prices >= $max_limit;
-}    
 
 sub pull_from_cache {
 
@@ -237,7 +237,12 @@ sub process_splits {
 
     foreach $split (@$splitlist) {
 
-	$ind = search_array_date($split->[0], $hist);
+	if($hist->[@$hist][DATE_IND] lt $split->[0]) {
+	    $ind = search_array_date($split->[0], $hist);
+	} else {
+	    $ind = scalar @$hist - 1;
+	}
+
 	$splitratio = $split->[2] / $split->[1];
 	for(my $i = 0; $i <= $ind; $i++) {
 	    @tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
@@ -332,12 +337,6 @@ sub build_sweep_statement {
     }
 
     $sweep_statement .= "date <= ? order by date desc limit 1";
-}
-
-sub set_pull_limit {
-
-    my $lim = shift;
-    $max_limit = $lim if $lim > $max_limit;
 }
 
 sub set_fundamentals_limit {

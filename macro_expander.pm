@@ -46,7 +46,7 @@ my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" =
 
 my @token_list;
 my $current_action;
-
+my $current_limit;
 
 sub tokenize {
 
@@ -100,6 +100,7 @@ sub screen_from_file {
 	parse_scan(\@rlist);
     }
 
+    @rlist = sort {$a->[1] <=> $b->[1]} @rlist;
     return \@rlist;
 }
 
@@ -107,7 +108,7 @@ sub parse_scan {
 
     my $actions = shift;
     $token = next_token();
-    my $add_function  = sub { push @$actions, "if($current_action) {return 1} else {return 0}" };
+    $current_limit = 1;
 
     while($token ne ";") {
 
@@ -115,10 +116,10 @@ sub parse_scan {
 
 	    $current_action .= "$noarg_macro_table{$token}";
 	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
-		$add_function = sub { set_fundamentals_limit(2); };
+		set_fundamentals_limit(2); 
 	    } elsif(exists $lookback_table{$token}) {
 		$lcall = $lookback_table{$token} . "_Lookback()";
-		set_pull_limit(eval($lcall));
+		set_pull(eval($lcall));
 	    }
 
 	} elsif(exists $arg_macro_table{$token}) {
@@ -134,7 +135,8 @@ sub parse_scan {
 	$token = next_token();
     }
 
-    $add_function->();
+    my $act = "if($current_action) {return 1} else {return 0}";
+    push @$actions, [$act, $current_limit];
     $current_action = "";
 }
 
@@ -162,7 +164,7 @@ sub capture_args {
     my $ltoken = shift;
     if(exists $lookback_table{$ltoken}) {
 	$lcall = $lookback_table{$ltoken} . "_Lookback($arglist";
-	set_pull_limit(eval($lcall));
+	set_pull(eval($lcall));
     } else {
 	lookback_custom($ltoken, $arglist, $max);
     }
@@ -198,7 +200,14 @@ sub lookback_custom {
 	$pullval = 5 * ($1 + 1);
     }
 
-    set_pull_limit($pullval);
+    set_pull($pullval);
+}
+
+
+sub set_pull {
+
+    my $t = shift;
+    $current_limit = $t if $t > $current_limit;
 }
 
 1;
