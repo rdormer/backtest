@@ -1,7 +1,7 @@
 use screen_data;
 use Finance::TA;
 
-my @cdl_opens, @cdl_highs, @cdl_lows, @cdl_closes;
+my (@cdl_opens, @cdl_highs, @cdl_lows, @cdl_closes);
 
 #we only get away with a common setup
 #routine because all of the TA-LIB functions
@@ -9,10 +9,10 @@ my @cdl_opens, @cdl_highs, @cdl_lows, @cdl_closes;
 
 sub candle_setup {
 
-    @cdl_opens = map @$_->[OPEN_IND], @$current_prices;
-    @cdl_highs = map @$_->[HIGH_IND], @$current_prices;
-    @cdl_lows = map @$_->[LOW_IND], @$current_prices;
-    @cdl_closes = map @$_->[CLOSE_IND], @$current_prices;
+    @cdl_opens = map $_->[OPEN_IND], @$current_prices;
+    @cdl_highs = map $_->[HIGH_IND], @$current_prices;
+    @cdl_lows = map $_->[LOW_IND], @$current_prices;
+    @cdl_closes = map $_->[CLOSE_IND], @$current_prices;
 }
 
 sub MARUBOZU_Lookback {

@@ -13,8 +13,8 @@ my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date 
 my $split_cmd = "select date,bef,after from splits where ticker=? and date >= ? and date <= ?";
 my $ondate_cmd = "select close from historical where ticker=? and date=?";
 
-my $pull_sql, $cache_sql, $split_sql;
-my $div_sql, $date_cmd, $fund_sql;
+my ($pull_sql, $cache_sql, $split_sql);
+my ($div_sql, $date_cmd, $fund_sql);
 
 sub init_mod {    
 

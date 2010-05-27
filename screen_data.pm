@@ -7,10 +7,23 @@ use screen_sql;
 #recent day, and incrementing the index decrements the day - in other words
 #going forward through the array goes backwards through time
 
-$current_prices;
-%value_cache;
-%current_fundamentals;
-%dividend_cache;
+#apparently not actually needed - but i'm keeping them 
+#as comments for documentation purposes
+
+#$current_prices;
+#%value_cache;
+#%current_fundamentals;
+#%dividend_cache;
+
+use constant {
+    DATE_IND => 0,
+    OPEN_IND => 1,
+    HIGH_IND => 2,
+    LOW_IND => 3,
+    CLOSE_IND => 4,
+    VOL_IND => 5
+};
+
 
 my $max_limit;
 
@@ -246,7 +259,7 @@ sub process_splits {
 	    $ind = scalar @$hist - 1;
 	}
 
-	$splitratio = $split->[2] / $split->[1];
+	my $splitratio = $split->[2] / $split->[1];
 	for(my $i = 0; $i <= $ind; $i++) {
 	    @tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
 	    splice @{$hist->[$i]}, 1, 4, @tt;

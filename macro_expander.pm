@@ -83,7 +83,7 @@ sub tokenize {
 	    if($raw_screen =~ m/^[\s]*($token)(.*)/) {
 		$raw_screen = $2;
 		push @token_list, $1;
-		break;
+		last;
 	    }
 
 	    $raw_screen = "" if $raw_screen =~ /^[\s]+$/;
