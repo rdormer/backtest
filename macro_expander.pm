@@ -1,12 +1,15 @@
 use analysis::indicators;
+use analysis::candlesticks;
 use analysis::fundamentals;
 use analysis::demark;
 
-my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] MAX[VOHLC] 
-                AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER
-                RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC 
-                ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL
-                TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY
+
+my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU
+                CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE CDL_HAMMER
+                CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR 
+                EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
+                ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
+                AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
 );
 
 
@@ -24,7 +27,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"ACCELERATION_UPPER" => "compute_upper_accband", "ACCELERATION_LOWER" => "compute_lower_accband",
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", 
-			"AROON_DOWN" =>"compute_aroon_down", "AROON_OSC" => "compute_aroon_osc", "EFFICIENCY_RATIO" => "compute_efficiency_ratio"
+			"AROON_DOWN" =>"compute_aroon_down", "AROON_OSC" => "compute_aroon_osc", 
+			"EFFICIENCY_RATIO" => "compute_efficiency_ratio"
 );
 
 
@@ -34,14 +38,25 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 			  "CURRENT_RATIO" => "fundamental_current_ratio()", "TD_SEQUENTIAL_BUY" => "td_sequential_buy()",
 			  "TD_SEQUENTIAL_SELL" => "td_sequential_sell()", "TD_COMBO_BUY" => "td_combo_buy()", 
 			  "TD_COMBO_SELL" => "td_combo_sell()", "TD_SETUP_BUY" => "td_buy_setup()", 
-			  "TD_SETUP_SELL" => "td_sell_setup()"
+			  "TD_SETUP_SELL" => "td_sell_setup()", "CDL_BULL_MARUBOZU" => "candle_bullish_marubozu",
+			  "CDL_BEAR_MRUBOZU" => "candle_bearish_marubozu", "CDL_BULL_SPINNING_TOP" => "candle_bullish_top",
+			  "CDL_BEAR_SPINNING_TOP" => "candle_bearish_top", "CDL_DOJI" => "candle_doji", 
+			  "CDL_DRAGONFLY" => "candle_dragonfly", "CDL_GRAVESTONE" => "candle_gravestone", 
+			  "CDL_HAMMER" => "candle_hammer", "CDL_HANGMAN" => "candle_hanging_man", 
+			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star"
 );
 
 my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
 		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
 		       "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC",
 		       "TD_COMBO_BUY" => "DEMARK", "TD_COMBO_SELL" => "DEMARK", "TD_SEQUENTIAL_BUY" => "DEMARK",
-		       "TD_SEQUENTIAL_SELL" => "DEMARK", "TD_SETUP_SELL" => "DEMARK_SETUP", "TD_SETUP_BUY" => "DEMARK_SETUP"
+		       "TD_SEQUENTIAL_SELL" => "DEMARK", "TD_SETUP_SELL" => "DEMARK_SETUP", "TD_SETUP_BUY" => "DEMARK_SETUP",
+		       "CDL_BULL_MARUBOZU" => "MARUBOZU", "CDL_BEAR_MARUBOZU" => "MARUBOZU", 
+		       "CDL_BULL_SPINNING_TOP" => "TA_CDLSPINNINGTOP", "CDL_BEAR_SPINNING_TOP" => "TA_CDLSPINNINGTOP",
+		       "CDL_DOJI" => "TA_CDLDOJI", "CDL_DRAGONFLY" => "TA_CDLDRAGONFLYDOJI", 
+		       "CDL_GRAVESTONE" => "TA_CDLGRAVESTONEDOJI", "CDL_HAMMER" => "TA_CDLHAMMER", 
+		       "CDL_HANGMAN" => "CDL_HANGINGMAN", "CDL_INVERTED_HAMMER" => "TA_CDLINVERTEDHAMMER",
+		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR"
 );
 
 my @token_list;
@@ -89,7 +104,6 @@ sub parse_screen {
     $t = screen_from_file(shift);
     return @$t;
 }
-
 
 sub screen_from_file {
 

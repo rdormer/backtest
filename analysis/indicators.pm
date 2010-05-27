@@ -45,6 +45,10 @@ sub exp_avg_low { return array_exponential_avg(shift, LOW_IND); }
 sub exp_avg_close { return array_exponential_avg(shift, CLOSE_IND); }
 sub exp_avg_volume { return array_exponential_avg(shift, VOL_IND); }
 
+sub init_indicators {
+    TA_Initialize();
+}
+
 sub truncate_current_prices {
 
     $start = shift;
