@@ -192,7 +192,7 @@ sub update_positions {
 	    $high = fetch_high_at($cur_ticker_index);
 	    $isshort = $positions{$ticker}{'short'};
 
-	    if(fetch_volume_at(0) > 0) {
+	    if(fetch_volume_at($cur_ticker_index) > 0) {
 
 		if(! $isshort && ! stop_position($ticker, $low)) {
 		    $equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
