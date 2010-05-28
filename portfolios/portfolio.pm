@@ -192,15 +192,18 @@ sub update_positions {
 	    $high = fetch_high_at($cur_ticker_index);
 	    $isshort = $positions{$ticker}{'short'};
 
-	    if(! $isshort && ! stop_position($ticker, $low)) {
-		$equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
-		$positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
-	    } 
+	    if(fetch_volume_at(0) > 0) {
 
-	    if($isshort && ! stop_position($ticker, $high)) {
-		$total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
-		$positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
-	    } 
+		if(! $isshort && ! stop_position($ticker, $low)) {
+		    $equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
+		} 
+
+		if($isshort && ! stop_position($ticker, $high)) {
+		    $total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
+		} 
+	    }
 	}
     }
 
