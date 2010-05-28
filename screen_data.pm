@@ -240,7 +240,7 @@ sub cache_dividends {
 
 #grab split data and apply it to the price data we've pulled.
 #note that this is the only remaining routine not using the
-#index constants defined in indicators.pm
+#index constants
 
 sub process_splits {
 
@@ -253,7 +253,7 @@ sub process_splits {
 
     foreach $split (@$splitlist) {
 
-	if($hist->[@$hist][DATE_IND] lt $split->[0]) {
+	if($hist->[@$hist - 1][DATE_IND] lt $split->[0]) {
 	    $ind = search_array_date($split->[0], $hist);
 	} else {
 	    $ind = scalar @$hist - 1;

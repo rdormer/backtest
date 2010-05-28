@@ -90,7 +90,7 @@ sub array_avg {
 
     for($i = 0; $i < $limit; $i++) {
 	@t = @$current_prices[$i];
-	$total += $t[0][$index];
+	$total += $t[0][$index] if $t[0][$index];
     }
 
     $value_cache{$n} = ($total / $limit);
