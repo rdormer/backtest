@@ -171,7 +171,9 @@ sub filter_results {
     for(my $i = 0; $i <= $#_; $i++) {
 
 	my $maximum = $_[$i][1] + 1;
-	my $data = pull_history_by_limit($current_ticker, $date, $maximum);
+	my $count = ($maximum - scalar @$current_prices) + 1;
+
+	my $data = pull_history_by_limit($current_ticker, $date, $count);
 
 	if(scalar @$data > 0 && $data->[0][VOL_IND] > 0) {
 
@@ -179,6 +181,7 @@ sub filter_results {
 
 	    splice @$data, 0, 1 if $i > 0;
 	    push @$current_prices, @$data;
+
 	    return 0 if not eval($_[$i][0]);
 
 	    $date = $data->[$#data][DATE_IND];

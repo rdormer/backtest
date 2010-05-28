@@ -316,8 +316,6 @@ sub sequential_signal {
     my $cancel = shift;
     my $index = LOOKBACK - 4;
 
-    print "\nCHECK SELL on $current_prices->[0][0]";
-
     while($index >= 0) {
 
 	my $flip = locate_price_flip($init, $index);
