@@ -40,6 +40,8 @@ my $current_ticker;
 my $fund_pull_limit;
 my @ticker_list;
 
+my %data_cache;
+
 sub init_data {
 
     my $file = shift;
@@ -170,13 +172,17 @@ sub filter_results {
 
     for(my $i = 0; $i <= $#_; $i++) {
 
-	my $maximum = $_[$i][1] + 1;
+	my $maximum = $_[$i][1];
 	my $count = ($maximum - scalar @$current_prices) + 1;
+	my $data = pull_data($current_ticker, $date, $count);
 
-	my $data = pull_history_by_limit($current_ticker, $date, $count);
+#	print "\n-----";
+#	show($data);
+
 
 	if(scalar @$data > 0 && $data->[0][VOL_IND] > 0) {
 
+#	    print "\nPROCESSING";
 	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
 
 	    splice @$data, 0, 1 if $i > 0;
@@ -192,6 +198,75 @@ sub filter_results {
     }
 
     return 1;
+}
+
+sub pull_data {
+
+    my $ticker = shift;
+    my $sdate = shift;
+    my $count = shift;
+
+    return 0 if $sdate eq "";
+
+    if(exists $data_cache{$ticker} && conf::usecache()) {
+
+	my $fromcache = $data_cache{$ticker};
+
+	#add data to the front of the cache if we need to
+
+	if($fromcache->[0][DATE_IND] lt $sdate) {
+
+	    my $cdata = pull_history_by_dates($ticker, $fromcache->[0][DATE_IND], $sdate);
+
+	    if($fromcache->[0][DATE_IND] lt $cdata->[0][DATE_IND]) {
+		pop @$cdata if scalar @$cdata > 1;
+		unshift @$fromcache, @$cdata;
+	    }
+	}
+
+	#now check the back of the cache, add data if we need
+	#to, and trim it down to keep memory if we don't
+
+	if(scalar @$fromcache < $count) {
+	    
+	    my $enddate = $fromcache->[@$fromcache - 1][DATE_IND];
+	    my $number = ($count - scalar @$fromcache) + 1;
+	    my $remain = pull_history_by_limit($ticker, $enddate, $number);
+	    shift @$remain;
+	    push @$fromcache, @$remain;
+
+	} else {
+	    pop @$fromcache;
+	}
+
+	$data_cache{$ticker} = $fromcache;
+	return trim_data_array($fromcache, $sdate, $count);
+    }
+
+    my $cdata = pull_history_by_limit($ticker, $sdate, $count);
+
+    if(conf::usecache() && scalar @$cdata > 0) {
+	$data_cache{$ticker} = $cdata if conf::usecache();
+    }
+
+    return $cdata;
+}
+
+sub trim_data_array {
+
+    my $data = shift;
+    my $date = shift;
+    my $count = shift;
+
+    my @rval = ();
+    my $start = search_array_date($date, $data);
+
+
+    for(my $i = $start; $i <= ($start + $count - 1); $i++) {
+	push @rval, [@{$data->[$i]}];
+    }
+
+    return \@rval;
 }
 
 sub pull_from_cache {
@@ -386,6 +461,14 @@ sub get_date_image {
     substr $rval, 7, 0, "-";
 
     return $rval;
+}
+
+sub show {
+
+   my $ref = shift;
+    foreach(@$ref) {
+	print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
+    }
 }
 
 1;

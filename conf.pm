@@ -22,7 +22,7 @@ sub process_commandline {
 	'init-margin=s' => \$initial_margin, 'maint-margin' => \$maint_margin, 'portfolio=s' => \$portfolio,
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
-	'skip-progress' => \$skip_progress );
+	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache);
 
     die "Couldn't open $tickers" if (! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -48,7 +48,7 @@ sub short_positions { return $short_entry || $short_exit; }
 sub show_reward_ratio { return $showreward; }
 sub noprogress { return $skip_progress; }
 sub draw_curve { return $curve; }
-
+sub usecache { return not $disable_cache; }
 
 sub connect_string {
     return $connect_string if $connect_string;
