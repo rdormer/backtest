@@ -173,25 +173,24 @@ sub filter_results {
     for(my $i = 0; $i <= $#_; $i++) {
 
 	my $maximum = $_[$i][1];
-	my $count = ($maximum - scalar @$current_prices) + 1;
+	my $count = 1;
+	
+	if($maximum > 1) {
+	    $count = ($maximum - scalar @$current_prices) + 1;
+	}
+
 	my $data = pull_data($current_ticker, $date, $count);
+	my $last = scalar @$data - 1;
 
-#	print "\n-----";
-#	show($data);
+	if($last >= 0 && $data->[0][VOL_IND] > 0) {
 
-
-	if(scalar @$data > 0 && $data->[0][VOL_IND] > 0) {
-
-#	    print "\nPROCESSING";
 	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
 
-	    splice @$data, 0, 1 if $i > 0;
+	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
-
 	    return 0 if not eval($_[$i][0]);
+	    $date = $data->[$last][DATE_IND];
 
-	    $date = $data->[$#data][DATE_IND];
-	
 	} else {
 	    return 0;
 	}
@@ -229,7 +228,7 @@ sub pull_data {
 
 	if(scalar @$fromcache < $count) {
 	    
-	    my $enddate = $fromcache->[@$fromcache - 1][DATE_IND];
+	    my $enddate = $fromcache->[scalar @$fromcache - 1][DATE_IND];
 	    my $number = ($count - scalar @$fromcache) + 1;
 	    my $remain = pull_history_by_limit($ticker, $enddate, $number);
 	    shift @$remain;
@@ -260,7 +259,6 @@ sub trim_data_array {
 
     my @rval = ();
     my $start = search_array_date($date, $data);
-
 
     for(my $i = $start; $i <= ($start + $count - 1); $i++) {
 	push @rval, [@{$data->[$i]}];

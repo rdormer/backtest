@@ -179,7 +179,6 @@ sub compute_bollinger_bands {
 
     my $per = shift;
     my $dev = shift;
-    my (@upper, @middle, @lower);
 
     my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($per);
