@@ -242,7 +242,7 @@ sub pull_data {
 	    shift @$remain;
 	    push @$fromcache, @$remain;
 
-	} else {
+	} elsif (scalar @$fromcache > $max_limit) {
 	    pop @$fromcache;
 	}
 
