@@ -22,9 +22,10 @@ sub process_commandline {
 	'init-margin=s' => \$initial_margin, 'maint-margin' => \$maint_margin, 'portfolio=s' => \$portfolio,
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
-	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades);
+	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
+	'tickers=s' => \$tickerlist);
 
-    die "Couldn't open $tickers" if (! -e $tickers);
+    die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
     die "Couldn't open $short_entry" if $short_entry && ! -e $short_entry;
     die "Couldn't open $replay_list" if $replay_list && ! -e $replay_list;
@@ -50,6 +51,7 @@ sub noprogress { return $skip_progress; }
 sub draw_curve { return $curve; }
 sub usecache { return not $disable_cache; }
 sub show_trades { return not $skip_trades; }
+sub ticker_list { return $tickerlist; }
 
 sub connect_string {
     return $connect_string if $connect_string;
@@ -99,7 +101,7 @@ sub check_backtest_args {
     die "Are you trying to go short, or long?  Arguments are inconclusive" if $entryfile and $short_exit;
     die "You are using the same entry and exit" if $exitfile eq $entryfile;
 
-    die "missing -list (ticker list file)" if not $tickers;
+    die "missing -list (ticker list file)" if not $tickers and not $tickerlist;
     die "missing -start (start date)" if not $startdate;
     die "missing -entry (entry signal)" if not $entryfile and long_positions();
     die "missing -exit (exit signal)" if not $exitfile and long_positions();

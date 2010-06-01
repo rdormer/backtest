@@ -6,7 +6,7 @@ use macro_expander;
 
 conf::process_commandline(@ARGV);
 conf::check_backtest_args();
-init_data(conf::list());
+init_data();
 
 eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;

@@ -44,12 +44,20 @@ my %data_cache;
 
 sub init_data {
 
-    my $file = shift;
-    open(INFILE, $file);
+    if(conf::list()) {
+
+	open(INFILE, conf::list());
     
-    while(<INFILE>) {
-	chomp;
-	push @ticker_list, $_;
+	while(<INFILE>) {
+	    chomp;
+	    push @ticker_list, $_;
+	}
+    }
+
+    if(conf::ticker_list()) {
+
+	my $list = conf::ticker_list();
+	@ticker_list = split /,/, $list;
     }
 
     set_date_range(conf::start(), conf::finish());
