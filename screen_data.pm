@@ -269,7 +269,7 @@ sub trim_data_array {
     my $start = search_array_date($date, $data);
 
     for(my $i = $start; $i <= ($start + $count - 1); $i++) {
-	push @rval, [@{$data->[$i]}];
+	push @rval, [@{$data->[$i]}] if $data->[$i];
     }
 
     return \@rval;
