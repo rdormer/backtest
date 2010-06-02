@@ -89,8 +89,7 @@ sub array_avg {
     return $value_cache{$n} if exists $value_cache{$n};
 
     for($i = 0; $i < $limit; $i++) {
-	@t = @$current_prices[$i];
-	$total += $t[0][$index] if $t[0][$index];
+	$total += $current_prices->[$i][$index];
     }
 
     $value_cache{$n} = ($total / $limit);

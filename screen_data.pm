@@ -178,7 +178,10 @@ sub filter_results {
     
     my $date = $current_date;
 
-    for(my $i = 0; $i <= $#_; $i++) {
+    for(my $i = 0; $i < scalar @_; $i++) {
+
+	#set pull size and get the next batch
+	#of data to evaluate the current statement
 
 	my $maximum = $_[$i][1];
 	my $count = 1;
@@ -190,14 +193,19 @@ sub filter_results {
 	my $data = pull_data($current_ticker, $date, $count);
 	my $last = scalar @$data - 1;
 
-	if($last >= 0 && $data->[0][VOL_IND] > 0) {
+	#two cases to contend with - one where we've pulled new data,
+	#and one where we don't need to because there are two or more
+	#statements that need the same amount of data
+
+	if(($maximum > 1 && $count == 1) || ($last >= 0 && $data->[0][VOL_IND] > 0)) {
 
 	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
 
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
 	    return 0 if not eval($_[$i][0]);
-	    $date = $data->[$last][DATE_IND];
+
+	    $date = $data->[$last][DATE_IND] if $last >= 0;
 
 	} else {
 	    return 0;
