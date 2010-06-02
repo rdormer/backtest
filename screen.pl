@@ -14,7 +14,6 @@ if(conf::date()) {
 
 init_data();
 @actions = parse_screen(conf::screen());
-build_sweep_statement();
 
 $tref = sub { return 0; };
 @results = run_screen_loop($tref, @actions);

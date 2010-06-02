@@ -22,8 +22,6 @@ if(conf::short_positions()) {
 }
 
 init_portfolio(\@long_exit, \@short_exit);
-build_sweep_statement();
-
 $tref = sub { return $_[0] >= positions_available(); };
 
 while(next_test_day()) {

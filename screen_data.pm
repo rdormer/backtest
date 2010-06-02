@@ -193,7 +193,7 @@ sub filter_results {
 	my $data = pull_data($current_ticker, $date, $count);
 	my $last = scalar @$data - 1;
 
-	#two cases to contend with - one where we've pulled new data,
+	#two cases to check for - one where we've pulled new data,
 	#and one where we don't need to because there are two or more
 	#statements that need the same amount of data
 
@@ -254,9 +254,15 @@ sub pull_data {
 	    pop @$fromcache;
 	}
 
+	#store back to the cache, and return data
+	#trimmed down to match the size of our request
+
 	$data_cache{$ticker} = $fromcache;
 	return trim_data_array($fromcache, $sdate, $count);
     }
+
+    #if we get here we're either not using the cache
+    #or didn't have any data in it for this ticker yet
 
     my $cdata = pull_history_by_limit($ticker, $sdate, $count);
 
@@ -297,6 +303,7 @@ sub pull_from_cache {
 
     $start = $low + $max_limit;
     $current_prices = [ @$current_prices[$low..$start] ];
+#    process_splits($ticker, $sdate, $edate, $current_prices);
 }
 
 sub current_from_cache {
@@ -317,8 +324,6 @@ sub cache_ticker_history {
     my $edate = $date_range[$#date_range];
 
     $href = pull_history_by_dates($ticker, $sdate, $edate);
-
-    process_splits($ticker, $sdate, $edate, $href);
     $history_cache{$ticker} = $href;
     cache_dividends($ticker);
 }    
@@ -341,18 +346,18 @@ sub process_splits {
     my $end_date = shift;
     my $hist = shift;
 
+    my $ind = scalar @$hist - 1;
     $splitlist = pull_splits($ticker, $start_date, $end_date);
 
     foreach $split (@$splitlist) {
 
-	if($hist->[@$hist - 1][DATE_IND] lt $split->[0]) {
+	if($hist->[$ind][DATE_IND] lt $split->[0]) {
 	    $ind = search_array_date($split->[0], $hist);
-	} else {
-	    $ind = scalar @$hist - 1;
 	}
 
-	my $splitratio = $split->[2] / $split->[1];
-	for(my $i = 0; $i <= $ind; $i++) {
+	my $splitratio = $split->[1] / $split->[2];
+
+	for(my $i = (scalar @$hist - 1); $i > $ind; $i--) {
 	    @tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
 	    splice @{$hist->[$i]}, 1, 4, @tt;
 	}
@@ -430,21 +435,6 @@ sub change_over_period {
     }
 
     return -100;
-}
-
-sub build_sweep_statement {
-
-    if(@fundamental_list == 0) {
-	return;
-    }
-
-    my $sweep_statement = "select ticker from fundamentals where ";
-
-    foreach (@fundamental_list) {
-	$sweep_statement .= " $_ and ";
-    }
-
-    $sweep_statement .= "date <= ? order by date desc limit 1";
 }
 
 sub set_fundamentals_limit {

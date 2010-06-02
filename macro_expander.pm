@@ -72,7 +72,7 @@ sub tokenize {
 
     while(<INFILE>) {
 	chomp;
-	$raw_screen .= "$_ ";
+	$raw_screen .= "$_ " if $_ !~ /#.+/;
     }
 
     while($raw_screen) {
