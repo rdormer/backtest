@@ -199,7 +199,7 @@ sub filter_results {
 
 	if(($maximum > 1 && $count == 1) || ($last >= 0 && $data->[0][VOL_IND] > 0)) {
 
-	    process_splits($current_ticker, days_ago($max_limit), $date, $data);
+	    process_splits($current_ticker, $data);
 
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
@@ -342,38 +342,38 @@ sub cache_dividends {
 sub process_splits {
 
     my $ticker = shift;
-    my $start_date = shift;
-    my $end_date = shift;
     my $hist = shift;
 
-    my $ind = scalar @$hist - 1;
-    $splitlist = pull_splits($ticker, $start_date, $end_date);
+    my $splitlist = pull_splits($ticker);
+    my $enddate = $date_range[$#date_range];
+    my $histlen = scalar @$hist - 1;
+
+    return if $histlen < 0;
 
     foreach $split (@$splitlist) {
 
-	if($hist->[$ind][DATE_IND] lt $split->[0]) {
-	    $ind = search_array_date($split->[0], $hist);
-	}
+	#if the current split is before the 
+	#last day of our run and above current segment
 
-	my $splitratio = $split->[1] / $split->[2];
+	if($split->[0] le $enddate && $split->[0] gt $hist->[$histlen][DATE_IND]) {
 
-	for(my $i = (scalar @$hist - 1); $i > $ind; $i--) {
-	    @tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
-	    splice @{$hist->[$i]}, 1, 4, @tt;
+	    my $ind = $histlen;
+
+	    #if the current split is before the last day of our run,
+	    #but the last date of our data is after it, it's in this segment
+
+	    if($hist->[$0][DATE_IND] ge $split->[0]) {
+		$ind = search_array_date($split->[0], $hist);
+	    }
+
+	    my $splitratio = $split->[1] / $split->[2];
+
+	    for(my $i = $histlen; $i > $ind; $i--) {
+		@tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
+		splice @{$hist->[$i]}, 1, 4, @tt;
+	    }
 	}
     }
-}
-
-sub days_ago {
-
-    my $date = new Date::Business(DATE => $today_obj);
-    $date->subb(shift);
-    
-    my $rval = $date->image();
-    substr $rval, 4, 0, "-";
-    substr $rval, 7, 0, "-";
-
-    return $rval;
 }
 
 sub search_array_date {

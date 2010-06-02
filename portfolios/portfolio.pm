@@ -179,7 +179,6 @@ sub update_positions {
 
     foreach $ticker (@temp) {
 
-	pull_from_cache($ticker);
 	update_balance_dividend($ticker);
 
 	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {

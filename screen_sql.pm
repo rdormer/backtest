@@ -10,7 +10,7 @@ my $pull_cmd = "select date,open,high,low,close,volume from $history_table where
 my $cache_cmd = "select date,open,high,low,close,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
 my $fund_cmd = "select * from $fundamental_table where ticker=? and date <= ? order by date desc limit ?";
 my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
-my $split_cmd = "select date,bef,after from splits where ticker=? and date >= ? and date <= ?";
+my $split_cmd = "select date,bef,after from splits where ticker=?";
 my $ondate_cmd = "select close from historical where ticker=? and date=?";
 
 my ($pull_sql, $cache_sql, $split_sql);
@@ -75,10 +75,8 @@ sub pull_dividends {
 sub pull_splits {
 
     my $ticker = shift;
-    my $start = shift;
-    my $end = shift;
 
-    $split_sql->execute($ticker, $start, $end);
+    $split_sql->execute($ticker);
     return $split_sql->fetchall_arrayref();
 }
 
