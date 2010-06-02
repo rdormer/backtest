@@ -137,6 +137,7 @@ sub start_position {
 
     cache_ticker_history($ticker);
     current_from_cache($ticker);
+
     my $dindex = search_array_date(get_exit_date(), $current_prices);
     my $price = fetch_open_at($dindex);
     my $volume = fetch_volume_at($dindex);
@@ -248,6 +249,7 @@ sub update_balance_dividend {
 }
 
 sub sell_position {
+
     $dindex = search_array_date(get_exit_date(), $current_prices);
     $price = fetch_open_at($dindex);
     end_position(shift, $price, get_exit_date());
@@ -326,10 +328,10 @@ sub end_position {
 sub get_total_equity {
 
     my $total_equity = $current_cash;
-    my $index = 0;#current_index();
+
     foreach (keys %positions) {
-	pull_from_cache($_);
-	$total_equity += (fetch_close_at($index) * $positions{$_}{'shares'}) if ! $positions{$_}{'short'};
+	$current_prices = pull_data($_, get_date(), 1);
+	$total_equity += (fetch_close_at(0) * $positions{$_}{'shares'}) if ! $positions{$_}{'short'};
     }
 
     return $total_equity;
@@ -349,30 +351,29 @@ sub print_portfolio_state {
     my $max_adverse = 0;
 
 
-	foreach (sort bywhen @trade_history) {
+    foreach (sort bywhen @trade_history) {
 
-	    my %trade = %$_;
+	my %trade = %$_;
+	
+	if(conf::show_trades()) {
+	    
+	    print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t" . sprintf("%.3f", $trade{'return'}) . "%";
 
-	    if(conf::show_trades()) {
-
-		print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t" . sprintf("%.3f", $trade{'return'}) . "%";
-
-		if(conf::show_reward_ratio()) {
-		    print "\t" . sprintf("%.3f", $trade{'rratio'});
-		}
-	    }
-
-	    if($trade{'return'} > 0) {
-		$winning_trades++;
-		$sum_wins = $trade{'return'};
-		$excursion = (($trade{'start'} - $trade{'mae'}) / $trade{'start'}) * 100;
-		$max_adverse = $excursion if $excursion > $max_adverse;
-	    } else {
-		$losing_trades++;
-		$sum_losses = $trade{'return'};
+	    if(conf::show_reward_ratio()) {
+		print "\t" . sprintf("%.3f", $trade{'rratio'});
 	    }
 	}
 
+	if($trade{'return'} > 0) {
+	    $winning_trades++;
+	    $sum_wins = $trade{'return'};
+	    $excursion = (($trade{'start'} - $trade{'mae'}) / $trade{'start'}) * 100;
+	    $max_adverse = $excursion if $excursion > $max_adverse;
+	} else {
+	    $losing_trades++;
+	    $sum_losses = $trade{'return'};
+	}
+    }
 
     if(conf::show_trades()) {
 
