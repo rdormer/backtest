@@ -160,6 +160,42 @@ sub start_position {
     return 0;
 }
 
+sub split_adjust_position {
+
+    my $ticker = shift;
+    my $splitlist = pull_splits($ticker);
+
+    foreach $split (@$splitlist) {
+
+	if($split->[SPLIT_DATE] eq get_date()) {
+
+	    my $share_ratio = $split->[SPLIT_AFTER] / $split->[SPLIT_BEFORE];
+	    my $price_ratio = $split->[SPLIT_BEFORE] / $split->[SPLIT_AFTER];
+	    my $current = $positions{$ticker};
+
+	    $current->{'stop'} *= $price_ratio;
+	    $current->{'start'} *= $price_ratio;
+	    $current->{'shares'} *= $share_ratio;
+
+	    if(($current{'shares'} % 1) > 0) {
+		
+		#return the value of any fractional shares back to
+		#the holder as cash and round the number of shares down
+   
+		my $remainder = $current{'shares'} % 1;
+		my $data = pull_data($ticker, get_date(), 1);
+		my $price = $data->[0][OPEN_IND];
+
+		$current_cash += $price * $remainder;
+		$current{'shares'} -= $remainder;
+	    }
+
+	    $current->{'start'} = sprintf("%.2f", $current->{'start'});
+	    $current->{'split'} = 1;
+	    last;
+	}
+    }
+}
 
 sub update_positions {
 
@@ -180,6 +216,7 @@ sub update_positions {
 
     foreach $ticker (@temp) {
 
+	split_adjust_position($ticker);
 	update_balance_dividend($ticker);
 
 	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
@@ -361,6 +398,10 @@ sub print_portfolio_state {
 
 	    if(conf::show_reward_ratio()) {
 		print "\t" . sprintf("%.3f", $trade{'rratio'});
+	    }
+
+	    if($trade{'split'}) {
+		print "\t[split adjusted]";
 	    }
 	}
 

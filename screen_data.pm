@@ -24,6 +24,11 @@ use constant {
     VOL_IND => 5
 };
 
+use constant {
+    SPLIT_DATE => 0,
+    SPLIT_BEFORE => 1,
+    SPLIT_AFTER => 2
+};
 
 my $max_limit;
 
@@ -355,18 +360,18 @@ sub process_splits {
 	#if the current split is before the 
 	#last day of our run and above current segment
 
-	if($split->[0] le $enddate && $split->[0] gt $hist->[$histlen][DATE_IND]) {
+	if($split->[SPLIT_DATE] le $enddate && $split->[SPLIT_DATE] gt $hist->[$histlen][DATE_IND]) {
 
 	    my $ind = $histlen;
 
 	    #if the current split is before the last day of our run,
 	    #but the last date of our data is after it, it's in this segment
 
-	    if($hist->[$0][DATE_IND] ge $split->[0]) {
-		$ind = search_array_date($split->[0], $hist);
+	    if($hist->[$0][DATE_IND] ge $split->[SPLIT_DATE]) {
+		$ind = search_array_date($split->[SPLIT_DATE], $hist);
 	    }
 
-	    my $splitratio = $split->[1] / $split->[2];
+	    my $splitratio = $split->[SPLIT_BEFORE] / $split->[SPLIT_AFTER];
 
 	    for(my $i = $histlen; $i > $ind; $i--) {
 		@tt = map $_ * $splitratio, ($hist->[$i][1], $hist->[$i][2], $hist->[$i][3], $hist->[$i][4]);
