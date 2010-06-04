@@ -69,8 +69,9 @@ sub pull_history_by_limit {
     $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
     
     my $last = get_epoch_date($date) - $base_dates{$ticker};
-    my $first = $last - $limit;
-
+    my $first = $last;
+    
+    $first -= $limit if $limit > 1;
     if($last < $limit || $first < 0) {
 	$tchandle->close();
 	return;
@@ -121,7 +122,17 @@ sub pull_history_by_dates {
     my $end = get_epoch_date($edate) - $base_dates{$ticker};
     my $lim = $end - $start;
 
-    return pull_history_by_limit($ticker, $edate, $lim); 
+    my $data = pull_history_by_limit($ticker, $edate, $lim); 
+    my $idx = scalar @$data - 1;
+
+    if($idx >= 0) {
+	while($data->[$idx][DATE_IND] lt $sdate) {
+	    pop @$data;
+	    $idx--;
+	}
+    }
+
+    return $data;
 }
 
 sub pull_close_on_date {
@@ -173,12 +184,8 @@ sub pull_dividends {
 sub pull_splits {
 
     my $ticker = shift;
-    my $sdate = shift;
-    my $edate = shift;
     my @splits;
 
-    my $start = get_epoch_date($sdate) - $base_dates{$ticker};
-    my $end = get_epoch_date($edate) - $base_dates{$ticker};
     my $rawdata = $splithandle->get($ticker);
 
     for(my $i = 0; $i < length $rawdata; $i += 8) {
@@ -186,10 +193,8 @@ sub pull_splits {
 	my $part = substr $rawdata, $i, 8;
 	my @split = unpack("LSS", $part);
 
-	if($split[0] >= $start && $split[0] <= $end) {
-	    $split[0] = $date_lookup{ $split[0] + $base_dates{$ticker} };
-	    push @splits, \@split;
-	}
+	$split[0] = $date_lookup{ $split[0] + $base_dates{$ticker} };
+	push @splits, \@split;
     }
 
     return \@splits;
