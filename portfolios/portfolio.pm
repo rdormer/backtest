@@ -135,6 +135,8 @@ sub start_position {
     my $ticker = shift;
     my $sharecount = 0;
 
+    return 0 if get_date() eq conf::finish();
+
     cache_ticker_history($ticker);
     current_from_cache($ticker);
 
