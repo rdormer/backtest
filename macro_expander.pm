@@ -194,6 +194,11 @@ sub lookback_custom {
 
     my $pullval = $maxval;
 
+
+    if($ctoken =~/[OHLCV]/) {
+	$pullval++ if $pullval > 0;
+    }
+
     if($ctoken =~ /EMA[VOHLC]/ && $alist =~ /([0-9]+)\)/) {
 	$pullval = 4 * ($1 + 1);
     }

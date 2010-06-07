@@ -192,7 +192,9 @@ sub filter_results {
 	my $count = 1;
 	
 	if($maximum > 1) {
-	    $count = ($maximum - scalar @$current_prices) + 1;
+
+	    $count = ($maximum - scalar @$current_prices);
+	    $count++ if $i > 0;
 	}
 
 	my $data = pull_data($current_ticker, $date, $count);
