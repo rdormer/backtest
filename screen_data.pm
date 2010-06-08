@@ -1,5 +1,6 @@
 use Date::Business;
 use screen_sql;
+use Clone qw(clone);
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional
@@ -287,10 +288,11 @@ sub trim_data_array {
     my $date = shift;
     my $count = shift;
 
-    my @rval = ();
     my $start = search_array_date($date, $data);
+    my $end = $start + $count - 1;
 
-    for(my $i = $start; $i <= ($start + $count - 1); $i++) {
+    my @rval = ();
+    foreach $i ($start..$end) {
 	push @rval, [@{$data->[$i]}] if $data->[$i];
     }
 
