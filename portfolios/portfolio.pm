@@ -179,17 +179,20 @@ sub split_adjust_position {
 	    $current->{'start'} *= $price_ratio;
 	    $current->{'shares'} *= $share_ratio;
 
-	    if(($current{'shares'} % 1) > 0) {
+	    my $shares = $current->{'shares'};
+
+	    if(int($shares) != $shares) {
 		
 		#return the value of any fractional shares back to
 		#the holder as cash and round the number of shares down
    
-		my $remainder = $current{'shares'} % 1;
+		my $remainder = $shares - int($shares);
+		$remainder = sprintf("%.2f", $remainder);
+	
 		my $data = pull_data($ticker, get_date(), 1);
 		my $price = $data->[0][OPEN_IND];
-
-		$current_cash += $price * $remainder;
-		$current{'shares'} -= $remainder;
+		$current_cash += ($price * $remainder);
+		$current->{'shares'} -= $remainder;
 	    }
 
 	    $current->{'start'} = sprintf("%.2f", $current->{'start'});
