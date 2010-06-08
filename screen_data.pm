@@ -46,6 +46,7 @@ my $fund_pull_limit;
 my @ticker_list;
 
 my %data_cache;
+my %split_cache;
 
 sub init_data {
 
@@ -350,8 +351,15 @@ sub process_splits {
 
     my $ticker = shift;
     my $hist = shift;
+    my $splitlist;
 
-    my $splitlist = pull_splits($ticker);
+    if(exists $split_cache{$ticker}) {
+	$splitlist = $split_cache{$ticker};
+    } else {
+	$splitlist = pull_splits($ticker);
+	$split_cache{$ticker} = $splitlist if conf::usecache();
+    }
+    
     my $enddate = $date_range[$#date_range];
     my $histlen = scalar @$hist - 1;
 
