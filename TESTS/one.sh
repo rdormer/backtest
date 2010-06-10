@@ -39,17 +39,17 @@ echo "++++++++++++++++++++++++++++++++++++++++++++++++++++";
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++";
 
 echo "
-total: 7827.65762 (return 56.5531524)
-Paid out 53.55512 in dividends
+total: 8898.26762 (return 77.9653524)
+Paid out 82.54512 in dividends
 QQQQ buy and hold: 17.4377224199288
-295 trades  (discarded 1 trades)
-192 losing trades (avg loss -0.0146861362873447)
-103 wining trades (avg win 0.0382781779587292)
-85.2862912551326 maximum drawdown
-294 days longest drawdown
-0.349152542372881 win ratio
+287 trades  (discarded 1 trades)
+189 losing trades (avg loss -0.014919249561747)
+98 wining trades (avg win 0.0402311462219297)
+81.7155515136443 maximum drawdown
+403 days longest drawdown
+0.341463414634146 win ratio
 9.72222222222223 max adverse excursion
-Expectancy 0.0038064886867082
+Expectancy 0.00391259290097184
 ";
 
 time ./backtest.pl -list TESTS/list4 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades

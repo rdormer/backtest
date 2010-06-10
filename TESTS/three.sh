@@ -43,7 +43,7 @@ time  ./backtest.pl -tickers=ACAP -entry TESTS/200dayavg-byfive -exit TESTS/200d
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 5230.06502333333 (return 4.60130046666665)
+total: 5231.14502333333 (return 4.62290046666665)
 Paid out 107.68169 in dividends
 QQQQ buy and hold: 18.1264108352145
 46 trades
@@ -63,13 +63,13 @@ time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/200dayavg-byfive 
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 4763.355 (return -4.73289999999999)
+total: 4763.83 (return -4.7234)
 Paid out 66.15 in dividends
 QQQQ buy and hold: -1.34996931887912
 21 trades
 20 losing trades (avg loss 0)
 1 wining trades (avg win 1.2486992715921)
-6.83376907277583 maximum drawdown
+6.82095713204706 maximum drawdown
 44 days longest drawdown
 0.0476190476190476 win ratio
 0 max adverse excursion

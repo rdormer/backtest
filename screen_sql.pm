@@ -35,7 +35,11 @@ sub pull_history_by_limit {
     my $limit = shift;
 
     $pull_sql->execute($ticker, $date, $limit);
-    return $pull_sql->fetchall_arrayref();
+    my $data = $pull_sql->fetchall_arrayref();
+    
+    if(scalar @$data == $limit) {
+	return $data;
+    }
 }
 
 sub pull_history_by_dates {
