@@ -1,5 +1,5 @@
 use Date::Business;
-use screen_sql;
+use screen_tc;
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional

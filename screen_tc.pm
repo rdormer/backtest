@@ -71,7 +71,7 @@ sub pull_history_by_limit {
     my $last = get_epoch_date($date) - $base_dates{$ticker};
     my $first = $last;
     
-    $first -= $limit if $limit > 1;
+    $first -= $limit - 1 if $limit > 1;
     if($last < $limit || $first < 0) {
 	$tchandle->close();
 	return;
