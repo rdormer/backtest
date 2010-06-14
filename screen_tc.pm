@@ -77,9 +77,9 @@ sub pull_history_by_limit {
 	return;
     }
 
-    foreach $curdate ($first..$last) {
+    foreach $curdate ($first .. $last) {
 
-	my @row = unpack("FFFFL", $tchandle->get($curdate));
+	my @row = unpack("FFFFL", $tchandle->get($curdate + 1));
 
 	if($row[0] != "") {
 
@@ -93,7 +93,7 @@ sub pull_history_by_limit {
 
     while($left >= 0 && $i >= 0) {
 
-	my @row = unpack("FFFFL", $tchandle->get($i));
+	my @row = unpack("FFFFL", $tchandle->get($i + 1));
 
 	if($row[0] != "") {
 
@@ -106,7 +106,10 @@ sub pull_history_by_limit {
     }
 
     $tchandle->close();
-    return \@rval;
+
+    if(scalar @rval == $limit) {
+	return \@rval;
+    }
 }
 
 sub pull_history_by_dates {
@@ -114,25 +117,31 @@ sub pull_history_by_dates {
     my $ticker = shift;
     my $sdate = shift;
     my $edate = shift;
+    my @rval;
 
     #because of holidays this will end
     #up pulling slightly more than necessary 
 
     my $start = get_epoch_date($sdate) - $base_dates{$ticker};
     my $end = get_epoch_date($edate) - $base_dates{$ticker};
-    my $lim = $end - $start;
+    $start = 0 if $start < 0;
 
-    my $data = pull_history_by_limit($ticker, $edate, $lim); 
-    my $idx = scalar @$data - 1;
+    my $tchandle = TokyoCabinet::FDB->new();
+    $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
 
-    if($idx >= 0) {
-	while($data->[$idx][DATE_IND] lt $sdate) {
-	    pop @$data;
-	    $idx--;
+    foreach $curdate ($start..$end) {
+	
+	my @row = unpack("FFFFL", $tchandle->get($curdate + 1));
+
+	if($row[0] != "") {
+
+	    unshift @row, $date_lookup{ ($curdate + $base_dates{$ticker}) };
+	    unshift @rval, \@row; 
 	}
     }
 
-    return $data;
+    $tchandle->close();
+    return \@rval;
 }
 
 sub pull_close_on_date {
@@ -145,7 +154,7 @@ sub pull_close_on_date {
 
     foreach $day (@_) {
 	my $index = get_epoch_date($day) - $base_dates{$ticker};
-	my @temp = unpack("FFFFL", $tchandle->get($index));
+	my @temp = unpack("FFFFL", $tchandle->get($index + 1));
 	push @closes, $temp[3];
     }
 

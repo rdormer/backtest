@@ -54,7 +54,7 @@ sub save_history_tocab {
 	$day = get_epoch_date($_->[0]);
 	$id = $day - $baseday;	
 	@foo = ($_->[2],$_->[3],$_->[4],$_->[5],$_->[6]);
-	$fdb->put($id, pack("FFFFL", @foo));
+	$fdb->put($id + 1, pack("FFFFL", @foo));
     }
 
     $fdb->close();

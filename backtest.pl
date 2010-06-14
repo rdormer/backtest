@@ -36,7 +36,7 @@ while(next_test_day()) {
 }
 
 print_portfolio_state();
-
+print "\n";
 
 sub salvage_interrupt {
     print_portfolio_state();
