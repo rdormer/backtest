@@ -29,6 +29,7 @@ my $discards;
 my $total_margin_calls;
 my $total_short_equity;
 
+my %dividend_cache;
 my $dividend_payout;
 
 sub init_portfolio {
@@ -139,6 +140,10 @@ sub start_position {
 
     cache_ticker_history($ticker);
     current_from_cache($ticker);
+
+    if(not exists $dividend_cache{$ticker}) {
+	$dividend_cache{$ticker} = pull_dividends($ticker, get_date(), conf::finish());
+    }
 
     my $dindex = search_array_date(get_exit_date(), $current_prices);
     my $price = fetch_open_at($dindex);

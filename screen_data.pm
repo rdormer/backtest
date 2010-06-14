@@ -1,5 +1,5 @@
 use Date::Business;
-use screen_tc;
+use screen_sql;
 
 #these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional
@@ -13,7 +13,6 @@ use screen_tc;
 #$current_prices;
 #%value_cache;
 #%current_fundamentals;
-#%dividend_cache;
 
 use constant {
     DATE_IND => 0,
@@ -315,23 +314,6 @@ sub trim_data_array {
     }
 }
 
-sub pull_from_cache {
-
-    my $ticker = shift;
-    $current_prices = $history_cache{$ticker};
-    my $low = search_array_date($current_date, $current_prices);
-
-    if(fetch_date_at($low) ne $current_date) {
-
-	$low = 0;
-	$low++ while(fetch_date_at($low) gt $current_date && $low < $#{$current_prices});
-    }
-
-    $start = $low + $max_limit;
-    $current_prices = [ @$current_prices[$low..$start] ];
-#    process_splits($ticker, $sdate, $edate, $current_prices);
-}
-
 sub current_from_cache {
     my $t = shift;
     $current_prices = $history_cache{$t};
@@ -351,15 +333,11 @@ sub cache_ticker_history {
 
     $href = pull_history_by_dates($ticker, $sdate, $edate);
     $history_cache{$ticker} = $href;
-    cache_dividends($ticker);
 }    
 
-sub cache_dividends {
-
-    my $ticker = shift;
-    $dividend_cache{$ticker} = pull_dividends($ticker, $current_date, $date_range[ $#date_range ]);
+sub clear_history_cache {
+    delete $history_cache{shift};
 }
-
 
 #grab split data and apply it to the price data we've pulled.
 #note that this is the only remaining routine not using the
@@ -431,10 +409,6 @@ sub search_array_date {
     }
 
     return $low;
-}
-
-sub clear_history_cache {
-    delete $history_cache{shift};
 }
 
 sub current_index {
@@ -509,6 +483,7 @@ sub show {
    my $ref = shift;
    
    print "\narray length is " . scalar @$ref;
+   print " for $current_ticker";
 
    foreach(@$ref) {
        print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
