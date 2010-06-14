@@ -392,6 +392,18 @@ sub print_portfolio_state {
     my $sum_wins = 0;
     my $max_adverse = 0;
 
+    my $delim = "\t";
+    my $newline = "\n";
+    my $end = '';
+
+    if(conf::cgi_handle()) {
+	$delim = "</td><td>";
+	$newline = "<tr><td>";
+	$end = "</td></tr>";
+    }
+
+
+    my $text;
 
     foreach (sort bywhen @trade_history) {
 
@@ -399,16 +411,18 @@ sub print_portfolio_state {
 	
 	if(conf::show_trades()) {
 	    
-	    print "\n$trade{'ticker'}\t$trade{'shares'}\t$trade{'sdate'}\t$trade{'start'}\t$trade{'edate'}\t$trade{'end'}\t" . sprintf("%.3f", $trade{'return'}) . "%";
+	    $text .= "$newline$trade{'ticker'}$delim$trade{'shares'}$delim$trade{'sdate'}$delim$trade{'start'}$delim$trade{'edate'}$delim$trade{'end'}$delim" . sprintf("%.3f", $trade{'return'}) . "%";
 
 	    if(conf::show_reward_ratio()) {
-		print "\t" . sprintf("%.3f", $trade{'rratio'});
+		$text .= "$delim" . sprintf("%.3f", $trade{'rratio'});
 	    }
 
 	    if($trade{'split'}) {
-		print "\t[split adjusted]";
+		$text .= "$delim [split adjusted]";
 	    }
 	}
+
+	$text .= $end;
 
 	if($trade{'return'} > 0) {
 	    $winning_trades++;
@@ -424,17 +438,17 @@ sub print_portfolio_state {
     if(conf::show_trades()) {
 
 	foreach (keys %positions) {
-	    print "\n$_\t$positions{$_}{'shares'}\t$positions{$_}{'sdate'}\t$positions{$_}{'start'}\t(open)";
+	    $text .= "$newline$_$delim$positions{$_}{'shares'}$delim$positions{$_}{'sdate'}$delim$positions{$_}{'start'}$delim(open)$end";
 	}
     }
 
     $total = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
-    print "\n\ntotal: $total (return $ret)";
-    print "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;
-    print "\nPaid out $dividend_payout in dividends" if $dividend_payout > 0;
+    $text .= $newline . $newline . "total: $total (return $ret)$end";
+    $text .= $newline . "Margin calls: $total_margin_calls$end" if $total_margin_calls > 0;
+    $text .= $newline . "Paid out $dividend_payout in dividends$end" if $dividend_payout > 0;
     
-    print "\nQQQQ buy and hold: " . change_over_period("QQQQ");
+    $text .= "$newline" . "QQQQ buy and hold: " . change_over_period("QQQQ") . $end;
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
     
@@ -444,25 +458,32 @@ sub print_portfolio_state {
 	$avg_win = $sum_wins / $winning_trades if $winning_trades > 0;
 	$avg_loss = $sum_losses / $losing_trades if $losing_trades > 0;
 
-	print "\n" . scalar @trade_history . " trades";
-	print "  (discarded $discards trades)" if $discards > 0;
-	print "\n$losing_trades losing trades (avg loss $avg_loss)";
-	print "\n$winning_trades wining trades (avg win $avg_win)";
-	print "\n$max_drawdown maximum drawdown";
-	print "\n$max_drawdown_len days longest drawdown";
-	print "\n$win_ratio win ratio";
-	print "\n$max_adverse max adverse excursion";
+	$text .= "$newline" . scalar @trade_history . " trades";
+        $text .= "  (discarded $discards trades)" if $discards > 0;
+	$text .= $end;
+
+	$text .= $newline. "$losing_trades losing trades (avg loss $avg_loss)$end";
+	$text .= $newline. "$winning_trades wining trades (avg win $avg_win)$end";
+	$text .= $newline . "$max_drawdown maximum drawdown$end";
+	$text .= $newline . "$max_drawdown_len days longest drawdown$end";
+	$text .= $newline . "$win_ratio win ratio$end";
+	$text .= $newline . "$max_adverse max adverse excursion$end";
 	
 	$expectancy = ($win_ratio * $avg_win) + ((1 - $win_ratio) * $avg_loss);
-	print "\nExpectancy $expectancy";
+	$text .= $newline . "Expectancy $expectancy$end";
 
     }
-    
-    print "\n";
+
+    if(conf::cgi_handle()) {
+	my $output = "###<table>$text</table>###";
+	shmwrite(get_cgi(), $output, 0, length $output);
+    } else {
+	print $text;
+    }
 
     if(conf::draw_curve()) {
 	charting::draw_line_chart(\@equity_curve, conf::draw_curve());
-   }
+    }
 }
 
 

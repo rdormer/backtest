@@ -47,6 +47,7 @@ my @ticker_list;
 
 my %data_cache;
 my %split_cache;
+my $progress;
 
 sub init_data {
 
@@ -64,6 +65,15 @@ sub init_data {
 
 	my $list = conf::ticker_list();
 	@ticker_list = split /,/, $list;
+    }
+
+    if(conf::cgi_handle()) {
+	
+	$progress = shmget(IPC_PRIVATE, 1000000, IPC_CREAT | IPC_EXL | 0777 );
+	
+	open INFILE, ">", conf::cgi_handle();
+	print INFILE $progress;
+	close INFILE;
     }
 
     set_date_range(conf::start(), conf::finish());
@@ -100,6 +110,10 @@ sub next_test_day {
 
     if(! conf::noprogress()) {
 	print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
+    }
+
+    if(conf::cgi_handle()) {
+	shmwrite($progress, $current_date, 0, 10);
     }
 
     $d = $current_date;
@@ -229,7 +243,7 @@ sub pull_data {
     my $sdate = shift;
     my $count = shift;
 
-    return 0 if $sdate eq "";
+    return if $sdate eq "";
 
     if(exists $data_cache{$ticker} && conf::usecache()) {
 
@@ -275,7 +289,7 @@ sub pull_data {
     my $cdata = pull_history_by_limit($ticker, $sdate, $count);
 
     if(conf::usecache() && scalar @$cdata > 0) {
-	$data_cache{$ticker} = $cdata if conf::usecache();
+	$data_cache{$ticker} = $cdata;
     }
 
     return $cdata;
@@ -444,6 +458,10 @@ sub get_exit_date {
     return $date_range[$date_index + 1];
 }
 
+sub get_cgi {
+    return $progress;
+}
+
 sub change_over_period {
 
     my $ticker = shift;
@@ -489,9 +507,14 @@ sub get_date_image {
 sub show {
 
    my $ref = shift;
-    foreach(@$ref) {
-	print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
-    }
+   
+   print "\narray length is " . scalar @$ref;
+
+   foreach(@$ref) {
+       print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
+   }
+
+   print "\n======";
 }
 
 1;

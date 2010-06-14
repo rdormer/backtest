@@ -1,0 +1,19 @@
+use CGI;
+
+$in = doenc($ARGV[0]);
+$out = doenc($ARGV[1]);
+
+print "\nentry=$in&exit=$out";
+
+
+sub doenc {
+    
+    open INF, shift;
+
+    foreach(<INF>) {
+      $str .= $_;
+    }
+
+    close INF;
+    return CGI::escape($str);
+}

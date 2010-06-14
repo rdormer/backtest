@@ -23,7 +23,7 @@ sub process_commandline {
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
-	'tickers=s' => \$tickerlist);
+	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -52,6 +52,7 @@ sub draw_curve { return $curve; }
 sub usecache { return not $disable_cache; }
 sub show_trades { return not $skip_trades; }
 sub ticker_list { return $tickerlist; }
+sub cgi_handle { return $cgi_handle; }
 
 sub connect_string {
     return $connect_string if $connect_string;
