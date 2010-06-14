@@ -1,0 +1,12 @@
+use screen_tc;
+use Date::Business;
+
+init_mod();
+$foo = pull_history_by_limit($ARGV[0], $ARGV[1], $ARGV[2]);
+
+print "\nLENGTH is " . scalar @$foo;
+foreach(@$foo) {
+    print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]";
+}
+
+print "\n\n";
