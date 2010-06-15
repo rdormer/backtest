@@ -262,7 +262,8 @@ sub pull_data {
 	}
 
 	#now check the back of the cache, add data if we need
-	#to, and trim it down to keep memory if we don't
+	#to, and trim it down to keep memory if we don't.  Only
+	#trim memory if we needed to add an entry, though.
 
 	if(scalar @$fromcache < $count) {
 	    

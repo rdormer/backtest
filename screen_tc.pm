@@ -72,7 +72,7 @@ sub pull_history_by_limit {
     my $first = $last;
     
     $first -= $limit - 1 if $limit > 1;
-    if($last < $limit || $first < 0) {
+    if(($last + 1) < $limit || ($first + 1) < 1) {
 	$tchandle->close();
 	return;
     }
