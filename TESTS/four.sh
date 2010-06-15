@@ -4,6 +4,21 @@ cd ../
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
+echo "
+AAON	25	2007-12-07	19.8		19.0333333333333	-3.872%
+
+total: 4980.83333333333 (return -0.383333333333339)
+QQQQ buy and hold: 0.019113149847091
+1 trades
+1 losing trades (avg loss -3.87205387205388)
+0 wining trades (avg win )
+0.358422939068106 maximum drawdown
+1 days longest drawdown
+0 win ratio
+0 max adverse excursion
+Expectancy -3.87205387205388
+"
+
 ./backtest.pl -tickers=AAON -entry TESTS/200dayavg-byfive -exit TESTS/200dayout -start 2007-12-06 -finish 2007-12-09 --skip-progress
 ./backtest.pl -tickers=AAON -entry TESTS/200dayavg-byfive -exit TESTS/200dayout -start 2007-12-06 -finish 2007-12-09 --skip-progress --nocache
 
@@ -23,8 +38,8 @@ QQQQ buy and hold: 4.55516014234876
 Expectancy 0.11631691921933
 "
 
-./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/out -start 2006-02-01 -finish 2007-02-01 --skip-progress --skip-trades
-./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/out -start 2006-02-01 -finish 2007-02-01 --skip-progress --skip-trades --nocache
+time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/out -start 2006-02-01 -finish 2007-02-01 --skip-progress --skip-trades
+time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/out -start 2006-02-01 -finish 2007-02-01 --skip-progress --skip-trades --nocache
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
@@ -41,22 +56,44 @@ QQQQ buy and hold: -32.0993227990971
 Expectancy -0.186935490039323
 "
 
-./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -start 2006-11-17 -finish 2008-12-09 --skip-progress 
-./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -start 2006-11-17 -finish 2008-12-09 --skip-progress --nocache
+time ./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -start 2006-11-17 -finish 2008-12-09 --skip-progress --skip-trades
+time ./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -start 2006-11-17 -finish 2008-12-09 --skip-progress --skip-trades --nocache
 
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
+total: 5000.969 (return 0.0193799999999101)
+Paid out 53.122 in dividends
+QQQQ buy and hold: 17.4377224199288
+182 trades
+119 losing trades (avg loss -0.0236952787157159)
+63 wining trades (avg win 0.0625817830118906)
+55.9525246871369 maximum drawdown
+182 days longest drawdown
+0.346153846153846 win ratio
+8.8888888888889 max adverse excursion
+Expectancy 0.0061698580361479
 "
 
-./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades
-./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades --nocache
+time ./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades
+time ./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades --nocache
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
+total: 7504.71562 (return 50.0943124)
+Paid out 37.89312 in dividends
+QQQQ buy and hold: 17.4377224199288
+162 trades  (discarded 1 trades)
+113 losing trades (avg loss -0.088609176729867)
+49 wining trades (avg win 0.103061224489796)
+76.6563629618085 maximum drawdown
+679 days longest drawdown
+0.302469135802469 win ratio
+9.72222222222223 max adverse excursion
+Expectancy -0.030634796114043
 "
 
-./backtest.pl -list TESTS/list5 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades
-./backtest.pl -list TESTS/list5 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades --nocache
+time ./backtest.pl -list TESTS/list5 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades
+time ./backtest.pl -list TESTS/list5 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades --nocache

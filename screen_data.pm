@@ -247,10 +247,11 @@ sub pull_data {
     if(exists $data_cache{$ticker} && conf::usecache()) {
 
 	my $fromcache = $data_cache{$ticker};
+	my $needpull = $fromcache->[0][DATE_IND] lt $sdate;
 
 	#add data to the front of the cache if we need to
 
-	if($fromcache->[0][DATE_IND] lt $sdate) {
+	if($needpull) {
 
 	    my $cdata = pull_history_by_dates($ticker, $fromcache->[0][DATE_IND], $sdate);
 
@@ -271,7 +272,7 @@ sub pull_data {
 	    shift @$remain;
 	    push @$fromcache, @$remain;
 
-	} elsif (scalar @$fromcache > $max_limit) {
+	} elsif (scalar @$fromcache > $max_limit && $needpull) {
 	    pop @$fromcache;
 	}
 
