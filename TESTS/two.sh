@@ -33,17 +33,17 @@ Expectancy -6.77002583979328
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 4928.17797 (return -1.43644060000001)
-Paid out 193.25797 in dividends
+total: 4203.08416 (return -15.9383168)
+Paid out 197.21416 in dividends
 QQQQ buy and hold: -1.48984198645597
-206 trades
-142 losing trades (avg loss -0.0704225352112677)
-64 wining trades (avg win 0.7301944971537)
-60.2624098381914 maximum drawdown
-54 days longest drawdown
-0.310679611650485 win ratio
-9.88120950323973 max adverse excursion
-Expectancy 0.178312853484645
+208 trades
+146 losing trades (avg loss -0.0684931506849316)
+62 wining trades (avg win 0.270700808335217)
+66.6102483683097 maximum drawdown
+55 days longest drawdown
+0.298076923076923 win ratio
+9.74439227960354 max adverse excursion
+Expectancy 0.0326127409460743
 "
 
 time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/out -start 2006-11-17 -finish 2009-12-09 --skip-progress --skip-trades
@@ -53,17 +53,17 @@ time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/o
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 3482.95677 (return -30.3408646)
-Paid out 126.22677 in dividends
+total: 3479.09677 (return -30.4180646)
+Paid out 129.65677 in dividends
 QQQQ buy and hold: -32.0993227990971
-155 trades
-125 losing trades (avg loss -0.0101960784313725)
-30 wining trades (avg win 0.336265884652981)
-45.6598828692122 maximum drawdown
+156 trades
+127 losing trades (avg loss -0.000419276663899506)
+29 wining trades (avg win 0.0288675538007396)
+44.8314752452837 maximum drawdown
 220 days longest drawdown
-0.193548387096774 win ratio
+0.185897435897436 win ratio
 9.53281123413449 max adverse excursion
-Expectancy 0.0568610757139863
+Expectancy 0.00502507002503981
 "
 
 time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/200dayavg -exit TESTS/200dayout -start 2006-11-17 -finish 2008-12-09 --skip-progress --skip-trades

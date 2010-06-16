@@ -25,7 +25,7 @@ Expectancy -3.87205387205388
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 6238.61437 (return 24.7722874)
+total: 6226.39437 (return 24.5278874)
 Paid out 50.78687 in dividends
 QQQQ buy and hold: 4.55516014234876
 60 trades
@@ -63,17 +63,17 @@ time ./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -s
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 5000.969 (return 0.0193799999999101)
-Paid out 53.122 in dividends
+total: 4322.55399999999 (return -13.5489200000001)
+Paid out 53.102 in dividends
 QQQQ buy and hold: 17.4377224199288
-182 trades
-119 losing trades (avg loss -0.0236952787157159)
+193 trades
+130 losing trades (avg loss -0.0216902935936169)
 63 wining trades (avg win 0.0625817830118906)
-55.9525246871369 maximum drawdown
+64.2621460936068 maximum drawdown
 182 days longest drawdown
-0.346153846153846 win ratio
+0.326424870466321 win ratio
 8.8888888888889 max adverse excursion
-Expectancy 0.0061698580361479
+Expectancy 0.00581820809626382
 "
 
 time ./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades
@@ -82,17 +82,17 @@ time ./backtest.pl -list TESTS/list6 -entry TESTS/in1 -exit TESTS/out -start 200
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 7504.71562 (return 50.0943124)
-Paid out 37.89312 in dividends
+total: 7296.99562 (return 45.9399124000001)
+Paid out 37.41312 in dividends
 QQQQ buy and hold: 17.4377224199288
-162 trades  (discarded 1 trades)
-113 losing trades (avg loss -0.088609176729867)
-49 wining trades (avg win 0.103061224489796)
-76.6563629618085 maximum drawdown
+163 trades  (discarded 1 trades)
+116 losing trades (avg loss -0.0863175600903015)
+47 wining trades (avg win 0.107446808510638)
+78.0678975060193 maximum drawdown
 679 days longest drawdown
-0.302469135802469 win ratio
+0.288343558282209 win ratio
 9.72222222222223 max adverse excursion
-Expectancy -0.030634796114043
+Expectancy -0.030446852579601
 "
 
 time ./backtest.pl -list TESTS/list5 -entry TESTS/in1 -exit TESTS/out -start 2006-02-01 -finish 2010-04-20 --skip-progress --skip-trades

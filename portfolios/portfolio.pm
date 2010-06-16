@@ -116,7 +116,6 @@ sub start_short_position {
 
 	if($current_cash < $total_short_equity + ($count * $price) * conf::initial_margin()) {
 	    delete $positions{$_[0]};
-	    clear_history_cache($_[0]);
 	} else {
 
 	    my $price = $positions{$_[0]}{'start'};
@@ -138,16 +137,15 @@ sub start_position {
 
     return 0 if get_date() eq conf::finish();
 
-    cache_ticker_history($ticker);
-    current_from_cache($ticker);
+    my $temp = pull_history_by_limit($ticker, get_exit_date(), 1);
+    my $price = $temp->[0][OPEN_IND];
+    my $volume = $temp->[0][VOL_IND];
+
+    return 0 if $temp->[0][DATE_IND] ne get_exit_date();
 
     if(not exists $dividend_cache{$ticker}) {
 	$dividend_cache{$ticker} = pull_dividends($ticker, get_date(), conf::finish());
     }
-
-    my $dindex = search_array_date(get_exit_date(), $current_prices);
-    my $price = fetch_open_at($dindex);
-    my $volume = fetch_volume_at($dindex);
 
     if($price > 0) {
 
@@ -163,7 +161,6 @@ sub start_position {
 	}
     }
 
-    clear_history_cache($ticker);
     return 0;
 }
 
@@ -367,7 +364,6 @@ sub end_position {
     delete $positions{$target}{'mae'} if $ret <= 0;
 
     push @trade_history, $positions{$target};
-    clear_history_cache($target);
     delete $positions{$target};
 }
 

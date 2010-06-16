@@ -316,31 +316,6 @@ sub trim_data_array {
     }
 }
 
-sub current_from_cache {
-    my $t = shift;
-    $current_prices = $history_cache{$t};
-}
-
-sub cache_ticker_history {
-
-    my $ticker = shift;
-
-    $sd = new Date::Business(DATE => $today_obj);
-    $sd->subb($max_limit + 1);
-    $sdate = $sd->image();
-
-    substr $sdate, 4, 0, "-";
-    substr $sdate, 7, 0, "-";
-    my $edate = $date_range[$#date_range];
-
-    $href = pull_history_by_dates($ticker, $sdate, $edate);
-    $history_cache{$ticker} = $href;
-}    
-
-sub clear_history_cache {
-    delete $history_cache{shift};
-}
-
 #grab split data and apply it to the price data we've pulled.
 #note that this is the only remaining routine not using the
 #index constants
