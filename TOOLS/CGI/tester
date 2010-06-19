@@ -2,8 +2,10 @@ use CGI;
 
 $in = doenc($ARGV[0]);
 $out = doenc($ARGV[1]);
+$start = $ARGV[2];
+$end = $ARGV[3];
 
-print "\nentry=$in&exit=$out";
+print "\nhttp://pureuncutmedia.binaryuniverse.net/backtest.cgi?start=$start&end=$end&entry=$in&exit=$out";
 
 
 sub doenc {

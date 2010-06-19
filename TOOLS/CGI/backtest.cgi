@@ -1,31 +1,24 @@
 #! /usr/bin/perl
-
+use IPC::Msg;
 use CGI;
 
 my $cgi = new CGI;
 my $handle = "/tmp/" . int(rand(100000)) . ".txt";
 my $cmd = make_command($handle);
 
-chdir("../../");
-system("$cmd &");
-sleep(1);
-
-print $cgi->start_html();
-
-open INFILE, $handle;
-print <INFILE>;
-close INFILE;
-
-print $cgi->end_html();
+send_command($cmd);
+print_handle($handle);
 
 
 sub make_command {
+
+    my $handle_file = shift;
 
     my $command = "./backtest.pl ";
     $command .= "-list TESTS/list4 ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
-    $command .= "--skip-progress --cgi-handle=" . shift . " ";
+    $command .= "--skip-progress --cgi-handle=" . $handle_file . " ";
 
     if($cgi->param("entry")) {
 	$command .= "-entry " . dump_file($cgi->param("entry")) . " ";
@@ -57,4 +50,30 @@ sub dump_file {
     close OUTFILE;
 
     return $fname;
+}
+
+sub send_command {
+
+    my $command = shift;
+
+    open QUEUE, "> ./commands";
+    print QUEUE $command;
+    close QUEUE;
+
+    while(not -e $handle) {
+	;
+    }
+}
+
+sub print_handle {
+
+    my $fhandle = shift;
+
+    print $cgi->start_html();
+
+    open INFILE, $fhandle;
+    print <INFILE>;
+    close INFILE;
+
+    print $cgi->end_html();
 }
