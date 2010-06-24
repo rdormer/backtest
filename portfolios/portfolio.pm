@@ -223,8 +223,17 @@ sub update_positions {
 
     foreach $ticker (@temp) {
 
-	split_adjust_position($ticker);
-	update_balance_dividend($ticker);
+	#don't split adjust the first day or it could throw some
+	#edge cases out of whack.  Also, can't pay out dividends first day.
+
+	if(get_date() gt $positions{$ticker}{'sdate'}) {
+	    split_adjust_position($ticker);
+	    update_balance_dividend($ticker);
+	}
+
+
+	#check against sell rules, update stats and
+	#stops if we're not closing the position
 
 	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
 	    sell_position($ticker);

@@ -17,7 +17,7 @@ do {
     if($ptext =~ /Symbol Name Last Trade Change Volume(.+)All \|  A  \|  B  \|  C  \|  D  \|/) {
 
 	$count = 0;
-	@stocks = split(/[0-9]+,[0-9]+/, $1);
+	@stocks = split(/%/, $1);
 
 	foreach $i (@stocks) {
 

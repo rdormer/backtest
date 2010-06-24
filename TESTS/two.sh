@@ -33,15 +33,15 @@ Expectancy -6.77002583979328
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 4203.08416 (return -15.9383168)
-Paid out 197.21416 in dividends
+total: 4250.14016 (return -14.9971968)
+Paid out 182.50016 in dividends
 QQQQ buy and hold: -1.48984198645597
 208 trades
-146 losing trades (avg loss -0.0684931506849316)
-62 wining trades (avg win 0.270700808335217)
-66.6102483683097 maximum drawdown
+145 losing trades (avg loss -0.0689655172413794)
+63 wining trades (avg win 0.266403970107674)
+66.0138827277695 maximum drawdown
 55 days longest drawdown
-0.298076923076923 win ratio
+0.302884615384615 win ratio
 9.74439227960354 max adverse excursion
 Expectancy 0.0326127409460743
 "
@@ -53,13 +53,13 @@ time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/in2 -exit TESTS/o
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 3479.09677 (return -30.4180646)
-Paid out 129.65677 in dividends
+total: 3469.53677 (return -30.6092646)
+Paid out 120.09677 in dividends
 QQQQ buy and hold: -32.0993227990971
 156 trades
 127 losing trades (avg loss -0.000419276663899506)
 29 wining trades (avg win 0.0288675538007396)
-44.8314752452837 maximum drawdown
+45.0025983413243 maximum drawdown
 220 days longest drawdown
 0.185897435897436 win ratio
 9.53281123413449 max adverse excursion

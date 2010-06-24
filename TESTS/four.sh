@@ -25,13 +25,13 @@ Expectancy -3.87205387205388
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 6226.39437 (return 24.5278874)
-Paid out 50.78687 in dividends
+total: 6224.59437 (return 24.4918874)
+Paid out 48.98687 in dividends
 QQQQ buy and hold: 4.55516014234876
 60 trades
 33 losing trades (avg loss -0.303510541228449)
 27 wining trades (avg win 0.629439370877727)
-30.4886257812121 maximum drawdown
+30.4976435723447 maximum drawdown
 149 days longest drawdown
 0.45 win ratio
 9.72733971997052 max adverse excursion
@@ -63,14 +63,14 @@ time ./backtest.pl -tickers=ABII -entry TESTS/200dayavg -exit TESTS/200dayout -s
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 4322.55399999999 (return -13.5489200000001)
-Paid out 53.102 in dividends
+total: 4279.72199999999 (return -14.4055600000001)
+Paid out 34.56 in dividends
 QQQQ buy and hold: 17.4377224199288
 193 trades
 130 losing trades (avg loss -0.0216902935936169)
 63 wining trades (avg win 0.0625817830118906)
-64.2621460936068 maximum drawdown
-182 days longest drawdown
+64.7794670075721 maximum drawdown
+199 days longest drawdown
 0.326424870466321 win ratio
 8.8888888888889 max adverse excursion
 Expectancy 0.00581820809626382

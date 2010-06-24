@@ -15,10 +15,15 @@ sub make_command {
     my $handle_file = shift;
 
     my $command = "./backtest.pl ";
-    $command .= "-list TESTS/list4 ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
     $command .= "--skip-progress --cgi-handle=" . $handle_file . " ";
+
+    if($cgi->param("tickers")) {
+	$command .= "-tickers=" . $cgi->param("tickers") . " ";
+    } else {
+	$command .= "-list TESTS/list4 ";
+    }
 
     if($cgi->param("entry")) {
 	$command .= "-entry " . dump_file($cgi->param("entry")) . " ";
