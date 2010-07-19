@@ -3,6 +3,9 @@ use TokyoCabinet;
 use DBI;
 
 #create epoch starting 1/2/1950
+#have to do it in stages because of Date::Business
+#not being able to handle dates before Unix Epoch
+
 $d1 = new Date::Business(DATE => "19700101");
 $d1->subb(5218);
 

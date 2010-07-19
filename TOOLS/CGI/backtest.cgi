@@ -9,7 +9,6 @@ my $cmd = make_command($handle);
 send_command($cmd);
 print_handle($handle);
 
-
 sub make_command {
 
     my $handle_file = shift;
@@ -22,7 +21,7 @@ sub make_command {
     if($cgi->param("tickers")) {
 	$command .= "-tickers=" . $cgi->param("tickers") . " ";
     } else {
-	$command .= "-list TESTS/list4 ";
+	$command .= "-list /root/backtest/TESTS/list4 ";
     }
 
     if($cgi->param("entry")) {
@@ -74,11 +73,7 @@ sub print_handle {
 
     my $fhandle = shift;
 
-    print $cgi->start_html();
-
     open INFILE, $fhandle;
     print <INFILE>;
     close INFILE;
-
-    print $cgi->end_html();
 }
