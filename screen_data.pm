@@ -112,7 +112,7 @@ sub next_test_day {
     }
 
     if(conf::cgi_handle()) {
-	shmwrite($progress, $current_date, 0, 10);
+	write_cgi($current_date);
     }
 
     $d = $current_date;
@@ -409,8 +409,11 @@ sub get_exit_date {
     return $date_range[$date_index + 1];
 }
 
-sub get_cgi {
-    return $progress;
+sub write_cgi {
+
+    my $data = shift;
+    $data = "###$data" if length $data != 10;
+    shmwrite($progress, $data, 0, length $data);
 }
 
 sub change_over_period {

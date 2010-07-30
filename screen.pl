@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 
-use screen_data;
 use macro_expander;
+use screen_data;
 use conf;
 
 conf::process_commandline(@ARGV);
@@ -18,11 +18,17 @@ init_data();
 $tref = sub { return 0; };
 @results = run_screen_loop($tref, @actions);
 
+$reslist = "";
+
 foreach $ticker (sort @results) {
-    print "\n$ticker";
+    $reslist .= "\n$ticker";
 }
 
-print "\n";
+$reslist .= "\n";
 
-
+if(conf::cgi_handle()) {
+    write_cgi($reslist);
+} else {
+    print $reslist;
+}
 

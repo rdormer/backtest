@@ -3,21 +3,21 @@ use IPC::SysV;
 use CGI;
 
 my $cgi = new CGI;
-print $cgi->start_html();
+print $cgi->header();
 
 $handle = $cgi->param("handle");
-shmread($handle, $data, 0, 10);
+shmread($handle, $data, 0, 3);
 
-if($data =~ /[0-9]/) {
-    print $data;
-} else {
+if($data eq "###") {
 
     shmread($handle, $data, 0, 1000000);
     shmctl($handle, IPC_REMOVE, 0);
 
-    if($data =~ /###([^#]+)###/) {
+    if($data =~ /###([^#]+)/) {
 	print $1;
     }
-}
 
-print $cgi->end_html();
+} else {
+    shmread($handle, $data, 0, 10);
+    print $data;
+}

@@ -487,15 +487,15 @@ sub print_portfolio_state {
 
     if(conf::cgi_handle()) {
 
-	my $output = "###<table class='sortable' id='results'>";
+	my $output = "<table class='sortable' id='results'>";
 
 	if(scalar @trade_history > 0) {
 	    $output .= "<tr><th>Ticker</th><th>Shares</th><th>Buy Date</th>";
 	    $output .= "<th>Buy Price</th><th>Sell Date</th><th>Sell Price</th><th>Return</th></tr>";
 	}
 
-	$output .= "$text</table><table>$summary</table>###";
-	shmwrite(get_cgi(), $output, 0, length $output);
+	$output .= "$text</table><table>$summary</table>";
+	write_cgi($output);
 
     } else {
 	print "$text $summary";

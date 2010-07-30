@@ -1,5 +1,4 @@
 #! /usr/bin/perl
-use IPC::Msg;
 use CGI;
 
 my $cgi = new CGI;
@@ -21,7 +20,7 @@ sub make_command {
     if($cgi->param("tickers")) {
 	$command .= "-tickers=" . $cgi->param("tickers") . " ";
     } else {
-	$command .= "-list /root/backtest/TESTS/list4 ";
+	$command .= "-list /root/AUTO/stock_universe.txt ";
     }
 
     if($cgi->param("entry")) {
@@ -73,6 +72,7 @@ sub print_handle {
 
     my $fhandle = shift;
 
+    print $cgi->header();
     open INFILE, $fhandle;
     print <INFILE>;
     close INFILE;
