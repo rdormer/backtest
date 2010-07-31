@@ -13,7 +13,7 @@ if($data eq "###") {
     shmread($handle, $data, 0, 1000000);
     shmctl($handle, IPC_REMOVE, 0);
 
-    if($data =~ /###([^#]+)/) {
+    if($data =~ /###([^#]+)###/) {
 	print $1;
     }
 

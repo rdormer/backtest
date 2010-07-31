@@ -3,6 +3,7 @@ use finance;
 
 create table dividends (date date not null, ticker varchar(5) not null, divamt float not null) row_format=fixed;
 create table splits (date date not null, ticker varchar(5) not null, bef integer not null, after integer not null) row_format=fixed;
+create table cikmap (ticker varchar(5), cik char(10));
 
 create table historical (date date not null, ticker varchar(5) not null, open float not null, high float not null, 
 low float not null, close float not null, volume integer unsigned not null) row_format=fixed;
