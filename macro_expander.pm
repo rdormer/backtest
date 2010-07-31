@@ -10,6 +10,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* ,
                 EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
+                PPO
 );
 
 
@@ -28,7 +29,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", 
 			"AROON_DOWN" =>"compute_aroon_down", "AROON_OSC" => "compute_aroon_osc", 
-			"EFFICIENCY_RATIO" => "compute_efficiency_ratio"
+			"EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo"
 );
 
 
@@ -199,8 +200,18 @@ sub lookback_custom {
 	$pullval++ if $pullval > 0;
     }
 
+    #EMA and PPO both need similar lookback periods
+    #because PPO is using EMA as it's average function
+
     if($ctoken =~ /EMA[VOHLC]/ && $alist =~ /([0-9]+)\)/) {
 	$pullval = 4 * ($1 + 1);
+    }
+
+    if($ctoken =~ /PPO/) {
+
+	if($alist =~ /[0-9]+,([0-9]+)\)/) {
+	    $pullval = 4 * ($1 + 1);
+	}
     }
 
     if($ctoken =~ /RSI/ && $alist =~ /([0-9]+)\)/) {

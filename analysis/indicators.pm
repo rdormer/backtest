@@ -594,6 +594,23 @@ sub compute_aroon_osc {
     return $osc->[0];
 }
 
+sub compute_ppo {
+
+    my $fast = shift;
+    my $slow = shift;
+    
+    my $n = "$slow$fast" . "ppo";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
+    my ($rcode, $start, $ppo) = TA_PPO(0, $#closes, \@closes, $fast, $slow, 1);
+
+    my $len = scalar @$ppo - 1;
+    $value_cache{$n} = $ppo->[$len];
+
+    return $value_cache{$n};
+}
+
 sub compute_efficiency_ratio {
 
     my $period = shift;
