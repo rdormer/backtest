@@ -25,10 +25,10 @@ foreach $ticker (sort @results) {
 }
 
 $reslist .= "\n";
+$reslist = "No Results!" if scalar @results == 0;
 
 if(conf::cgi_handle()) {
     write_cgi($reslist);
 } else {
     print $reslist;
 }
-

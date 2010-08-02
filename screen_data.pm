@@ -412,7 +412,7 @@ sub get_exit_date {
 sub write_cgi {
 
     my $data = shift;
-    $data = "###$data" if length $data != 10;
+    $data = "###$data###" if length $data > 10;
     shmwrite($progress, $data, 0, length $data);
 }
 

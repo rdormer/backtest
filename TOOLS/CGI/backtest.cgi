@@ -12,7 +12,7 @@ sub make_command {
 
     my $handle_file = shift;
 
-    my $command = "./backtest.pl ";
+    my $command = "./backtest.pl --nocache ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
     $command .= "--skip-progress --cgi-handle=" . $handle_file . " ";

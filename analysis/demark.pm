@@ -9,7 +9,7 @@ sub DEMARK_Lookback {
 }
 
 sub DEMARK_SETUP_Lookback {
-    return 9;
+    return 13;
 }
 
 #entry points to this module for use
