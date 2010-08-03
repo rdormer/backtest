@@ -302,18 +302,27 @@ sub trim_data_array {
     my $date = shift;
     my $count = shift;
 
-    if(scalar @$data >= $count) {
+    #don't even bother if we 
+    #don't have enough data
+    return if scalar @$data < $count;
 
-	my $start = search_array_date($date, $data);
-	my $end = $start + $count - 1;
+    my $start = 0;
+    my $end = (scalar @$data) - 1;
 
-	my @rval = ();
-	foreach $i ($start..$end) {
-	    push @rval, [@{$data->[$i]}] if $data->[$i];
-	}
+    #if we actually need to trim...
+    if(scalar @$data > $count) {
 
-	return \@rval;
+	$start = search_array_date($date, $data);
+	$end = $start + $count - 1;
     }
+
+    #copy data so we don't corrupt cache
+    my @rval = ();
+    foreach $i ($start..$end) {
+	push @rval, [@{$data->[$i]}] if $data->[$i];
+    }
+
+    return \@rval;
 }
 
 #grab split data and apply it to the price data we've pulled.
