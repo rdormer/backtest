@@ -222,11 +222,10 @@ sub filter_results {
 
 	    process_splits($current_ticker, $data);
 
+	    $date = $data->[$last][DATE_IND] if $last >= 0;
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
 	    return 0 if not eval($_[$i][0]);
-
-	    $date = $data->[$last][DATE_IND] if $last >= 0;
 
 	} else {
 	    return 0;
