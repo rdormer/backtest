@@ -204,14 +204,14 @@ sub filter_results {
 
 	my $maximum = $_[$i][1];
 	my $count = 1;
-	
+
 	if($maximum > 1) {
 
 	    $count = ($maximum - scalar @$current_prices);
 	    $count++ if $i > 0;
 	}
 
-	my $data = pull_data($current_ticker, $date, $count);
+	my $data = pull_data($current_ticker, $date, $count, $maximum);
 	my $last = scalar @$data - 1;
 
 	#two cases to check for - one where we've pulled new data,
@@ -240,6 +240,7 @@ sub pull_data {
     my $ticker = shift;
     my $sdate = shift;
     my $count = shift;
+    my $max = shift;
 
     return if $sdate eq "";
 
@@ -264,15 +265,19 @@ sub pull_data {
 	#to, and trim it down to keep memory if we don't.  Only
 	#trim memory if we needed to add an entry, though.
 
-	if(scalar @$fromcache < $count) {
-	    
-	    my $enddate = $fromcache->[scalar @$fromcache - 1][DATE_IND];
-	    my $number = ($count - scalar @$fromcache) + 1;
+	my $cachelen = scalar @$fromcache;
+
+	if($cachelen < $max) {
+
+	    my $number = $count;
+	    $number = ($count - $cachelen) + 1 if $cachelen < $count;
+	    my $enddate = $fromcache->[$cachelen - 1][DATE_IND];
 	    my $remain = pull_history_by_limit($ticker, $enddate, $number);
+
 	    shift @$remain;
 	    push @$fromcache, @$remain;
 
-	} elsif (scalar @$fromcache > $max_limit && $needpull) {
+	} elsif ($cachelen > $max_limit && $needpull) {
 	    pop @$fromcache;
 	}
 
