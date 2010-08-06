@@ -10,6 +10,7 @@ cd ..
 
 perl -MCPAN -e "install Date::Business"
 perl -MCPAN -e "install DBI"
+perl -MCPAN -e "install DBD::mysql"
 perl -MCPAN -e "install GD"
 perl -MCPAN -e "install Chart::Lines"
 perl -MCPAN -e "install POSIX"
