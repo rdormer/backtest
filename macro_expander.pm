@@ -47,9 +47,7 @@ my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_ep
 			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star"
 );
 
-my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
-		       "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
-		       "AROON_UP" =>"TA_AROON", "AROON_DOWN" => "TA_AROON", "AROON_OSC" => "TA_AROONOSC",
+my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
 		       "TD_COMBO_BUY" => "DEMARK", "TD_COMBO_SELL" => "DEMARK", "TD_SEQUENTIAL_BUY" => "DEMARK",
 		       "TD_SEQUENTIAL_SELL" => "DEMARK", "TD_SETUP_SELL" => "DEMARK_SETUP", "TD_SETUP_BUY" => "DEMARK_SETUP",
 		       "CDL_BULL_MARUBOZU" => "MARUBOZU", "CDL_BEAR_MARUBOZU" => "MARUBOZU", 
@@ -57,7 +55,8 @@ my %lookback_table = ( "WILLIAMS_R" => "TA_WILLR", "ATR" => "TA_ATR", "ULTOSC" =
 		       "CDL_DOJI" => "TA_CDLDOJI", "CDL_DRAGONFLY" => "TA_CDLDRAGONFLYDOJI", 
 		       "CDL_GRAVESTONE" => "TA_CDLGRAVESTONEDOJI", "CDL_HAMMER" => "TA_CDLHAMMER", 
 		       "CDL_HANGMAN" => "CDL_HANGINGMAN", "CDL_INVERTED_HAMMER" => "TA_CDLINVERTEDHAMMER",
-		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR"
+		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
+		       "AROON_OSC" => "TA_AROONOSC",
 );
 
 my @token_list;
@@ -212,6 +211,15 @@ sub lookback_custom {
 	if($alist =~ /[0-9]+,([0-9]+)\)/) {
 	    $pullval = 4 * ($1 + 1);
 	}
+    }
+
+    #get around bugs in ta-lib's lookback functions
+    if($ctoken =~ /WILLIAMS_R/) {
+	$pullval = $maxval;
+    }
+
+    if($ctoken =~ /AROON_(UP|DOWN)/) {
+	$pullval = $maxval + 1;
     }
 
     if($ctoken =~ /RSI/ && $alist =~ /([0-9]+)\)/) {
