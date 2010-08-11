@@ -31,7 +31,6 @@ use constant {
 
 my $max_limit;
 
-my %history_cache;
 my @fundamental_list;
 my $sweep_statement;
 
@@ -212,7 +211,7 @@ sub filter_results {
 	}
 
 	my $data = pull_data($current_ticker, $date, $count, $maximum);
-	my $last = scalar @$data - 1;
+	my $last = $#{$data};
 
 	#two cases to check for - one where we've pulled new data,
 	#and one where we don't need to because there are two or more
@@ -311,7 +310,7 @@ sub trim_data_array {
     return if scalar @$data < $count;
 
     my $start = 0;
-    my $end = (scalar @$data) - 1;
+    my $end = $#{$data};
 
     #if we actually need to trim...
     if(scalar @$data > $count) {
