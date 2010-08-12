@@ -269,7 +269,13 @@ sub pull_data {
 	if($cachelen < $max) {
 
 	    my $number = $count;
-	    $number = ($count - $cachelen) + 1 if $cachelen < $count;
+
+	    #we only need to change the count if we're pulling data 
+	    #starting at the top of the cache and we don't have enough in it
+	    if($cachelen < $count && $fromcache->[0][DATE_IND] eq $sdate) {
+		$number = ($count - $cachelen) + 1 
+	    }
+
 	    my $enddate = $fromcache->[$cachelen - 1][DATE_IND];
 	    my $remain = pull_history_by_limit($ticker, $enddate, $number);
 
