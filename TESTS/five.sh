@@ -46,9 +46,33 @@ Expectancy -0.717862252197017
 ./backtest.pl -tickers=ALJ -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-05 -finish 2007-07-15 --skip-progress --skip-trades
 ./backtest.pl -tickers=ALJ -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-05 -finish 2007-07-15 --skip-progress --skip-trades --nocache
 
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+CLMT	9	2007-05-17	50.61	(open)		 
+
+total: 4999.01 (return -0.0197999999999956)
+QQQQ buy and hold: 8.17184216670558
+"
+
+./backtest.pl -tickers=CLMT -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-11-07 -finish 2007-05-18 --skip-progress
+./backtest.pl -tickers=CLMT -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-11-07 -finish 2007-05-18 --skip-progress --nocache
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
+echo "
+total: 6663.305 (return 33.2661)
+Paid out 53.635 in dividends
+QQQQ buy and hold: 25.9467758444217
+138 trades  (discarded 1 trades)
+55 losing trades (avg loss -0.0791042959717659)
+83 wining trades (avg win 0.0875608696646167)
+11.4037599873891 maximum drawdown
+19 days longest drawdown
+0.601449275362319 win ratio
+9.0956887486856 max adverse excursion
+Expectancy 0.0211363471283773
+"
 
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades --nocache

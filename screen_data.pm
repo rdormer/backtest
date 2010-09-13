@@ -271,10 +271,18 @@ sub pull_data {
 	    my $number = $count;
 
 	    #we only need to change the count if we're pulling data 
-	    #starting at the top of the cache and we don't have enough in it
-	    if($cachelen < $count && $fromcache->[0][DATE_IND] eq $sdate) {
-		$number = ($count - $cachelen) + 1 
-	    }
+	    #starting at the top of the cache, or within the cache,
+	    #and we don't have enough in it
+
+            if($cachelen < $count) {
+
+                if($fromcache->[0][DATE_IND] eq $sdate) {
+                    $number = ($count - $cachelen) + 1;
+                } elsif ($fromcache->[0][DATE_IND] gt $sdate) {
+                    my $start = search_array_date($sdate, $fromcache);
+                    $number = $count - ($cachelen - $start) + 1;
+                }
+            }
 
 	    my $enddate = $fromcache->[$cachelen - 1][DATE_IND];
 	    my $remain = pull_history_by_limit($ticker, $enddate, $number);
