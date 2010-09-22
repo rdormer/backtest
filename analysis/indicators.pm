@@ -141,9 +141,8 @@ sub array_exponential_avg {
     return $value_cache{$n} if exists $value_cache{$n};
 
     my @series = reverse map $_->[$index], @$current_prices;
-    $len = @series - 1;
 
-    my ($rcode, $start, $ema) = TA_EMA(0, $len, \@series, $period);
+    my ($rcode, $start, $ema) = TA_EMA(0, $#series, \@series, $period);
     $value_cache{$n} = $ema->[@$ema - 1];
     
     return $ema->[@$ema - 1];
