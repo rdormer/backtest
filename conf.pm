@@ -6,6 +6,7 @@ use vars qw/@ISA @EXPORT $VERSION/;
 @ISA = qw/Exporter/;
 @EXPORT = qw/process_commandline/;
 $VERSION = 1.0;
+my $start_time;
 
 $~ = 'HELPTEXT';
 
@@ -16,6 +17,8 @@ sub process_commandline {
 	exit();
     }
 
+    $start_time = time();
+
     GetOptions('date=s' => \$date, 'screen=s' => \$screenfile, 'list=s' => \$tickers, 'entry=s' => \$entryfile,
 	'exit=s' => \$exitfile, 'start=s' => \$startdate, 'finish=s' => \$enddate, 'replay=s' => \$replay_list,
 	'short-entry=s' => \$short_entry, 'short-exit=s' => \$short_exit, 'showreward' => \$showreward, 
@@ -23,7 +26,7 @@ sub process_commandline {
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
-	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle);
+	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -53,6 +56,7 @@ sub usecache { return not $disable_cache; }
 sub show_trades { return not $skip_trades; }
 sub ticker_list { return $tickerlist; }
 sub cgi_handle { return $cgi_handle; }
+sub timer { return $use_timer; }
 
 sub connect_string {
     return $connect_string if $connect_string;
@@ -110,12 +114,15 @@ sub check_backtest_args {
     die "missing -short-entry (entry signal)" if not $short_entry and $short_exit and short_positions();
 }
 
-sub override_date_range{
+sub override_date_range {
 
     $startdate = shift;
     $enddate = shift;
 }
 
+sub elapsed_time {
+    return time() - $start_time;
+}
 
 format HELPTEXT =
 

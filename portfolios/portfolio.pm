@@ -471,7 +471,10 @@ sub print_portfolio_state {
 	
 	$expectancy = ($win_ratio * $avg_win) + ((1 - $win_ratio) * $avg_loss);
 	$summary .= "\nExpectancy $expectancy";
+    }
 
+    if(conf::timer()) {
+	$summary .= "\nElapsed Time: " . conf::elapsed_time() . " seconds";
     }
 
     if(conf::cgi_handle()) {
