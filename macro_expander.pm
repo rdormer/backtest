@@ -124,7 +124,7 @@ sub parse_scan {
     $token = next_token();
     $current_limit = 1;
 
-    while($token ne ";") {
+    while($token && $token ne ";") {
 
 	if(exists $noarg_macro_table{$token}) {
 
