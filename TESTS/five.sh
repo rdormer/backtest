@@ -5,7 +5,6 @@ cd ../
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-AMMD
 CAH
 HSY
 MCK
@@ -18,7 +17,6 @@ PPDI
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-AMMD
 CAH
 HSY
 MCK
@@ -76,3 +74,18 @@ Expectancy 0.0211363471283773
 
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+./screen.pl --screen TESTS/guppy1 --ticker=AAME --date 2010-09-16 --nocache
+./screen.pl --screen TESTS/guppy2 --ticker=AAME --date 2010-09-16 --nocache
+
+./screen.pl --screen TESTS/guppy1 --ticker=AAME --date 2010-09-16
+./screen.pl --screen TESTS/guppy2 --ticker=AAME --date 2010-09-16
+
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "No Results! [test should terminate]"
+
+./screen.pl -ticker=AAPL -date=2010-01-02 -screen TESTS/nosemi

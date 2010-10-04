@@ -215,9 +215,11 @@ sub filter_results {
 
 	#two cases to check for - one where we've pulled new data,
 	#and one where we don't need to because there are two or more
-	#statements that need the same amount of data
+	#statements that need the same amount of data.  Also, we
+	#only need to check the volume on the first iteration of the loop.
 
-	if(($maximum > 1 && $count == 1) || ($last >= 0 && $data->[0][VOL_IND] > 0)) {
+	if(($last >= 0 && ($i > 0 ? 1 : $data->[0][VOL_IND] > 0)) || 
+	   ($maximum > 1 && $count == 1)) {
 
 	    process_splits($current_ticker, $data);
 
