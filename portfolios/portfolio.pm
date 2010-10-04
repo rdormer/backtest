@@ -430,7 +430,7 @@ sub print_portfolio_state {
 	    $sum_wins = $trade{'return'};
 	    $excursion = (($trade{'start'} - $trade{'mae'}) / $trade{'start'}) * 100;
 	    $max_adverse = $excursion if $excursion > $max_adverse;
-	} else {
+	} elsif($trade{'return'} < 0) {
 	    $losing_trades++;
 	    $sum_losses = $trade{'return'};
 	}
