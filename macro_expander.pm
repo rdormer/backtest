@@ -10,7 +10,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* ,
                 EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
-                PPO
+                PPO FOR_TICKER[\s]+[A-Z]{1,5}
 );
 
 
@@ -29,7 +29,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", 
 			"AROON_DOWN" =>"compute_aroon_down", "AROON_OSC" => "compute_aroon_osc", 
-			"EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo"
+			"EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo", 
 );
 
 
@@ -59,6 +59,8 @@ my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWE
 		       "AROON_OSC" => "TA_AROONOSC",
 );
 
+my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker );
+
 my @token_list;
 my $current_action;
 my $current_limit;
@@ -80,6 +82,7 @@ sub tokenize {
 	$prev = $raw_screen;
 
 	foreach $token (@tokens) {
+
 	    if($raw_screen =~ m/^[\s]*($token)(.*)/) {
 		$raw_screen = $2;
 		push @token_list, $1;
@@ -141,10 +144,9 @@ sub parse_scan {
 	    $current_action .= "$arg_macro_table{$token}(";
 	    capture_args($token);
 
-	} else {
+	} elsif( ! probe_transform_table($token)) {
 	    $current_action .= " $token";
 	}
-
 
 	$token = next_token();
     }
@@ -241,11 +243,32 @@ sub lookback_custom {
     set_pull($pullval);
 }
 
+sub probe_transform_table {
+
+    my $token = shift;
+
+    foreach(keys %transform_table) {
+
+	if($token =~ /$_/) {
+
+	    my $fcall = $transform_table{$_};
+	    $fcall->($token);
+	    return 1;
+	}
+    }
+}
 
 sub set_pull {
 
     my $t = shift;
     $current_limit = $t if $t > $current_limit;
+}
+
+sub process_for_ticker {
+    my $insymbol = shift;
+    if($insymbol =~ /FOR_TICKER[\s]+(.*)/) {
+	$current_action .= "force_data_load('$1')";
+    }
 }
 
 1;

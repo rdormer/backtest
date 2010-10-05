@@ -170,6 +170,10 @@ sub set_date_range {
     }
 }
 
+sub force_data_load {
+
+}
+
 sub run_screen_loop {
 
     my $stop = shift;
