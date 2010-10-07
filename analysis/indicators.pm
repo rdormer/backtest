@@ -153,7 +153,7 @@ sub compute_upper_bollinger {
     my $period = shift;
     my $deviation = shift;
     
-    my $n = "$period$deviation" . "bbandu";
+    my $n = "$period" . "bbandu" . $deviation;
     return $value_cache{$n} if exists $value_cache{$n};
 
     compute_bollinger_bands($period, $deviation);
@@ -166,7 +166,7 @@ sub compute_lower_bollinger {
     my $period = shift;
     my $deviation = shift;
     
-    my $n = "$period$deviation" . "bbandl";
+    my $n = "$period" . "bbandl" . $deviation;
     return $value_cache{$n} if exists $value_cache{$n};
 
     compute_bollinger_bands($period, $deviation);
@@ -183,10 +183,47 @@ sub compute_bollinger_bands {
     my ($rcode, $start, $uband, $midband, $lband) = TA_BBANDS(0, $per, \@closes, $per, $dev, $dev, $TA_MAType_SMA);
 
     my $len = @$lband - 1;
-    my $base = "$per$dev";
-    $value_cache{$base . "bbandl"} = $lband->[0];
-    $value_cache{$base . "bbandm"} = $midband->[0];
-    $value_cache{$base . "bbandu"} = $uband->[0];
+    $value_cache{"$per" . "bbandl" . $dev} = $lband->[0];
+    $value_cache{"$per" . "bbandm" . $dev} = $midband->[0];
+    $value_cache{"$per" . "bbandu" . $dev} = $uband->[0];
+}
+
+sub compute_lower_keltner {
+
+    my $period = shift;
+    my $mult = shift;
+
+    my $n = "keltner$period" . "lo$mult";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_keltner_bands($period, $mult);
+    return $value_cache{$n};
+}
+
+sub compute_upper_keltner {
+
+    my $period = shift;
+    my $mult = shift;
+
+    my $n = "keltner$period" . "up$mult";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    compute_keltner_bands($period, $mult);
+    return $value_cache{$n};
+}
+
+sub compute_keltner_bands {
+
+    my $period = shift;
+    my $mult = shift;
+
+    my $center_band = avg_close($period);
+    my $range = compute_atr($period);
+
+    my $n = "keltner$period" . "lo$mult";
+    $value_cache{$n} = $center_band - ($mult * $range);
+    $n = "keltner$period" . "up$mult";
+    $value_cache{$n} = $center_band + ($mult * $range);
 }
 
 sub compute_williams_r {
@@ -243,7 +280,6 @@ sub compute_atr {
 
     my ($rcode, $start, $atr) = TA_ATR(0, $period, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
-    print "\n$current_prices->[0][0] $value_cache{$n}";
     return $atr->[0];
 }
 
