@@ -192,11 +192,12 @@ sub compute_lower_keltner {
 
     my $period = shift;
     my $mult = shift;
+    my $rper = shift;
 
     my $n = "keltner$period" . "lo$mult";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    compute_keltner_bands($period, $mult);
+    compute_keltner_bands($period, $mult, $rper);
     return $value_cache{$n};
 }
 
@@ -204,11 +205,12 @@ sub compute_upper_keltner {
 
     my $period = shift;
     my $mult = shift;
+    my $rper = shift;
 
     my $n = "keltner$period" . "up$mult";
     return $value_cache{$n} if exists $value_cache{$n};
 
-    compute_keltner_bands($period, $mult);
+    compute_keltner_bands($period, $mult, $rper);
     return $value_cache{$n};
 }
 
@@ -216,12 +218,14 @@ sub compute_keltner_bands {
 
     my $period = shift;
     my $mult = shift;
+    my $rper = shift;
 
-    my $center_band = avg_close($period);
-    my $range = compute_atr($period);
+    my $center_band = exp_avg_close($period);
+    my $range = compute_atr($rper);
 
     my $n = "keltner$period" . "lo$mult";
     $value_cache{$n} = $center_band - ($mult * $range);
+
     $n = "keltner$period" . "up$mult";
     $value_cache{$n} = $center_band + ($mult * $range);
 }
@@ -256,9 +260,8 @@ sub compute_rsi {
 
     my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
     @closes = splice @closes, -($period * 4);
-    $len = @closes - 1;
 
-    my ($rcode, $start, $rsi) = TA_RSI(0, $len, \@closes, $period);
+    my ($rcode, $start, $rsi) = TA_RSI(0, $#closes, \@closes, $period);
     $value_cache{$n} = $rsi->[@$rsi - 1];
     return $rsi->[@$rsi - 1];
 }
@@ -273,12 +276,12 @@ sub compute_atr {
     my @highs = reverse map $_->[HIGH_IND], @$current_prices;
     my @lows = reverse map $_->[LOW_IND], @$current_prices;
     my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
-    
+
     @highs = splice @highs, -($period + 1);
     @lows = splice @lows, -($period + 1);
     @closes = splice @closes, -($period + 1);
 
-    my ($rcode, $start, $atr) = TA_ATR(0, $period, \@highs, \@lows, \@closes, $period);
+    my ($rcode, $start, $atr) = TA_ATR(0, $#closes, \@highs, \@lows, \@closes, $period);
     $value_cache{$n} = $atr->[0];
     return $atr->[0];
 }
@@ -627,6 +630,24 @@ sub compute_aroon_osc {
     my ($rcode, $start, $osc) = TA_AROONOSC(0, $#highs, \@highs, \@lows, $period);
     $value_cache{"aroono$period"} = $osc->[0];
     return $osc->[0];
+}
+
+sub compute_cci {
+
+    my $period = shift;
+
+    my $n = "cci$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @highs = reverse map $_->[HIGH_IND], @$current_prices;
+    my @lows = reverse map $_->[LOW_IND], @$current_prices;
+    my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
+
+    my ($rcode, $start, $cci) = TA_CCI(0, $#closes, \@highs, \@lows, \@closes, $period);
+
+    $value_cache{$n} = $cci->[0];
+    print "\n$value_cache{$n} with $start";
+    return $value_cache{$n};
 }
 
 sub compute_ppo {

@@ -5,8 +5,8 @@ use analysis::demark;
 
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU
-                CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE CDL_HAMMER
-                CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR 
+                COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE 
+                CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR 
                 EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
@@ -29,7 +29,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", "AROON_DOWN" =>"compute_aroon_down", 
 			"AROON_OSC" => "compute_aroon_osc", "EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo", 
-			"KELTNER_UPPER" => "compute_upper_keltner", "KELTNER_LOWER" => "compute_lower_keltner" 
+			"KELTNER_UPPER" => "compute_upper_keltner", "KELTNER_LOWER" => "compute_lower_keltner", "COM_CHAN_INDEX" => "compute_cci"
 );
 
 
@@ -55,8 +55,7 @@ my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWE
 		       "CDL_DOJI" => "TA_CDLDOJI", "CDL_DRAGONFLY" => "TA_CDLDRAGONFLYDOJI", 
 		       "CDL_GRAVESTONE" => "TA_CDLGRAVESTONEDOJI", "CDL_HAMMER" => "TA_CDLHAMMER", 
 		       "CDL_HANGMAN" => "CDL_HANGINGMAN", "CDL_INVERTED_HAMMER" => "TA_CDLINVERTEDHAMMER",
-		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ATR" => "TA_ATR", "ULTOSC" => "TA_ULTOSC", 
-		       "AROON_OSC" => "TA_AROONOSC", "ATR" => "TA_ATR"
+		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ULTOSC" => "TA_ULTOSC", "AROON_OSC" => "TA_AROONOSC", 
 );
 
 my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker );
@@ -215,6 +214,13 @@ sub lookback_custom {
 	}
     }
 
+    if($ctoken =~ /KELTNER/) {
+
+	if($alist =~ /([0-9]+),.+/) {
+	    $pullval = 4 * ($1 + 1);
+	}
+    }
+
     #get around bugs in ta-lib's lookback functions
     if($ctoken =~ /WILLIAMS_R/) {
 	$pullval = $maxval;
@@ -238,6 +244,14 @@ sub lookback_custom {
 
     if($ctoken =~ /ADX[R]?/ && $alist =~ /([0-9]+)\)/) {
 	$pullval = 5 * ($1 + 1);
+    }
+
+    if($ctoken =~ /ATR?/ && $alist =~ /([0-9]+)\)/) {
+	$pullval = $1 + 1;
+    }
+
+    if($ctoken =~ /COM_CHAN_INDEX/ && $alist =~ /([0-9]+)/) {
+	$pullval = $1;
     }
 
     set_pull($pullval);
