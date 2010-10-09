@@ -4,13 +4,13 @@ use analysis::fundamentals;
 use analysis::demark;
 
 
-my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU
+my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
                 COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE 
-                CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS SAR 
-                EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
-                ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX OBV STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
+                OBV CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS 
+                SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
+                ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
-                PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER
+                PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV
 );
 
 
@@ -29,7 +29,9 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"SAR" => "compute_sar", "ULTOSC" => "compute_ultosc", "STOCH_FAST_D" => "compute_fast_stoch_d",
 			"STOCH_FAST_K" => "compute_fast_stoch_k", "AROON_UP" => "compute_aroon_up", "AROON_DOWN" =>"compute_aroon_down", 
 			"AROON_OSC" => "compute_aroon_osc", "EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo", 
-			"KELTNER_UPPER" => "compute_upper_keltner", "KELTNER_LOWER" => "compute_lower_keltner", "COM_CHAN_INDEX" => "compute_cci"
+			"KELTNER_UPPER" => "compute_upper_keltner", "KELTNER_LOWER" => "compute_lower_keltner", "COM_CHAN_INDEX" => "compute_cci",
+			"MFI" => "compute_mfi", "CMO" => "compute_cmo", "WMAC" => "wma_close", "WMAO" => "wma_open",
+			"WMAH" => "wma_high", "WMAL" => "wma_low", "WMAV" => "wma_volume", "STD_DEV" => "compute_standard_dev"
 );
 
 
@@ -152,6 +154,7 @@ sub parse_scan {
 
     my $act = "if($current_action) {return 1} else {return 0}";
     push @$actions, [$act, $current_limit];
+    print "\nPUSHED $act with $current_limit";
     $current_action = "";
 }
 
@@ -194,7 +197,6 @@ sub lookback_custom {
     my $maxval = shift;
 
     my $pullval = $maxval;
-
 
     if($ctoken =~/[OHLCV]/) {
 	$pullval++ if $pullval > 0;
@@ -252,6 +254,18 @@ sub lookback_custom {
 
     if($ctoken =~ /COM_CHAN_INDEX/ && $alist =~ /([0-9]+)/) {
 	$pullval = $1;
+    }
+
+    if($ctoken =~ /MFI/ && $alist =~ /([0-9]+)/) {
+	$pullval = $1 + 1;
+    }
+
+    if($ctoken =~ /CMO/ && $alist =~ /([0-9]+)/) {
+	$pullval = $1 + 1;
+    }
+
+    if($ctoken =~ /STD_DEV/ && $alist =~ /([0-9]+),.+/) {
+	$pullval = $1 + 1;
     }
 
     set_pull($pullval);

@@ -36,6 +36,12 @@ sub exp_avg_low { return array_exponential_avg(shift, LOW_IND); }
 sub exp_avg_close { return array_exponential_avg(shift, CLOSE_IND); }
 sub exp_avg_volume { return array_exponential_avg(shift, VOL_IND); }
 
+sub wma_open { return array_weighted_avg(shift, OPEN_IND); }
+sub wma_high { return array_weighted_avg(shift, HIGH_IND); }
+sub wma_low { return array_weighted_avg(shift, LOW_IND); }
+sub wma_close { return array_weighted_avg(shift, CLOSE_IND); }
+sub wma_volume { return array_weighted_avg(shift, VOL_IND); }
+
 sub init_indicators {
     TA_Initialize();
 }
@@ -146,6 +152,22 @@ sub array_exponential_avg {
     $value_cache{$n} = $ema->[@$ema - 1];
     
     return $ema->[@$ema - 1];
+}
+
+sub array_weighted_avg {
+
+    my $period = shift;
+    my $index = shift;
+
+    my $n = "wma$index$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @series = reverse map $_->[$index], @$current_prices;
+
+    my ($rcode, $start, $wma) = TA_WMA(0, $#series, \@series, $period);
+    $value_cache{$n} = $wma->[@$wma - 1];
+
+    return $value_cache{$n};
 }
 
 sub compute_upper_bollinger {
@@ -366,7 +388,7 @@ sub compute_momentum {
     my ($rcode, $start, $mom) = TA_MOM(0, $period, \@closes, $period);
 
     $value_cache{$n} = $mom->[0] * -1;
-    return $mom->[0] * -1;
+    return $value_cache{$n};
 }
 
 sub compute_sar {
@@ -413,9 +435,7 @@ sub compute_obv {
     my @closes = map $_->[CLOSE_IND], @$current_prices;
     my @volume = map $_->[VOL_IND], @$current_prices;
 
-    my ($rcode, $start, $count, $obv) = TA_OBV(0, $period, \@closes, \@volume);
-
-    print "\n$rcode $start $count $obv";
+    my ($rcode, $start, $obv) = TA_OBV(0, $period, \@closes, \@volume);
 
     $value_cache{$n} = $obv->[0];
     return $obv->[0];
@@ -643,10 +663,13 @@ sub compute_cci {
     my @lows = reverse map $_->[LOW_IND], @$current_prices;
     my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
 
+    @highs = splice @highs, -($period);
+    @lows = splice @lows, -($period);
+    @closes = splice @closes, -($period);
+
     my ($rcode, $start, $cci) = TA_CCI(0, $#closes, \@highs, \@lows, \@closes, $period);
 
     $value_cache{$n} = $cci->[0];
-    print "\n$value_cache{$n} with $start";
     return $value_cache{$n};
 }
 
@@ -682,5 +705,58 @@ sub compute_efficiency_ratio {
     return ($enumerator / $denominator) * 100;
 }
 
+sub compute_mfi {
+
+    my $period = shift;
+
+    my $n = "mfi$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @highs = reverse map $_->[HIGH_IND], @$current_prices;
+    my @lows = reverse map $_->[LOW_IND], @$current_prices;
+    my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
+    my @volume = reverse map $_->[VOL_IND], @$current_prices;
+
+    @highs = splice @highs, -($period + 1);
+    @lows = splice @lows, -($period + 1);
+    @closes = splice @closes, -($period + 1);
+    @volume = splice @volume, -($period + 1);
+
+    my ($rcode, $start, $mfi) = TA_MFI(0, $#closes, \@highs, \@lows, \@closes, \@volume, $period);
+    $value_cache{$n} = $mfi->[0];
+    return $value_cache{$n};
+}
+
+sub compute_cmo {
+
+    my $period = shift;
+
+    my $n = "chandeo$period";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @closes = map $_->[CLOSE_IND], @$current_prices;
+    @closes = splice @closes, -($period + 1);
+
+    my ($rcode, $start, $cmo) = TA_CMO(0, $#closes, \@closes, $period);
+
+    $value_cache{$n} = $cmo->[0];
+    return $value_cache{$n};
+}
+
+sub compute_standard_dev {
+
+    my $period = shift;
+    my $devcount = shift;
+
+    my $n = "$period" . "stdev$devcount";
+    return $value_cache{$n} if exists $value_cache{$n};
+
+    my @closes = reverse map $_->[CLOSE_IND], @$current_prices;
+    @closes = splice @closes, -($period + 1);
+
+    my ($rcode, $start, $dev) = TA_STDDEV(0, $#closes, \@closes, $period, $devcount);
+    $value_cache{$n} = $dev->[1];
+    return $value_cache{$n};
+}
 
 1;
