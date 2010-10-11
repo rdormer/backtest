@@ -10,6 +10,9 @@ my @trade_history;
 my @long_exits;
 my @short_exits;
 
+my @long_signals;
+my @short_signals;
+
 my @equity_curve;
 
 my $starting_cash;
@@ -73,20 +76,40 @@ sub add_positions {
     my $longs = shift;
     my $shorts = shift;
 
-    my $longlen = scalar @$longs;
-    my $shortlen = scalar @$shorts;
+    #always process previous day's signals first
+    process_signals();
+    
+    foreach (@$longs) {
+	push @long_signals, $_;
+    }
+
+    foreach (@$shorts) {
+	push @short_signals, $_;
+    }
+}
+
+sub process_signals {
+
+    my $longlen = scalar @long_signals;
+    my $shortlen = scalar @short_signals;
     my $len = $longlen > $shortlen ? $longlen : $shortlen;
+
+    #alternate between starting a long position and a short
+    #position to give both sides a fair shake at getting trades
 
     for(my $i = 0; $i < $len; $i++) {
 
-	if($longlen > 0 && $longlen > $i && positions_available() && ! exists $positions{$longs->[$i]}) {
-	    start_long_position($longs->[$i]);
+	if($longlen > 0 && $longlen > $i && positions_available() && ! exists $positions{$long_signals[$i]}) {
+	    start_long_position($long_signals[$i]);
 	}
 
-	if($shortlen > 0 && $shortlen > $i && positions_available() && ! exists $positions{$shorts->[$i]}) {
-	    start_short_position($shorts->[$i]);
+	if($shortlen > 0 && $shortlen > $i && positions_available() && ! exists $positions{$short_signals[$i]}) {
+	    start_short_position($short_signals[$i]);
 	}
     }
+
+    @long_signals = ();
+    @short_signals = ();
 }
 
 sub start_long_position {
@@ -137,11 +160,11 @@ sub start_position {
 
     return 0 if get_date() eq conf::finish();
 
-    my $temp = pull_history_by_limit($ticker, get_exit_date(), 1);
+    my $temp = pull_history_by_limit($ticker, get_date(), 1);
     my $price = $temp->[0][OPEN_IND];
     my $volume = $temp->[0][VOL_IND];
 
-    return 0 if $temp->[0][DATE_IND] ne get_exit_date();
+    return 0 if $temp->[0][DATE_IND] ne get_date();
 
     if(not exists $dividend_cache{$ticker}) {
 	$dividend_cache{$ticker} = pull_dividends($ticker, get_date(), conf::finish());
@@ -153,7 +176,7 @@ sub start_position {
 
 	if($sharecount >= 1 && $sharecount < $volume) {
 
-	    $positions{$ticker}{'sdate'} = get_exit_date();
+	    $positions{$ticker}{'sdate'} = get_date();
 	    $positions{$ticker}{'shares'} = $sharecount;
 	    $positions{$ticker}{'start'} = $price;
 	    $positions{$ticker}{'mae'} = $price;
@@ -223,6 +246,15 @@ sub update_positions {
 
     foreach $ticker (@temp) {
 
+	#if the ending date of a position is set, it means
+	#we sold it - process the sell at the open of this day
+
+	if(get_date() eq $positions{$ticker}{'edate'}) {
+	    my $data = pull_history_by_limit($ticker, get_date(), 1);
+	    end_position($ticker, $data->[0][OPEN_IND], get_date());
+	    next;
+	}
+
 	#don't split adjust the first day or it could throw some
 	#edge cases out of whack.  Also, can't pay out dividends first day.
 
@@ -231,12 +263,11 @@ sub update_positions {
 	    update_balance_dividend($ticker);
 	}
 
-
 	#check against sell rules, update stats and
 	#stops if we're not closing the position
 
 	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
-	    sell_position($ticker);
+	    $positions{$ticker}{'edate'} = get_exit_date();
 	} else {
 
 	    update_stop(\%positions, $ticker);
@@ -299,13 +330,6 @@ sub update_balance_dividend {
 	    $dividend_payout += $payout;
 	}
     }
-}
-
-sub sell_position {
-
-    $dindex = search_array_date(get_exit_date(), $current_prices);
-    $price = fetch_open_at($dindex);
-    end_position(shift, $price, get_exit_date());
 }
 
 sub stop_position {

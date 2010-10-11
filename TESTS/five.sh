@@ -29,16 +29,16 @@ PPDI
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 4983.12 (return -0.337599999999984)
+total: 4925.68 (return -1.48639999999999)
 QQQQ buy and hold: 26.4571718195641
-4 trades
-3 losing trades (avg loss -3.3381020505484)
-1 wining trades (avg win 7.14285714285714)
-1.21011228826998 maximum drawdown
-1 days longest drawdown
-0.25 win ratio
+3 trades
+2 losing trades (avg loss -5.0071530758226)
+1 wining trades (avg win 0.909090909090901)
+9.856 maximum drawdown
+2 days longest drawdown
+0.333333333333333 win ratio
 0 max adverse excursion
-Expectancy -0.717862252197017
+Expectancy -3.0350717475181
 "
 
 ./backtest.pl -tickers=ALJ -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-05 -finish 2007-07-15 --skip-progress --skip-trades
@@ -47,9 +47,7 @@ Expectancy -0.717862252197017
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-CLMT	9	2007-05-17	50.61	(open)		 
-
-total: 4999.01 (return -0.0197999999999956)
+total: 5000 (return 0)
 QQQQ buy and hold: 8.17184216670558
 "
 
@@ -59,17 +57,17 @@ QQQQ buy and hold: 8.17184216670558
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 6663.305 (return 33.2661)
-Paid out 53.635 in dividends
+total: 5316.35691 (return 6.32713819999999)
+Paid out 49.30691 in dividends
 QQQQ buy and hold: 25.9467758444217
-138 trades  (discarded 1 trades)
-55 losing trades (avg loss -0.0791042959717659)
-83 wining trades (avg win 0.0875608696646167)
-11.4037599873891 maximum drawdown
-19 days longest drawdown
-0.601449275362319 win ratio
-9.0956887486856 max adverse excursion
-Expectancy 0.0211363471283773
+84 trades
+61 losing trades (avg loss -0.272997677482445)
+22 wining trades (avg win 0.24150422632396)
+62.9328663428756 maximum drawdown
+37 days longest drawdown
+0.261904761904762 win ratio
+7.59713479487736 max adverse excursion
+Expectancy -0.138247178866482
 "
 
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades
@@ -77,6 +75,17 @@ time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TE
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
+echo "Expecting:
+AAME
+
+AAME
+
+AAME
+
+AAME
+
+got: "
+
 ./screen.pl --screen TESTS/guppy1 --ticker=AAME --date 2010-09-16 --nocache
 ./screen.pl --screen TESTS/guppy2 --ticker=AAME --date 2010-09-16 --nocache
 

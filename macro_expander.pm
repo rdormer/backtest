@@ -154,7 +154,6 @@ sub parse_scan {
 
     my $act = "if($current_action) {return 1} else {return 0}";
     push @$actions, [$act, $current_limit];
-    print "\nPUSHED $act with $current_limit";
     $current_action = "";
 }
 
