@@ -26,7 +26,8 @@ sub process_commandline {
 	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
-	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer);
+	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
+	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -35,6 +36,8 @@ sub process_commandline {
     die "Coudln't open $short_exit" if $short_exit && ! -e $short_exit;
     die "Couldn't open $entryfile" if $entryfile && ! -e $entryfile;
     die "Couldn't open $exitfile" if $exitfile && ! -e $exitfile;
+    die "Couldn't open $long_filter" if $long_filter && ! -e $long_filter;
+    die "Couldn't open $short_filter" if $short_filter && ! -e $short_filter;
 }
 
 sub date { return $date; }
@@ -49,6 +52,8 @@ sub short_enter_sig { return $short_entry; }
 sub short_exit_sig { return $short_exit; }
 sub long_positions { return $entryfile || $exitfile; }
 sub short_positions { return $short_entry || $short_exit; }
+sub long_filter { return $long_filter; }
+sub short_filter { return $short_filter; }
 sub show_reward_ratio { return $showreward; }
 sub noprogress { return $skip_progress; }
 sub draw_curve { return $curve; }

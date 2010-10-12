@@ -266,7 +266,7 @@ sub update_positions {
 	#check against sell rules, update stats and
 	#stops if we're not closing the position
 
-	if(filter_results($ticker, @{ $positions{$ticker}{'exit'}})) {
+	if(filter_results($ticker, $positions{$ticker}{'exit'})) {
 	    $positions{$ticker}{'edate'} = get_exit_date();
 	} else {
 

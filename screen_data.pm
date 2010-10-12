@@ -171,19 +171,39 @@ sub set_date_range {
 }
 
 sub force_data_load {
+    $current_ticker = shift;
+    return 1;
+}
 
+sub trade_filter {
+
+    my $filter = shift;
+
+    for(my $i = 0; $i <= scalar @$filter; $i++) {
+
+	if($filter->[$i][1] == 0) {
+	    eval($filter->[$i][0]);
+	} else {
+	    my $last = scalar @$filter - 1;
+	    my @temp = map { [@$_] } @$filter[$i..$last];
+	    return filter_results($current_ticker, \@temp);
+	}
+    }
 }
 
 sub run_screen_loop {
 
     my $stop = shift;
+    my $criteria = shift;
+    my $filter = shift;
     my @results;
 
-    $max_limit = $_[$#_][1];
+    return if @$filter > 0 && ! trade_filter($filter);
+    $max_limit = $criteria->[scalar @$criteria - 1][1];
 
     foreach $ticker (@ticker_list) {
 
-	if(filter_results($ticker, @_)) {
+	if(filter_results($ticker, $criteria)) {
 	    push @results, $ticker;
 	    last if &$stop(scalar @results);
 	}
@@ -195,17 +215,18 @@ sub run_screen_loop {
 sub filter_results {
 
     $current_ticker = shift;
+    my $criteria = shift;
     $current_prices = ();
     %value_cache = ();
     
     my $date = $current_date;
 
-    for(my $i = 0; $i < scalar @_; $i++) {
+    for(my $i = 0; $i < scalar @$criteria; $i++) {
 
 	#set pull size and get the next batch
 	#of data to evaluate the current statement
 
-	my $maximum = $_[$i][1];
+	my $maximum = $criteria->[$i][1];
 	my $count = 1;
 
 	if($maximum > 1) {
@@ -230,7 +251,7 @@ sub filter_results {
 	    $date = $data->[$last][DATE_IND] if $last >= 0;
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
-	    return 0 if not eval($_[$i][0]);
+	    return 0 if not eval($criteria->[$i][0]);
 
 	} else {
 	    return 0;

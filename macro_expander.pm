@@ -295,6 +295,7 @@ sub process_for_ticker {
     my $insymbol = shift;
     if($insymbol =~ /FOR_TICKER[\s]+(.*)/) {
 	$current_action .= "force_data_load('$1')";
+	$current_limit = 0;
     }
 }
 

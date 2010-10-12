@@ -16,7 +16,7 @@ init_data();
 @actions = parse_screen(conf::screen());
 
 $tref = sub { return 0; };
-@results = run_screen_loop($tref, @actions);
+@results = run_screen_loop($tref, \@actions);
 
 $reslist = "";
 
