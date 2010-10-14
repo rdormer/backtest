@@ -15,12 +15,12 @@ sub make_command {
     my $command = "./backtest.pl ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
-    $command .= "--skip-progress --cgi-handle=" . $handle_file . " ";
+    $command .= "--skip-progress --timer --cgi-handle=" . $handle_file . " ";
 
     if($cgi->param("tickers")) {
 	$command .= "-tickers=" . $cgi->param("tickers") . " ";
     } else {
-	$command .= "-list /root/AUTO/stock_universe.txt ";
+	$command .= "-list /home/rdormer/AUTO/stock_universe.txt ";
     }
 
     if($cgi->param("entry")) {
@@ -37,6 +37,10 @@ sub make_command {
 
     if($cgi->param("shortexit")) {
 	$command .= "-short-exit " . dump_file($cgi->param("shortexit")) . " ";
+    }
+
+    if($cgi->param("filter")) {
+	$command .= "-filter " . dump_file($cgi->param("filter")) . " ";
     }
 
     return $command;
