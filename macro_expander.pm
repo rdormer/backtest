@@ -10,7 +10,8 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* ,
                 SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
-                PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV
+                PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
+                BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE
 );
 
 
@@ -31,16 +32,21 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"AROON_OSC" => "compute_aroon_osc", "EFFICIENCY_RATIO" => "compute_efficiency_ratio", "PPO" => "compute_ppo", 
 			"KELTNER_UPPER" => "compute_upper_keltner", "KELTNER_LOWER" => "compute_lower_keltner", "COM_CHAN_INDEX" => "compute_cci",
 			"MFI" => "compute_mfi", "CMO" => "compute_cmo", "WMAC" => "wma_close", "WMAO" => "wma_open",
-			"WMAH" => "wma_high", "WMAL" => "wma_low", "WMAV" => "wma_volume", "STD_DEV" => "compute_standard_dev"
+			"WMAH" => "wma_high", "WMAL" => "wma_low", "WMAV" => "wma_volume", "STD_DEV" => "compute_standard_dev",
+			"EPS" => "fundamental_eps", "FLOAT" => "fundamental_float", "CURRENT_RATIO" => "fundamental_current_ratio", 
+			"ROE" => "fundamental_roe", "MCAP" => "fundamental_mcap", "EARNINGS_GROWTH" => "fundamental_egrowth", 
+			"ROA" => "fundamental_roa", "REV_PERSHARE" => "fundamental_pershare_revenue", 
+			"PROFIT_MARGIN" => "fundamental_profit_margin", "BOOK_PERSHARE" => "fundamental_pershare_book",
+			"TOTAL_ASSETS" => "fundamental_total_assets", "CURRENT_ASSETS" => "fundamental_current_assets",
+			"TOTAL_DEBT" => "fundamental_total_debt", "CURRENT_DEBT" => "fundamental_current_debt",
+			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
+			"REVENUE" => "fundamental_revenue"
 );
 
 
-my %noarg_macro_table = ( "ROE" => "fundamental_roe()", "EPS" => "fundamental_eps()", "MCAP" => "fundamental_mcap()",     
-			  "FLOAT" => "fundamental_float()", "EARNINGS_GROWTH" => "fundamental_egrowth()", "=" => "==", 
-			  "OR" => "||", "AND" => "&&", "BOP" => "compute_bop()", "OBV" => "compute_obv", 
-			  "CURRENT_RATIO" => "fundamental_current_ratio()", "TD_SEQUENTIAL_BUY" => "td_sequential_buy()",
-			  "TD_SEQUENTIAL_SELL" => "td_sequential_sell()", "TD_COMBO_BUY" => "td_combo_buy()", 
-			  "TD_COMBO_SELL" => "td_combo_sell()", "TD_SETUP_BUY" => "td_buy_setup()", 
+my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "compute_bop()", "OBV" => "compute_obv", 
+			  "TD_SEQUENTIAL_BUY" => "td_sequential_buy()", "TD_SEQUENTIAL_SELL" => "td_sequential_sell()", 
+			  "TD_COMBO_BUY" => "td_combo_buy()", "TD_COMBO_SELL" => "td_combo_sell()", "TD_SETUP_BUY" => "td_buy_setup()", 
 			  "TD_SETUP_SELL" => "td_sell_setup()", "CDL_BULL_MARUBOZU" => "candle_bullish_marubozu",
 			  "CDL_BEAR_MRUBOZU" => "candle_bearish_marubozu", "CDL_BULL_SPINNING_TOP" => "candle_bullish_top",
 			  "CDL_BEAR_SPINNING_TOP" => "candle_bearish_top", "CDL_DOJI" => "candle_doji", 
@@ -133,9 +139,7 @@ sub parse_scan {
 	if(exists $noarg_macro_table{$token}) {
 
 	    $current_action .= "$noarg_macro_table{$token}";
-	    if($noarg_macro_table{$token} =~ /.*fundamental.*/) {
-		set_fundamentals_limit(2); 
-	    } elsif(exists $lookback_table{$token}) {
+	    if(exists $lookback_table{$token}) {
 		$lcall = $lookback_table{$token} . "_Lookback()";
 		set_pull(eval($lcall));
 	    }

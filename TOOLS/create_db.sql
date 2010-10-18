@@ -21,6 +21,8 @@ create unique index divindex on dividends (ticker, date);
 create unique index splitindex on splits (ticker, date);
 create unique index qtr_index on fundamentals (quarter_date, sec_name);
 create unique index filed_index on fundamentals (filed_date, sec_name);
+create unique index cik_index on fundamentals (cik, filed_date);
+create unique index cik_index on cikmap (ticker, cik);
 
 create user 'perldb'@'localhost';
 grant all privileges on finance.* to 'perldb'@'localhost';

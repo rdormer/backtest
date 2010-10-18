@@ -481,11 +481,6 @@ sub change_over_period {
     return -100;
 }
 
-sub set_fundamentals_limit {
-    my $lim = shift;
-    $fund_pull_limit = $lim if $lim > $fund_pull_limit;
-}
-
 sub parse_two_dates {
 
     my $d1 = shift;

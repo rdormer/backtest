@@ -8,7 +8,7 @@ my $fundamental_table = "fundamentals";
 
 my $pull_cmd = "select date,open,high,low,close,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
 my $cache_cmd = "select date,open,high,low,close,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
-my $fund_cmd = "select * from $fundamental_table where ticker=? and date <= ? order by date desc limit ?";
+my $fund_cmd = "select fundamentals.* from cikmap inner join fundamentals where fundamentals.cik = cikmap.cik and cikmap.ticker=? and filed_date <= ? limit ?;";
 my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
 my $split_cmd = "select date,bef,after from splits where ticker=?";
 my $ondate_cmd = "select close from historical where ticker=? and date=?";
@@ -90,8 +90,8 @@ sub pull_fundamentals {
     my $sdate = shift;
     my $count = shift;
 
-#    $fund_sql->execute($ticker, $sdate, $count);
-#    return $fund_sql->fetchall_hashref('quarter_date');
+    $fund_sql->execute($ticker, $sdate, $count);
+    return $fund_sql->fetchall_hashref('quarter_date');
 }
 
 1;
