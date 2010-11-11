@@ -3,8 +3,6 @@ use charting;
 use POSIX;
 use conf;
 
-eval "use strategies::" . conf::strategy();
-
 my %positions;
 my @trade_history;
 my @long_exits;
@@ -12,6 +10,12 @@ my @short_exits;
 
 my @long_signals;
 my @short_signals;
+
+my @long_stop;
+my @long_trail;
+
+my @short_stop;
+my @short_trail;
 
 my @equity_curve;
 
@@ -35,10 +39,35 @@ my $total_short_equity;
 my %dividend_cache;
 my $dividend_payout;
 
-sub init_portfolio {
+sub init_long_portfolio {
 
     my $longexits = shift;
+    @long_exits = @$longexits;
+
+    my $longstop = shift;
+    @long_stop = @$longstop;
+
+    my $longtrail = shift;
+    @long_trail = @$longtrail;
+
+    generic_init();
+}
+
+sub init_short_portfolio {
+
     my $shortexits = shift;
+    @short_exits = @$shortexits;
+
+    my $shortstop = shift;
+    @short_stop = @$shortstop;
+
+    my $shorttrail = shift;
+    @short_trail = @$shorttrail;
+
+    generic_init();
+}
+
+sub generic_init {
 
     $risk_percent = conf::risk_percent();
     $starting_cash = conf::startwith();
@@ -46,11 +75,7 @@ sub init_portfolio {
 
     calculate_position_count();
     calculate_position_size($current_cash);
-
-    @long_exits = @$longexits;
-    @short_exits = @$shortexits;
 }
-
 
 sub positions_available {
 
@@ -69,6 +94,16 @@ sub calculate_position_count {
     $atrisk = 100000 * $risk_percent;
     $percentof = $atrisk / (10 / 100);
     $position_count = int(100000 / $percentof);
+}
+
+sub eval_expression {
+
+    my $exp = shift;
+    my $ticker = shift;
+
+    $current_prices = pull_data($ticker, get_date(), $exp->[0][1], $exp->[0][1]);
+    my $result = eval($exp->[0][0]);
+    return sprintf("%.2f", $result);
 }
 
 sub add_positions {
@@ -119,12 +154,12 @@ sub start_long_position {
     if($count > 0) {
 
 	my $price = $positions{$_[0]}{'start'};
-	my $stop = initial_stop($price, 0);
+	my $stop = eval_expression(\@long_stop, $_[0]);
 
 	$current_cash -= $count * $price;
 	$positions{$_[0]}{'short'} = 0;
 	$positions{$_[0]}{'exit'} = \@long_exits;
-	$positions{$_[0]}{'stop'} = initial_stop($price, 0);
+	$positions{$_[0]}{'stop'} = $stop;
 	$positions{$_[0]}{'risk'} = (($price - $stop) / $price) * 100;
     }
 }
@@ -160,7 +195,7 @@ sub start_position {
 
     return 0 if get_date() eq conf::finish();
 
-    my $temp = pull_history_by_limit($ticker, get_date(), 1);
+    my $temp = pull_history_by_limit($ticker, get_date(), 1, 1);
     my $price = $temp->[0][OPEN_IND];
     my $volume = $temp->[0][VOL_IND];
 
@@ -239,7 +274,7 @@ sub update_positions {
     #each position to see if it hit a sell rule or was stopped out, calling our
     #update stop hook first - stops are updated at the start of each period.
 
-    $current_cash = update_cash_balance($current_cash);
+#    $current_cash = update_cash_balance($current_cash);
 
     my $equity = 0;
     $total_short_equity = 0;
@@ -270,7 +305,8 @@ sub update_positions {
 	    $positions{$ticker}{'edate'} = get_exit_date();
 	} else {
 
-	    update_stop(\%positions, $ticker);
+	    update_stop($ticker);
+
 	    $cur_ticker_index = current_index();
 	    $low = fetch_low_at($cur_ticker_index);
 	    $high = fetch_high_at($cur_ticker_index);
@@ -312,6 +348,24 @@ sub update_positions {
     }
 
     set_ticker_list(\@tlist);
+}
+
+sub update_stop {
+
+    my $ticker = shift;
+    my $old_stop = $new_stop = $positions{$ticker}{'stop'};
+
+    if($positions{$ticker}{'short'} && @short_trail) {
+	$new_stop = eval_expression(\@short_trail, $ticker);
+	$new_stop = $old_stop if $new_stop > $old_stop;
+    } 
+
+    if(! $positions{$ticker}{'short'} && @long_trail) {
+	$new_stop = eval_expression(\@long_trail, $ticker);
+	$new_stop = $old_stop if $new_stop < $old_stop;
+    }
+
+    $positions{$ticker}{'stop'} = $new_stop;
 }
 
 sub update_balance_dividend {
@@ -380,7 +434,7 @@ sub end_position {
     }
 
     $amt = $positions{$target}{'shares'} * $price;
-    $amt = adjust_for_slippage($amt, $positions{$target}{'shares'}, $price);
+#    $amt = adjust_for_slippage($amt, $positions{$target}{'shares'}, $price);
     $current_cash -= $amt if $positions{$target}{'short'};
     $current_cash += $amt if ! $positions{$target}{'short'};
 
@@ -473,7 +527,8 @@ sub print_portfolio_state {
     $summary .= "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;
     $summary .= "\nPaid out $dividend_payout in dividends" if $dividend_payout > 0;
     
-    $summary .= "\nQQQQ buy and hold: " . change_over_period("QQQQ");
+    my $compare = conf::benchmark();
+    $summary .= "\n$compare buy and hold: " . change_over_period($compare);
 
     $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
     

@@ -115,6 +115,17 @@ sub parse_screen {
     return @$t;
 }
 
+#do an end run around parse_scan to return
+#just the expression without the if statement
+
+sub parse_expression {
+
+    tokenize(shift);
+    my $act = parse_statement();
+    $current_action = "";
+    return [$act, $current_limit];
+}
+
 sub screen_from_file {
 
     tokenize(shift);
@@ -131,6 +142,14 @@ sub screen_from_file {
 sub parse_scan {
 
     my $actions = shift;
+    parse_statement();
+    my $act = "if($current_action) {return 1} else {return 0}";
+    push @$actions, [$act, $current_limit];
+    $current_action = "";
+}
+
+sub parse_statement {
+
     $token = next_token();
     $current_limit = 1;
 
@@ -156,9 +175,7 @@ sub parse_scan {
 	$token = next_token();
     }
 
-    my $act = "if($current_action) {return 1} else {return 0}";
-    push @$actions, [$act, $current_limit];
-    $current_action = "";
+    return $current_action;
 }
 
 sub capture_args {

@@ -14,16 +14,21 @@ $SIG{INT} = \&salvage_interrupt;
 if(conf::long_positions()) {
     @long_exit = parse_screen(conf::exit_sig());
     @long_actions = parse_screen(conf::enter_sig());
+    @long_stop = parse_expression(conf::long_stop());
+    @long_trail = parse_expression(conf::long_trail()) if conf::long_trail();
     @long_filter = parse_screen(conf::long_filter()) if conf::long_filter();
+    init_long_portfolio(\@long_exit, \@long_stop, \@long_trail);
 }
 
 if(conf::short_positions()) {
     @short_exit = parse_screen(conf::short_exit_sig());
     @short_actions = parse_screen(conf::short_enter_sig());
+    @short_stop = parse_expression(conf::short_stop());
+    @short_trail = parse_expression(conf::short_trail()) if conf::short_trail();
     @short_filter = parse_screen(conf::short_filter()) if conf::short_filter();
+    init_short_portfolio(\@short_exit, \@short_stop, \@short_trail);
 }
 
-init_portfolio(\@long_exit, \@short_exit);
 $tref = sub { return $_[0] >= positions_available(); };
 
 while(next_test_day()) {

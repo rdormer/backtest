@@ -23,11 +23,12 @@ sub process_commandline {
 	'exit=s' => \$exitfile, 'start=s' => \$startdate, 'finish=s' => \$enddate, 'replay=s' => \$replay_list,
 	'short-entry=s' => \$short_entry, 'short-exit=s' => \$short_exit, 'showreward' => \$showreward, 
 	'init-margin=s' => \$initial_margin, 'maint-margin' => \$maint_margin, 'portfolio=s' => \$portfolio,
-	'strategy=s' => \$strategy, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
+	'benchmark=s' => \$benchmark, 'start-with=s' => \$startwith, 'risk=s' => \$risk, 'curve' => \$curve,
 	'connect-string=s' => \$connect_string, 'connect-user=s' => \$connect_user, 
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
 	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
-	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter);
+	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter, 'stop=s' => \$stopfile, 'trail=s' => \$trailfile,
+	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -38,6 +39,10 @@ sub process_commandline {
     die "Couldn't open $exitfile" if $exitfile && ! -e $exitfile;
     die "Couldn't open $long_filter" if $long_filter && ! -e $long_filter;
     die "Couldn't open $short_filter" if $short_filter && ! -e $short_filter;
+    die "Couldn't open $stopfile" if $stopfile && ! -e $stopfile;
+    die "Couldn't open $trailfile" if $trailfile && ! -e $trailfile;
+    die "Couldn't open $short_stopfile" if $short_stopfile && ! -e $short_stopfile;
+    die "Couldn't open $short_trailfile" if $short_trailfile && ! -e $short_trailfile;
 }
 
 sub date { return $date; }
@@ -61,7 +66,19 @@ sub usecache { return not $disable_cache; }
 sub show_trades { return not $skip_trades; }
 sub ticker_list { return $tickerlist; }
 sub cgi_handle { return $cgi_handle; }
+sub short_trail { return $short_trailfile; }
+sub long_trail { return $trailfile; }
 sub timer { return $use_timer; }
+
+sub short_stop { 
+    return $short_stopfile if $short_stopfile;
+    return "strategies/default_short_stop";
+}
+
+sub long_stop { 
+    return $stopfile if $long_stopfile;
+    return "strategies/default_long_stop";
+}
 
 sub connect_string {
     return $connect_string if $connect_string;
@@ -88,9 +105,9 @@ sub portfolio {
     return "portfolio";
 }
 
-sub strategy { 
-    return $strategy if $strategy;
-    return "default";
+sub benchmark { 
+    return $benchmark if $benchmark;
+    return "QQQQ";
 }
 
 sub startwith {
