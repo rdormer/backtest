@@ -170,6 +170,34 @@ sub set_date_range {
     }
 }
 
+
+#do a "context switch" of state to N days ago
+#eval is sufficient because this is called 
+#from filter_results, and all data is present
+
+sub days_ago {
+
+    my $daycount = shift;
+    my $statement = shift;
+    %value_cache = ();
+
+    my $save_date = $current_date;
+    my $save_pull = $current_prices;
+    $current_date = fetch_date_at($daycount);
+
+    $current_prices = [];
+    foreach($daycount..scalar @$save_pull) {
+	push @$current_prices, $save_pull->[$_];
+    }
+
+    my $rval = eval($statement);
+    $current_date = $save_date;
+    $current_prices = $save_pull;
+    %value_cache = ();
+
+    return $rval;
+}
+
 sub force_data_load {
     $current_ticker = shift;
     return 1;

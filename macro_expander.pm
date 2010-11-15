@@ -4,7 +4,7 @@ use analysis::fundamentals;
 use analysis::demark;
 
 
-my @tokens = qw(\+ - \* / <= >= < > ; = != AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
+my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
                 COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE 
                 OBV CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS 
                 SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
@@ -40,7 +40,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"TOTAL_ASSETS" => "fundamental_total_assets", "CURRENT_ASSETS" => "fundamental_current_assets",
 			"TOTAL_DEBT" => "fundamental_total_debt", "CURRENT_DEBT" => "fundamental_current_debt",
 			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
-			"REVENUE" => "fundamental_revenue"
+			"REVENUE" => "fundamental_revenue", 
 );
 
 
@@ -66,11 +66,12 @@ my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWE
 		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ULTOSC" => "TA_ULTOSC", "AROON_OSC" => "TA_AROONOSC", 
 );
 
-my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker );
+my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker, "[0-9]+\\|" => \&process_days_ago );
 
 my @token_list;
 my $current_action;
 my $current_limit;
+my $complete_meta;
 
 sub tokenize {
 
@@ -104,9 +105,7 @@ sub tokenize {
 }
 
 sub next_token {
-
-    my $token = shift @token_list;
-    return $token;
+    return shift @token_list;
 }
 
 sub parse_screen {
@@ -169,10 +168,21 @@ sub parse_statement {
 	    capture_args($token);
 
 	} elsif( ! probe_transform_table($token)) {
-	    $current_action .= " $token";
+	    
+	    if($complete_meta) {
+		$current_action .= "') $token ";
+		$complete_meta = 0;
+	    } else {
+		$current_action .= " $token";
+	    }
 	} 
 
 	$token = next_token();
+    }
+
+    if($complete_meta) {
+	$current_action .= "')";
+	$complete_meta = 0;
     }
 
     return $current_action;
@@ -202,7 +212,7 @@ sub capture_args {
     my $ltoken = shift;
     if(exists $lookback_table{$ltoken}) {
 	$lcall = $lookback_table{$ltoken} . "_Lookback($arglist";
-	set_pull(eval($lcall));
+	set_pull(eval($lcall) + $complete_meta);
     } else {
 	lookback_custom($ltoken, $arglist, $max);
     }
@@ -288,7 +298,7 @@ sub lookback_custom {
 	$pullval = $1 + 1;
     }
 
-    set_pull($pullval);
+    set_pull($pullval + $complete_meta);
 }
 
 sub probe_transform_table {
@@ -298,18 +308,11 @@ sub probe_transform_table {
     foreach(keys %transform_table) {
 
 	if($token =~ /$_/) {
-
 	    my $fcall = $transform_table{$_};
 	    $fcall->($token);
 	    return 1;
 	}
     }
-}
-
-sub set_pull {
-
-    my $t = shift;
-    $current_limit = $t if $t > $current_limit;
 }
 
 sub process_for_ticker {
@@ -318,6 +321,21 @@ sub process_for_ticker {
 	$current_action .= "force_data_load('$1')";
 	$current_limit = 0;
     }
+}
+
+sub process_days_ago {
+
+    my $daycount = shift;
+    if($daycount =~ /([0-9]+)\|/) {
+	$current_action .= "days_ago($1, '";
+	$complete_meta = $1;
+    }
+}
+
+sub set_pull {
+
+    my $t = shift;
+    $current_limit = $t if $t > $current_limit;
 }
 
 1;

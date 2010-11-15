@@ -406,7 +406,6 @@ sub compute_sar {
     my ($rcode, $start, $sar) = TA_SAR(0, $len, \@highs, \@lows, $stepval, $maxval);
 
     $value_cache{$n} = $sar->[@$sar - 1];
-    print "\n$current_prices->[0][0] $value_cache{$n}";
     return $sar->[0];
 }
 

@@ -91,3 +91,41 @@ Expectancy -1.98212203653324
 
 ./backtest.pl -tickers=ABCO -start 2009-10-22 -finish 2009-10-28 -entry TESTS/binventry -exit TESTS/binvexit --skip-progress --skip-trades
 ./backtest.pl -tickers=ABCO -start 2009-10-22 -finish 2009-10-28 -entry TESTS/binventry -exit TESTS/binvexit --skip-progress --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 5196.53 (return 3.93060000000005)
+Paid out 27.18 in dividends
+QQQQ buy and hold: 7.68122899663947
+24 trades
+16 losing trades (avg loss -0.624018838304553)
+8 wining trades (avg win 3.05429864253394)
+18.4548458280205 maximum drawdown
+683 days longest drawdown
+0.333333333333333 win ratio
+7.97266514806379 max adverse excursion
+Expectancy 0.60208698864161
+"
+
+./backtest.pl -tickers=ADTN list -entry TESTS/bol_dayago1 -exit TESTS/tdout -start 2006-04-15 -finish 2010-08-20 --skip-progress --skip-trades
+./backtest.pl -tickers=ADTN list -entry TESTS/bol_dayago1 -exit TESTS/tdout -start 2006-04-15 -finish 2010-08-20 --skip-progress --skip-trades --nocache
+
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 5792.43 (return 15.8486)
+QQQQ buy and hold: 7.68122899663947
+29 trades
+18 losing trades (avg loss -0.131369534137196)
+11 wining trades (avg win 0.102938148877975)
+17.8772223460098 maximum drawdown
+442 days longest drawdown
+0.379310344827586 win ratio
+6.54899573950093 max adverse excursion
+Expectancy -0.0424942060969586
+"
+
+./backtest.pl -tickers=AAPL list -entry TESTS/bol_dayago2 -exit TESTS/out -start 2006-04-15 -finish 2010-08-20 --skip-progress --skip-trades
+./backtest.pl -tickers=AAPL list -entry TESTS/bol_dayago2 -exit TESTS/out -start 2006-04-15 -finish 2010-08-20 --skip-progress --skip-trades --nocache
