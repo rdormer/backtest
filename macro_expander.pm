@@ -2,16 +2,16 @@ use analysis::indicators;
 use analysis::candlesticks;
 use analysis::fundamentals;
 use analysis::demark;
+use analysis::rank;
 
-
-my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
+my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
                 COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE 
                 OBV CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] ROE EPS 
                 SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR MACDS MACDH MACD MOMENTUM 
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
-                BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE
+                BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH
 );
 
 
@@ -40,7 +40,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"TOTAL_ASSETS" => "fundamental_total_assets", "CURRENT_ASSETS" => "fundamental_current_assets",
 			"TOTAL_DEBT" => "fundamental_total_debt", "CURRENT_DEBT" => "fundamental_current_debt",
 			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
-			"REVENUE" => "fundamental_revenue", 
+			"REVENUE" => "fundamental_revenue", "STRENGTH" => "relative_strength"
 );
 
 
@@ -66,12 +66,14 @@ my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWE
 		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ULTOSC" => "TA_ULTOSC", "AROON_OSC" => "TA_AROONOSC", 
 );
 
-my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker, "[0-9]+\\|" => \&process_days_ago );
+my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker, "[0-9]+\\|" => \&process_days_ago,
+    "RANK\\|" => \&process_rank);
 
 my @token_list;
 my $current_action;
 my $current_limit;
 my $complete_meta;
+my $rank_pull;
 
 sub tokenize {
 
@@ -169,23 +171,31 @@ sub parse_statement {
 
 	} elsif( ! probe_transform_table($token)) {
 	    
-	    if($complete_meta) {
-		$current_action .= "') $token ";
-		$complete_meta = 0;
-	    } else {
-		$current_action .= " $token";
-	    }
+	    handle_meta() if $token =~ /<|>|=|<=|>=|!=|AND|OR/;
+	    $current_action .= " $token";
 	} 
 
 	$token = next_token();
     }
 
+    handle_meta();
+    return $current_action;
+}
+
+sub handle_meta {
+
     if($complete_meta) {
-	$current_action .= "')";
+	
+	if($rank_pull) {
+	    $current_action .= "', $rank_pull)";
+	    $rank_pull = 0;
+	    $current_limit = 0;
+	} else {
+	    $current_action .= "')";
+	}
+
 	$complete_meta = 0;
     }
-
-    return $current_action;
 }
 
 sub capture_args {
@@ -298,6 +308,10 @@ sub lookback_custom {
 	$pullval = $1 + 1;
     }
 
+    if($ctoken =~ /STRENGTH/) {
+	$pullval = 0;
+    }
+
     set_pull($pullval + $complete_meta);
 }
 
@@ -332,9 +346,16 @@ sub process_days_ago {
     }
 }
 
+sub process_rank {
+
+    $current_action .= "rank_by('";
+    $complete_meta = 1;
+}
+
 sub set_pull {
 
     my $t = shift;
+    $rank_pull = $t;
     $current_limit = $t if $t > $current_limit;
 }
 

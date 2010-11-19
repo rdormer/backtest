@@ -96,14 +96,10 @@ sub calculate_position_count {
     $position_count = int(100000 / $percentof);
 }
 
-sub eval_expression {
+sub compute_stop {
 
-    my $exp = shift;
-    my $ticker = shift;
-
-    $current_prices = pull_data($ticker, get_date(), $exp->[0][1], $exp->[0][1]);
-    my $result = eval($exp->[0][0]);
-    return sprintf("%.2f", $result);
+    my $stopval = eval_expression(shift, shift);
+    return sprintf("%.2f", $stopval);
 }
 
 sub add_positions {
@@ -154,7 +150,7 @@ sub start_long_position {
     if($count > 0) {
 
 	my $price = $positions{$_[0]}{'start'};
-	my $stop = eval_expression(\@long_stop, $_[0]);
+	my $stop = compute_stop(\@long_stop, $_[0]);
 
 	$current_cash -= $count * $price;
 	$positions{$_[0]}{'short'} = 0;
@@ -356,12 +352,12 @@ sub update_stop {
     my $old_stop = $new_stop = $positions{$ticker}{'stop'};
 
     if($positions{$ticker}{'short'} && @short_trail) {
-	$new_stop = eval_expression(\@short_trail, $ticker);
+	$new_stop = compute_stop(\@short_trail, $ticker);
 	$new_stop = $old_stop if $new_stop > $old_stop;
     } 
 
     if(! $positions{$ticker}{'short'} && @long_trail) {
-	$new_stop = eval_expression(\@long_trail, $ticker);
+	$new_stop = compute_stop(\@long_trail, $ticker);
 	$new_stop = $old_stop if $new_stop < $old_stop;
     }
 

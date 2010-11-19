@@ -198,6 +198,16 @@ sub days_ago {
     return $rval;
 }
 
+sub eval_expression {
+
+    my $exp = shift;
+    my $ticker = shift;
+    %value_cache = ();
+
+    $current_prices = pull_data($ticker, $current_date, $exp->[0][1], $exp->[0][1]);
+    return eval($exp->[0][0]);
+}
+
 sub force_data_load {
     $current_ticker = shift;
     return 1;
