@@ -97,7 +97,7 @@ sub ticker_list {
 
 sub next_test_day {
 
-    my $notdone = $date_index < @date_range;
+    my $notdone = $date_index < $#date_range;
 
     if($notdone) {
 	$date_index++;

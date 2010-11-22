@@ -130,11 +130,11 @@ sub process_signals {
 
     for(my $i = 0; $i < $len; $i++) {
 
-	if($longlen > 0 && $longlen > $i && positions_available() && ! exists $positions{$long_signals[$i]}) {
+	if($longlen > $i && positions_available() && ! exists $positions{$long_signals[$i]}) {
 	    start_long_position($long_signals[$i]);
 	}
 
-	if($shortlen > 0 && $shortlen > $i && positions_available() && ! exists $positions{$short_signals[$i]}) {
+	if($shortlen > $i && positions_available() && ! exists $positions{$short_signals[$i]}) {
 	    start_short_position($short_signals[$i]);
 	}
     }
