@@ -28,7 +28,7 @@ sub process_commandline {
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
 	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
 	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter, 'stop=s' => \$stopfile, 'trail=s' => \$trailfile,
-	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile);
+	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile, 'periods=s' => \$period_count);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -43,6 +43,8 @@ sub process_commandline {
     die "Couldn't open $trailfile" if $trailfile && ! -e $trailfile;
     die "Couldn't open $short_stopfile" if $short_stopfile && ! -e $short_stopfile;
     die "Couldn't open $short_trailfile" if $short_trailfile && ! -e $short_trailfile;
+
+    process_period_count();
 }
 
 sub date { return $date; }
@@ -134,6 +136,7 @@ sub check_backtest_args {
     die "missing -exit (exit signal)" if not $exitfile and long_positions();
     die "missing -short-exit (exit signal)" if not $short_exit and $short_entry and short_positions();
     die "missing -short-entry (entry signal)" if not $short_entry and $short_exit and short_positions();
+    die "Please specify either -periods or -finish, not both" if $period_count and $enddate;
 }
 
 sub override_date_range {
@@ -144,6 +147,22 @@ sub override_date_range {
 
 sub elapsed_time {
     return time() - $start_time;
+}
+
+sub process_period_count {
+
+    if($period_count) {
+	
+	my $d = $startdate;
+	$d =~ s/-//g;
+	my $end = new Date::Business(DATE => $d);
+	$end->addb($period_count);
+
+	my $rval = $end->image();
+	substr $rval, 4, 0, "-";
+	substr $rval, 7, 0, "-";  
+	$enddate = $rval;
+    }
 }
 
 format HELPTEXT =
