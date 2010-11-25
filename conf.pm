@@ -136,7 +136,7 @@ sub check_backtest_args {
     die "missing -exit (exit signal)" if not $exitfile and long_positions();
     die "missing -short-exit (exit signal)" if not $short_exit and $short_entry and short_positions();
     die "missing -short-entry (entry signal)" if not $short_entry and $short_exit and short_positions();
-    die "Please specify either -periods or -finish, not both" if $period_count and $enddate;
+    die "Please specify -periods and either -finish or -start, not both" if $period_count and $enddate and $startdate;
 }
 
 sub override_date_range {
@@ -153,16 +153,38 @@ sub process_period_count {
 
     if($period_count) {
 	
-	my $d = $startdate;
-	$d =~ s/-//g;
-	my $end = new Date::Business(DATE => $d);
-	$end->addb($period_count);
-
-	my $rval = $end->image();
-	substr $rval, 4, 0, "-";
-	substr $rval, 7, 0, "-";  
-	$enddate = $rval;
+	if($startdate) {
+	    process_from_start();
+	} else {
+	    process_from_end();
+	}
     }
+}
+
+sub process_from_start {
+
+    my $d = $startdate;
+    $d =~ s/-//g;
+    my $end = new Date::Business(DATE => $d);
+    $end->addb($period_count);
+
+    my $rval = $end->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";  
+    $enddate = $rval;
+}
+
+sub process_from_end {
+
+    my $d = $enddate;
+    $d =~ s/-//g;
+    my $start = new Date::Business(DATE => $d);
+    $start->subb($period_count);
+
+    my $rval = $start->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";  
+    $startdate = $rval;
 }
 
 format HELPTEXT =
