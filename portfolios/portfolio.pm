@@ -30,7 +30,6 @@ my $max_drawdown;
 my $max_drawdown_len;
 my $drawdown_days;
 
-my $cur_ticker_index;
 my $discards;
 
 my $total_margin_calls;
@@ -303,20 +302,19 @@ sub update_positions {
 
 	    update_stop($ticker);
 
-	    $cur_ticker_index = current_index();
-	    $low = fetch_low_at($cur_ticker_index);
-	    $high = fetch_high_at($cur_ticker_index);
+	    $low = fetch_low_at(0);
+	    $high = fetch_high_at(0);
 	    $isshort = $positions{$ticker}{'short'};
 
-	    if(fetch_volume_at($cur_ticker_index) > 0) {
+	    if(fetch_volume_at(0) > 0) {
 
 		if(! $isshort && ! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		    $equity += (fetch_close_at(0) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
 
 		if($isshort && ! stop_position($ticker, $high)) {
-		    $total_short_equity += (fetch_close_at($cur_ticker_index) * $positions{$ticker}{'shares'});
+		    $total_short_equity += (fetch_close_at(0) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
 	    }
@@ -391,10 +389,10 @@ sub stop_position {
     if(! $positions{$ticker}{'short'} && $positions{$ticker}{'stop'} >= $price) {
 
 	#if open was less than the stop we have to sell at the open
-	if(fetch_open_at($cur_ticker_index) < $positions{$ticker}{'stop'}) {
-	    end_position($ticker, fetch_open_at($cur_ticker_index), fetch_date_at($cur_ticker_index));
+	if(fetch_open_at(0) < $positions{$ticker}{'stop'}) {
+	    end_position($ticker, fetch_open_at(0), fetch_date_at(0));
 	} else {
-	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur_ticker_index));
+	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at(0));
 	}
 
 	return 1;
@@ -404,10 +402,10 @@ sub stop_position {
     if($positions{$ticker}{'short'} && $positions{$ticker}{'stop'} <= $price) {
 
 	#if open was more than the stop we have to sell at the open
-	if(fetch_open_at($cur_ticker_index) > $positions{$ticker}{'stop'}) {
-	    end_position($ticker, fetch_open_at($cur_ticker_index), fetch_date_at($cur_ticker_index));
+	if(fetch_open_at(0) > $positions{$ticker}{'stop'}) {
+	    end_position($ticker, fetch_open_at(0), fetch_date_at(0));
 	} else {
-	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at($cur_ticker_index));
+	    end_position($ticker, $positions{$ticker}{'stop'}, fetch_date_at(0));
 	}
 
 	return 1;
