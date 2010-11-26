@@ -271,7 +271,6 @@ sub update_positions {
 
 #    $current_cash = update_cash_balance($current_cash);
 
-    my $equity = 0;
     $total_short_equity = 0;
 
     foreach $ticker (@temp) {
@@ -308,12 +307,14 @@ sub update_positions {
 
 	    if(fetch_volume_at(0) > 0) {
 
-		if(! $isshort && ! stop_position($ticker, $low)) {
-		    $equity += (fetch_close_at(0) * $positions{$ticker}{'shares'});
+		stop_position($ticker, $low) and next if ! $isshort;
+		stop_position($ticker, $high) and next if $isshort;
+
+		if(! $isshort) {
 		    $positions{$ticker}{'mae'} = $low if $low < $positions{$ticker}{'mae'};
 		} 
 
-		if($isshort && ! stop_position($ticker, $high)) {
+		if($isshort) {
 		    $total_short_equity += (fetch_close_at(0) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
@@ -321,7 +322,7 @@ sub update_positions {
 	}
     }
 
-    $equity += $current_cash;
+    $equity = get_total_equity();
     push @equity_curve,$equity;
 
     if(($total_short_equity * conf::maint_margin()) > $current_cash) {
