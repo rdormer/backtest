@@ -153,6 +153,28 @@ sub fundamental_price_sales {
     return fetch_close_at(0) / fundamental_pershare_revenue();
 }
 
+sub fundamental_div_yield {
+
+    my $today = get_date();
+    
+    my $d = $today;
+    $d =~ s/-//g;
+    my $start = new Date::Business(DATE => $d);
+    $start->subb(250);
+
+    my $rval = $start->image();
+    substr $rval, 4, 0, "-";
+
+    my $divs = pull_dividends(current_ticker(), $rval, $today);
+    my $sum = 0;
+
+    foreach(keys %$divs) {
+	$sum += $divs->{$_}->{'divamt'};
+    }
+
+    return ($sum / fetch_close_at(0));
+}
+
 sub compute_dcf_valuation {
 
     my $eps = shift;
