@@ -160,7 +160,7 @@ sub fundamental_div_yield {
     my $d = $today;
     $d =~ s/-//g;
     my $start = new Date::Business(DATE => $d);
-    $start->subb(250);
+    $start->subb(253);
 
     my $rval = $start->image();
     substr $rval, 4, 0, "-";
@@ -172,7 +172,7 @@ sub fundamental_div_yield {
 	$sum += $divs->{$_}->{'divamt'};
     }
 
-    return ($sum / fetch_close_at(0));
+    return ($sum / fetch_close_at(0)) * 100;
 }
 
 sub compute_dcf_valuation {
