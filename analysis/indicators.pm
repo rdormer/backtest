@@ -148,6 +148,28 @@ sub compute_trend_score {
     return $score;
 }
 
+sub random_walk_high {
+
+    my $period = shift;
+    my $range = compute_atr($period);
+
+    my $rwi = (fetch_high_at(0) - fetch_low_at($period)) / $range;
+    $rwi *= (1 / sqrt($period));
+    
+    return $rwi;
+}
+
+sub random_walk_low {
+
+    my $period = shift;
+    my $range = compute_atr($period);
+
+    my $rwi = (fetch_high_at($period) - fetch_low_at(0)) / $range;
+    $rwi *= (1 / sqrt($period));
+    
+    return $rwi;
+}
+
 ###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls

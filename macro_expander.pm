@@ -12,6 +12,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
+                RWI_LOW RWI_HIGH
 );
 
 
@@ -40,7 +41,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"TOTAL_ASSETS" => "fundamental_total_assets", "CURRENT_ASSETS" => "fundamental_current_assets",
 			"TOTAL_DEBT" => "fundamental_total_debt", "CURRENT_DEBT" => "fundamental_current_debt",
 			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
-			"REVENUE" => "fundamental_revenue", "STRENGTH" => "relative_strength"
+			"REVENUE" => "fundamental_revenue", "STRENGTH" => "relative_strength", "RWI_LOW" => "random_walk_low",
+			"RWI_HIGH" => "random_walk_high"
 );
 
 
@@ -309,6 +311,10 @@ sub lookback_custom {
 
     if($ctoken =~ /STD_DEV/ && $alist =~ /([0-9]+),.+/) {
 	$pullval = $1 + 1;
+    }
+
+    if($ctoken =~ /RWI_LOW/ || $ctoken =~ /RWI_HIGH/) {
+	$pullval = $alist + 1;
     }
 
     if($ctoken =~ /STRENGTH/) {
