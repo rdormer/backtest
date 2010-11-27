@@ -271,8 +271,6 @@ sub update_positions {
 
 #    $current_cash = update_cash_balance($current_cash);
 
-    $total_short_equity = 0;
-
     foreach $ticker (@temp) {
 
 	#if the ending date of a position is set, it means
@@ -315,15 +313,15 @@ sub update_positions {
 		} 
 
 		if($isshort) {
-		    $total_short_equity += (fetch_close_at(0) * $positions{$ticker}{'shares'});
 		    $positions{$ticker}{'mae'} = $high if $high > $positions{$ticker}{'mae'};
 		} 
 	    }
 	}
     }
 
-    $equity = get_total_equity();
-    push @equity_curve,$equity;
+    my ($equity, $sequity) = get_total_equity();
+    $total_short_equity = $sequity;
+    push @equity_curve, $equity;
 
     if(($total_short_equity * conf::maint_margin()) > $current_cash) {
 	my $val = $total_short_equity * conf::maint_margin() - $current_cash;
@@ -453,13 +451,20 @@ sub end_position {
 sub get_total_equity {
 
     my $total_equity = $current_cash;
+    my $short_equity = 0;
 
     foreach (keys %positions) {
+
 	$current_prices = pull_data($_, get_date(), 1);
-	$total_equity += (fetch_close_at(0) * $positions{$_}{'shares'}) if ! $positions{$_}{'short'};
+
+	if($positions{$_}{'short'}) {
+	    $short_equity += (fetch_close_at(0) * $positions{$_}{'shares'});
+	} else {
+	    $total_equity += (fetch_close_at(0) * $positions{$_}{'shares'});
+	}
     }
 
-    return $total_equity;
+    return ($total_equity, $short_equity);
 }
 
 
@@ -516,7 +521,7 @@ sub print_portfolio_state {
 	}
     }
 
-    $total = get_total_equity();
+    my ($total, $xx) = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
     $summary .= "\n\ntotal: $total (return $ret)";
     $summary .= "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;

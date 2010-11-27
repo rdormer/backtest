@@ -45,7 +45,7 @@ QQQQ buy and hold: 17.4377224199288
 207 trades
 152 losing trades (avg loss -0.00471609130352762)
 51 wining trades (avg win 0.106862745098039)
-82.8298509837352 maximum drawdown
+51.9762409173219 maximum drawdown
 291 days longest drawdown
 0.246376811594203 win ratio
 8.8888888888889 max adverse excursion
@@ -66,7 +66,7 @@ QQQQ buy and hold: 18.8190110417667
 16 trades
 12 losing trades (avg loss -0.833333333333333)
 4 wining trades (avg win 2.65437583296312)
-18.0241165699147 maximum drawdown
+9.05696029921688 maximum drawdown
 212 days longest drawdown
 0.25 win ratio
 7.58928571428572 max adverse excursion
@@ -75,5 +75,4 @@ Expectancy 0.038593958240781
 
 
 time ./backtest.pl -tickers=ACOR list -entry TESTS/in2 -exit TESTS/out -start 2006-04-15 -finish 2010-04-20 --skip-progress --skip-trades
-
 time ./backtest.pl -tickers=ACOR list -entry TESTS/in2 -exit TESTS/out -start 2006-04-15 -finish 2010-04-20 --skip-progress --skip-trades --nocache

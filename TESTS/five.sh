@@ -34,8 +34,8 @@ QQQQ buy and hold: 26.4571718195641
 3 trades
 2 losing trades (avg loss -5.0071530758226)
 1 wining trades (avg win 0.909090909090901)
-9.856 maximum drawdown
-2 days longest drawdown
+1.60919172872254 maximum drawdown
+1 days longest drawdown
 0.333333333333333 win ratio
 0 max adverse excursion
 Expectancy -3.0350717475181
@@ -63,7 +63,7 @@ QQQQ buy and hold: 25.9467758444217
 84 trades
 61 losing trades (avg loss -0.272997677482445)
 22 wining trades (avg win 0.24150422632396)
-62.9328663428756 maximum drawdown
+9.83591615837009 maximum drawdown
 37 days longest drawdown
 0.261904761904762 win ratio
 7.59713479487736 max adverse excursion
