@@ -196,15 +196,15 @@ sub start_position {
 
     return 0 if $temp->[0][DATE_IND] ne get_date();
 
-    if(not exists $dividend_cache{$ticker}) {
-	$dividend_cache{$ticker} = pull_dividends($ticker, get_date(), conf::finish());
-    }
-
     if($price > 0) {
 
 	$sharecount = int($position_size / $price);
 
 	if($sharecount >= 1 && $sharecount < $volume) {
+
+	    if(not exists $dividend_cache{$ticker}) {
+		$dividend_cache{$ticker} = pull_dividends($ticker, get_date(), conf::finish());
+	    }
 
 	    $positions{$ticker}{'sdate'} = get_date();
 	    $positions{$ticker}{'shares'} = $sharecount;
