@@ -132,6 +132,22 @@ sub statistical_volatility {
     return ($num / $dnm);
 }
 
+sub compute_trend_score {
+
+    my $score = 0;
+
+    for(my $i = 11; $i <= 20; $i++) {
+	
+	if(fetch_close_at(0) > fetch_close_at($i)) {
+	    $score++;
+	} else {
+	    $score--;
+	}
+    }
+
+    return $score;
+}
+
 ###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls

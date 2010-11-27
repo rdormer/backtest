@@ -11,7 +11,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
-                BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH
+                BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
 );
 
 
@@ -52,7 +52,8 @@ my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "co
 			  "CDL_BEAR_SPINNING_TOP" => "candle_bearish_top", "CDL_DOJI" => "candle_doji", 
 			  "CDL_DRAGONFLY" => "candle_dragonfly", "CDL_GRAVESTONE" => "candle_gravestone", 
 			  "CDL_HAMMER" => "candle_hammer", "CDL_HANGMAN" => "candle_hanging_man", 
-			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star"
+			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star",
+			  "TRENDSCORE" => "compute_trend_score", "COPPOCK" => "compute_coppock"
 );
 
 my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
@@ -162,6 +163,8 @@ sub parse_statement {
 	    if(exists $lookback_table{$token}) {
 		$lcall = $lookback_table{$token} . "_Lookback()";
 		set_pull(eval($lcall));
+	    } else {
+		lookback_custom($token, "", 0);
 	    }
 
 	} elsif(exists $arg_macro_table{$token}) {
@@ -310,6 +313,10 @@ sub lookback_custom {
 
     if($ctoken =~ /STRENGTH/) {
 	$pullval = 0;
+    }
+
+    if($ctoken =~ /TRENDSCORE/) {
+	$pullval = 21;
     }
 
     set_pull($pullval + $complete_meta);
