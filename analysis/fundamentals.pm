@@ -65,26 +65,7 @@ sub fundamental_mcap {
 
     my $index = shift;
     load_precheck(current_ticker(), $index);
-
-    my $d = $date_list[$index];
-    $d =~ s/-//g;
-
-    #if reporting day was a weekend, then
-    #we use next bussiness day for fetching close
-    my $date = new Date::Business(DATE => $d);
-    my $wday = $date->day_of_week();
-
-    if($wday == 0 || $wday == 6) {
-	$date->nextb();
-    }
-
-    #re-insert dashes
-    my $d = $date->image();
-    substr $d, 4, 0, "-";
-    substr $d, 7, 0, "-";
-
-    my @close = pull_close_on_date(current_ticker(), $d);
-    return $current_fundamentals{$date_list[$index]}{'shares_outstanding'} * $close[0];
+    return $current_fundamentals{$date_list[$index]}{'shares_outstanding'} * fetch_close_at(0);
 }
 
 sub fundamental_eps {
@@ -180,6 +161,21 @@ sub fundamental_div_yield {
     }
 
     return ($sum / fetch_close_at(0)) * 100;
+}
+
+sub fundamental_price_earnings {
+
+    #don't care about return value
+    #just forcing a load here
+
+    fundamental_eps(3);
+    my $eps = 0;
+
+    for(my $i = 0; $i < 4; $i++) {
+	$eps += $current_fundamentals{$date_list[$index]}{'eps_diluted'};
+    }
+
+    return fetch_close_at(0) / $eps;
 }
 
 sub compute_dcf_valuation {

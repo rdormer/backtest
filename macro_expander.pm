@@ -12,7 +12,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
-                RWI_LOW RWI_HIGH DIVIDEND_YIELD
+                RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS
 );
 
 
@@ -56,7 +56,7 @@ my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "co
 			  "CDL_HAMMER" => "candle_hammer()", "CDL_HANGMAN" => "candle_hanging_man()", 
 			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star()",
 			  "TRENDSCORE" => "compute_trend_score()", "COPPOCK" => "compute_coppock()", 
-			  "DIVIDEND_YIELD" => "fundamental_div_yield()"
+			  "DIVIDEND_YIELD" => "fundamental_div_yield()", "PRICE_EARNINGS" => "fundamental_price_earnings()"
 );
 
 my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
