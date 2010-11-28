@@ -156,14 +156,21 @@ sub fundamental_price_sales {
 sub fundamental_div_yield {
 
     my $today = get_date();
-    
+
     my $d = $today;
     $d =~ s/-//g;
     my $start = new Date::Business(DATE => $d);
-    $start->subb(253);
+    $start->sub(365);
+
+    #reset to previous business day if 
+    #exactly one year ago was not a business day
+    if($start->day_of_week() == 0 || $start->day_of_week() == 6) {
+	$start->prevb() 
+    }
 
     my $rval = $start->image();
     substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";
 
     my $divs = pull_dividends(current_ticker(), $rval, $today);
     my $sum = 0;

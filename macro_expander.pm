@@ -49,14 +49,14 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "compute_bop()", "OBV" => "compute_obv", 
 			  "TD_SEQUENTIAL_BUY" => "td_sequential_buy()", "TD_SEQUENTIAL_SELL" => "td_sequential_sell()", 
 			  "TD_COMBO_BUY" => "td_combo_buy()", "TD_COMBO_SELL" => "td_combo_sell()", "TD_SETUP_BUY" => "td_buy_setup()", 
-			  "TD_SETUP_SELL" => "td_sell_setup()", "CDL_BULL_MARUBOZU" => "candle_bullish_marubozu",
-			  "CDL_BEAR_MRUBOZU" => "candle_bearish_marubozu", "CDL_BULL_SPINNING_TOP" => "candle_bullish_top",
-			  "CDL_BEAR_SPINNING_TOP" => "candle_bearish_top", "CDL_DOJI" => "candle_doji", 
-			  "CDL_DRAGONFLY" => "candle_dragonfly", "CDL_GRAVESTONE" => "candle_gravestone", 
-			  "CDL_HAMMER" => "candle_hammer", "CDL_HANGMAN" => "candle_hanging_man", 
-			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star",
-			  "TRENDSCORE" => "compute_trend_score", "COPPOCK" => "compute_coppock", 
-			  "DIVIDEND_YIELD" => "fundamental_div_yield"
+			  "TD_SETUP_SELL" => "td_sell_setup()", "CDL_BULL_MARUBOZU" => "candle_bullish_marubozu()",
+			  "CDL_BEAR_MRUBOZU" => "candle_bearish_marubozu()", "CDL_BULL_SPINNING_TOP" => "candle_bullish_top()",
+			  "CDL_BEAR_SPINNING_TOP" => "candle_bearish_top()", "CDL_DOJI" => "candle_doji()", 
+			  "CDL_DRAGONFLY" => "candle_dragonfly()", "CDL_GRAVESTONE" => "candle_gravestone()", 
+			  "CDL_HAMMER" => "candle_hammer()", "CDL_HANGMAN" => "candle_hanging_man()", 
+			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star()",
+			  "TRENDSCORE" => "compute_trend_score()", "COPPOCK" => "compute_coppock()", 
+			  "DIVIDEND_YIELD" => "fundamental_div_yield()"
 );
 
 my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
