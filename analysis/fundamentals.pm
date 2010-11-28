@@ -5,7 +5,6 @@ my %current_fundamentals;
 my $current_ticker;
 my @date_list;
 
-sub fundamental_dcf { return compute_dcf_valuation($current_fundamentals{'eps_diluted'}, 0, 1, 7); }
 sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'}; }
 
 sub load_precheck {
@@ -164,6 +163,10 @@ sub fundamental_div_yield {
 }
 
 sub fundamental_price_earnings {
+    return fetch_close_at(0) / fundamental_yearly_eps();
+}
+
+sub fundamental_yearly_eps {
 
     #don't care about return value
     #just forcing a load here
@@ -175,29 +178,32 @@ sub fundamental_price_earnings {
 	$eps += $current_fundamentals{$date_list[$index]}{'eps_diluted'};
     }
 
-    return fetch_close_at(0) / $eps;
+    return $eps;
 }
 
-sub compute_dcf_valuation {
+sub fundamental_dcf {
 
-    my $eps = shift;
     my $init_growth = shift;
     my $perp_growth = shift;
     my $benchmark = shift;
-    	
+
+    my $eps = fundamental_yearly_eps();
+    return 0 if $perp_growth >= $benchmark;
+    return 0 if $eps <= 0;
+
     $eps *= (1 + ($init_growth/100));  	
     $dcf = $eps / (1 + ($benchmark/100));
 
     $eps *= (1 + ($init_growth/100));  	
     $dcf += $eps / (1 + ($benchmark/100)) ** 2;
 
-    for($i = 3; $i < 100; $i++) {
+    for($i = 3; $i < 500; $i++) {
 
 	$eps *= (1 + ($perp_growth/100));  	
 	$dcf += $eps / (1 + ($benchmark/100)) ** $i;
     }
 
-    return $dcf;
+    return sprintf("%.2f", $dcf);
 }
 
 1;
