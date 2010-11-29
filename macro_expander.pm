@@ -12,7 +12,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
-                RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW
+                RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW TREND_INTENSITY
 );
 
 
@@ -42,7 +42,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"TOTAL_DEBT" => "fundamental_total_debt", "CURRENT_DEBT" => "fundamental_current_debt",
 			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
 			"REVENUE" => "fundamental_revenue", "STRENGTH" => "relative_strength", "RWI_LOW" => "random_walk_low",
-			"RWI_HIGH" => "random_walk_high", "DISCOUNTED_CASH_FLOW" => "fundamental_dcf"
+			"RWI_HIGH" => "random_walk_high", "DISCOUNTED_CASH_FLOW" => "fundamental_dcf", 
+			"TREND_INTENSITY" => "compute_trend_intensity"
 );
 
 
@@ -56,7 +57,7 @@ my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "co
 			  "CDL_HAMMER" => "candle_hammer()", "CDL_HANGMAN" => "candle_hanging_man()", 
 			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star()",
 			  "TRENDSCORE" => "compute_trend_score()", "COPPOCK" => "compute_coppock()", 
-			  "DIVIDEND_YIELD" => "fundamental_div_yield()", "PRICE_EARNINGS" => "fundamental_price_earnings()"
+			  "DIVIDEND_YIELD" => "fundamental_div_yield()", "PRICE_EARNINGS" => "fundamental_price_earnings()",
 );
 
 my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
@@ -316,6 +317,10 @@ sub lookback_custom {
 
     if($ctoken =~ /RWI_LOW/ || $ctoken =~ /RWI_HIGH/) {
 	$pullval = $alist + 1;
+    }
+
+    if($ctoken =~ /TREND_INTENSITY/ && $alist =~ /([0-9]+),[0-9]+/) {
+	$pullval = $1;
     }
 
     if($ctoken =~ /DISCOUNTED_CASH_FLOW/) {
