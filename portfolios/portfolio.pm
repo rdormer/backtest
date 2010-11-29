@@ -242,8 +242,6 @@ sub split_adjust_position {
 		#the holder as cash and round the number of shares down
    
 		my $remainder = $shares - int($shares);
-		$remainder = sprintf("%.2f", $remainder);
-	
 		my $data = pull_data($ticker, get_date(), 1);
 		my $price = $data->[0][OPEN_IND];
 		$current_cash += ($price * $remainder);

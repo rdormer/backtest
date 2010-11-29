@@ -170,6 +170,30 @@ sub random_walk_low {
     return $rwi;
 }
 
+sub compute_trend_intensity {
+
+    my $avg_period = shift;
+    my $look_period = shift;
+    my $up = 0, $down = 0;
+
+    my $average = array_avg($avg_period, CLOSE_IND);
+
+    for(my $day = 0; $day < $look_period; $day++) {
+
+	my $close = fetch_close_at($day);
+
+	if($close > $average) {
+	    $up += ($close - $average);
+	}
+
+	if($close < $average) {
+	    $down += abs($average - $close);
+	}
+    }
+
+    return ($up / ($up + $down)) * 100;
+}
+
 ###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls

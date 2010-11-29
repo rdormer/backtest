@@ -148,3 +148,21 @@ Expectancy -0.0202227863500801
 
 ./backtest.pl --entry TESTS/macd_in --exit TESTS/macd_out --start 2007-11-01 --finish 2009-10-30 --list TESTS/n100.txt --skip-trades --skip-progress
 ./backtest.pl --entry TESTS/macd_in --exit TESTS/macd_out --start 2007-11-01 --finish 2009-10-30 --list TESTS/n100.txt --skip-trades --skip-progress --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 5133.756595 (return 2.67513190000001)
+QQQQ buy and hold: -100
+6 trades
+3 losing trades (avg loss -2.57787325456499)
+3 wining trades (avg win 0.173070266528207)
+2.75349099388474 maximum drawdown
+207 days longest drawdown
+0.5 win ratio
+2.37741456166419 max adverse excursion
+Expectancy -1.20240149401839
+"
+
+./backtest.pl --ticker=ABCB --start 2009-01-01 --finish 2010-10-01 --entry TESTS/bcontentry --exit TESTS/bcontexit --skip-trades --skip-progress
+./backtest.pl --ticker=ABCB --start 2009-01-01 --finish 2010-10-01 --entry TESTS/bcontentry --exit TESTS/bcontexit --skip-trades --skip-progress --nocache
