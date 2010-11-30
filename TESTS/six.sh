@@ -41,16 +41,16 @@ Expectancy 2.40963855421688
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 8275.1274 (return 65.502548)
+total: 5133.756595 (return 2.67513190000001)
 QQQQ buy and hold: 19.6829268292683
-8 trades
-4 losing trades (avg loss -2.50569476082004)
-4 wining trades (avg win 0.129802699896155)
-5.68559026625085 maximum drawdown
-49 days longest drawdown
+6 trades
+3 losing trades (avg loss -2.57787325456499)
+3 wining trades (avg win 0.173070266528207)
+2.75349099388474 maximum drawdown
+55 days longest drawdown
 0.5 win ratio
-2.28452751817238 max adverse excursion
-Expectancy -1.18794603046194
+2.37741456166419 max adverse excursion
+Expectancy -1.20240149401839
 "
 
 ./backtest.pl -ticker=ABCB -start 2009-10-01 -finish 2010-10-01 -entry TESTS/bcontentry -exit TESTS/bcontexit --skip-progress --skip-trades
