@@ -79,6 +79,7 @@ my $current_action;
 my $current_limit;
 my $complete_meta;
 my $rank_pull;
+my $rank_flag;
 
 sub tokenize {
 
@@ -193,9 +194,10 @@ sub handle_meta {
 
     if($complete_meta) {
 	
-	if($rank_pull) {
+	if($rank_flag) {
 	    $current_action .= "', $rank_pull)";
 	    $rank_pull = 0;
+	    $rank_flag = 0;
 	    $current_limit = 0;
 	} else {
 	    $current_action .= "')";
@@ -373,6 +375,7 @@ sub process_rank {
 
     $current_action .= "rank_by('";
     $complete_meta = 1;
+    $rank_flag = 1;
 }
 
 sub set_pull {

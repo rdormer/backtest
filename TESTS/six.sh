@@ -166,3 +166,21 @@ Expectancy -1.20240149401839
 
 ./backtest.pl --ticker=ABCB --start 2009-01-01 --finish 2010-10-01 --entry TESTS/bcontentry --exit TESTS/bcontexit --skip-trades --skip-progress
 ./backtest.pl --ticker=ABCB --start 2009-01-01 --finish 2010-10-01 --entry TESTS/bcontentry --exit TESTS/bcontexit --skip-trades --skip-progress --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 8862.03 (return 77.2406)
+QQQQ buy and hold: -77.2242744063325
+57 trades
+29 losing trades (avg loss -0.245401877197865)
+26 wining trades (avg win 0.308470431302801)
+8.58161956539259 maximum drawdown
+700 days longest drawdown
+0.456140350877193 win ratio
+9.6 max adverse excursion
+Expectancy 0.00724163194278973
+"
+
+./backtest.pl --ticker=HANS --start=2000-01-01 --finish=2007-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades
+./backtest.pl --ticker=HANS --start=2000-01-01 --finish=2007-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades --nocache
