@@ -133,7 +133,7 @@ sub fundamental_price_sales {
     return fetch_close_at(0) / fundamental_pershare_revenue();
 }
 
-sub fundamental_div_yield {
+sub fundamental_yearly_dividend {
 
     my $today = get_date();
 
@@ -159,7 +159,11 @@ sub fundamental_div_yield {
 	$sum += $divs->{$_}->{'divamt'};
     }
 
-    return ($sum / fetch_close_at(0)) * 100;
+    return $sum;
+}
+
+sub fundamental_div_yield {
+    return (fundamental_yearly_dividend() / fetch_close_at(0)) * 100;
 }
 
 sub fundamental_price_earnings {
@@ -179,6 +183,10 @@ sub fundamental_yearly_eps {
     }
 
     return $eps;
+}
+
+sub fundamental_payout_ratio {
+    return sprintf("%.2f", (fundamental_yearly_dividend() / fundamental_yearly_eps()) * 100);
 }
 
 sub fundamental_dcf {

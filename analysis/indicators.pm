@@ -194,6 +194,43 @@ sub compute_trend_intensity {
     return ($up / ($up + $down)) * 100;
 }
 
+sub compute_ulcer_index {
+    my $period = shift;
+    my @vals = map {$_->[CLOSE_IND]} @$current_prices;
+    return ulcer_index($period, \@vals);
+}
+
+sub ulcer_index {
+
+    my $period = shift;
+    my $vals = shift;
+    my $sum = 0;
+    my $max = 0;
+
+    foreach $value (@$vals) {
+
+	if($value > $max) {
+	    $max = $value;
+	} else {
+	    $sum += (($value - $max) / $max) ** 2;
+	}
+    }
+
+    return sqrt($sum / scalar @$vals);
+}
+
+sub compute_ravi {
+
+    my $short_p = shift;
+    my $long_p = shift;
+
+    my $short_avg = array_avg($short_p, CLOSE_IND);
+    my $long_avg = array_avg($long_p, CLOSE_IND);
+
+    return 100 * (abs($short_avg - $long_avg) / $long_avg);
+
+}
+
 ###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls
