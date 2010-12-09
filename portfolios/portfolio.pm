@@ -1,3 +1,4 @@
+use portfolios::stats;
 use macro_expander;
 use charting;
 use POSIX;
@@ -26,11 +27,6 @@ my $position_size;
 my $risk_percent;
 
 my $max_equity;
-my $max_drawdown;
-my $max_drawdown_len;
-my $drawdown_days;
-
-my $discards;
 
 my $total_margin_calls;
 my $total_short_equity;
@@ -319,23 +315,15 @@ sub update_positions {
 
     my ($equity, $sequity) = get_total_equity();
     $total_short_equity = $sequity;
-    push @equity_curve, $equity;
+    push @equity_curve, [ $equity, get_date() ];
+
+    #if we're over our maintenance margin for shorts,
+    #add cash and note how much we'd be called for
 
     if(($total_short_equity * conf::maint_margin()) > $current_cash) {
 	my $val = $total_short_equity * conf::maint_margin() - $current_cash;
 	$current_cash += $val;
 	$total_margin_calls += $val;
-    }
-
-    if($equity > $max_equity) {
-	$max_equity = $equity;
-	$max_drawdown_len = $drawdown_days if $drawdown_days > $max_drawdown_len;
-	$drawdown_days = 0;
-    } else {
-	$drawdown = ($max_equity - $equity) / $max_equity;
-	$drawdown *= 100;
-	$max_drawdown = $drawdown if $drawdown > $max_drawdown;
-	$drawdown_days++;
     }
 
     set_ticker_list(\@tlist);
@@ -417,13 +405,6 @@ sub end_position {
     my $price = shift;
     my $edate = shift;
 
-    if($edate eq $positions{$target}{'sdate'} && $price == $positions{$target}{'start'}) {
-	$current_cash += $positions{$target}{'shares'} * $price;
-	delete $positions{$target};
-	$discards++;
-	return;
-    }
-
     $amt = $positions{$target}{'shares'} * $price;
 #    $amt = adjust_for_slippage($amt, $positions{$target}{'shares'}, $price);
     $current_cash -= $amt if $positions{$target}{'short'};
@@ -472,12 +453,6 @@ sub bywhen {
 
 sub print_portfolio_state {
 
-    my $winning_trades = 0;
-    my $losing_trades = 0;
-    my $sum_losses = 0;
-    my $sum_wins = 0;
-    my $max_adverse = 0;
-
     my $delim = "\t";
     my $newline = "\n";
     my $end = '';
@@ -500,16 +475,6 @@ sub print_portfolio_state {
 		$text .= "\t [split adjusted]";
 	    }
 	}
-
-	if($trade{'return'} > 0) {
-	    $winning_trades++;
-	    $sum_wins = $trade{'return'};
-	    $excursion = (($trade{'start'} - $trade{'mae'}) / $trade{'start'}) * 100;
-	    $max_adverse = $excursion if $excursion > $max_adverse;
-	} elsif($trade{'return'} < 0) {
-	    $losing_trades++;
-	    $sum_losses = $trade{'return'};
-	}
     }
 
     if(conf::show_trades()) {
@@ -521,33 +486,56 @@ sub print_portfolio_state {
 
     my ($total, $xx) = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
-    $summary .= "\n\ntotal: $total (return $ret)";
+    $ret = sprintf("%.2f", $ret);
+
+    $summary .= "\n\ntotal: $total (return $ret%)";
     $summary .= "\nMargin calls: $total_margin_calls" if $total_margin_calls > 0;
     $summary .= "\nPaid out $dividend_payout in dividends" if $dividend_payout > 0;
     
     my $compare = conf::benchmark();
-    $summary .= "\n$compare buy and hold: " . change_over_period($compare);
+    $summary .= "\n$compare buy and hold: " . sprintf("%.2f", change_over_period($compare)) . "%";
 
-    $max_drawdown_len = $drawdown_days if ! $max_drawdown_len;
-    
     if(scalar @trade_history > 0) {
  
-	$win_ratio = $winning_trades / (scalar @trade_history);
-	$avg_win = $sum_wins / $winning_trades if $winning_trades > 0;
-	$avg_loss = $sum_losses / $losing_trades if $losing_trades > 0;
+	my @returns = map {$_->[0]} @equity_curve;
 
-	$summary .= "\n" . scalar @trade_history . " trades";
-        $summary .= "  (discarded $discards trades)" if $discards > 0;
+	my ($avg_win, $avg_loss, $winning_trades, $losing_trades) = compute_averages(\@trade_history);
+	my ($avg_r_win, $avg_r_loss) = compute_average_ratios(\@trade_history);
+	my $win_ratio = ($winning_trades / (scalar @trade_history)) * 100;
+	my $stddev = compute_standard_deviation(\@equity_curve);
+	my $max_drawdown = compute_max_drawdown(\@returns);
+	my $sharpe = compute_sharpe_ratio(\@equity_curve, 0.5);
 
-	$summary .= "\n$losing_trades losing trades (avg loss $avg_loss)";
-	$summary .= "\n$winning_trades wining trades (avg win $avg_win)";
-	$summary .= "\n$max_drawdown maximum drawdown";
-	$summary .= "\n$max_drawdown_len days longest drawdown";
-	$summary .= "\n$win_ratio win ratio";
-	$summary .= "\n$max_adverse max adverse excursion";
-	
-	$expectancy = ($win_ratio * $avg_win) + ((1 - $win_ratio) * $avg_loss);
-	$summary .= "\nExpectancy $expectancy";
+	my $system_quality = sprintf("%.1f", compute_system_quality(\@trade_history));
+	my $recovery = sprintf("%.3f", (abs($ret) / $max_drawdown)) if $max_drawdown != 0;
+
+	$sharpe = sprintf("%.3f", $sharpe);
+	$win_ratio = sprintf("%.2f", $win_ratio);	
+	$stddev = sprintf("%.3f", $stddev);
+	$avg_win = sprintf("%.3f", $avg_win);
+	$avg_loss = sprintf("%.3f", $avg_loss);
+	$avg_r_win = sprintf("%.3f", $avg_r_win);
+	$avg_r_loss = sprintf("%.3f", $avg_r_loss);
+	$max_drawdown = sprintf("%.3f", $max_drawdown);
+	$ulcer_index = sprintf("%.4f", 	compute_ulcer(\@returns));
+	$mae = sprintf("%.3f", compute_max_adverse(\@trade_history));
+	$expect = sprintf("%.4f", compute_expectancy(\@trade_history));
+	$expect_r = sprintf("%.4f", compute_expectancy_r(\@trade_history));
+
+	$summary .= "\n" . scalar @trade_history . " trades ";
+	$summary .= "($winning_trades wins / $losing_trades losses)";
+	$summary .= "\nWin ratio $win_ratio%";
+ 	$summary .= "\nAverage win $avg_win% / $avg_r_win R";
+ 	$summary .= "\nAverage loss $avg_loss% / $avg_r_loss R";
+	$summary .= "\nMaximum drawdown $max_drawdown%";
+	$summary .= "\nSystem quality number $system_quality"; 
+	$summary .= "\nUlcer Index $ulcer_index";
+	$summary .= "\nStandard deviation of returns $stddev";
+	$summary .= "\nSharpe ratio $sharpe";
+	$summary .= "\nRecovery factor $recovery";
+	$summary .= "\nMax adverse excursion $mae%";
+	$summary .= "\nExpectancy $expect% / ";
+	$summary .= "$expect_r R";
     }
 
     if(conf::timer()) {
