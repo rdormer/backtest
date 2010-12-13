@@ -43,6 +43,14 @@ sub make_command {
 	$command .= "-filter " . dump_file($cgi->param("filter")) . " ";
     }
 
+    if($cgi->param("initstop")) {
+	$command .= "-stop " . dump_file($cgi->param("initstop")) . " ";
+    }
+
+    if($cgi->param("trailstop")) {
+	$command .= "-trail " . dump_file($cgi->param("trailstop")) . " ";
+    }
+
     return $command;
 }
 
