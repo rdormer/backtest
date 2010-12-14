@@ -417,9 +417,9 @@ sub end_position {
     $ret = -($ret) if $positions{$target}{'short'};
     $ret *= 100;
 
+    $positions{$target}{'rratio'} = $ret / $positions{$target}{'risk'} if $positions{$target}{'risk'};
     $positions{$target}{'return'} = $ret;
     $positions{$target}{'ticker'} = $target;
-    $positions{$target}{'rratio'} = $ret / $positions{$target}{'risk'};
     delete $positions{$target}{'mae'} if $ret <= 0;
 
     push @trade_history, $positions{$target};

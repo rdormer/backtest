@@ -78,7 +78,7 @@ sub short_stop {
 }
 
 sub long_stop { 
-    return $stopfile if $long_stopfile;
+    return $stopfile if $stopfile;
     return "strategies/default_long_stop";
 }
 
