@@ -28,7 +28,8 @@ sub process_commandline {
 	'skip-progress' => \$skip_progress, 'nocache' => \$disable_cache, 'skip-trades' => \$skip_trades,
 	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
 	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter, 'stop=s' => \$stopfile, 'trail=s' => \$trailfile,
-	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile, 'periods=s' => \$period_count);
+	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile, 'periods=s' => \$period_count,
+	'slip=s' => \$slip_file);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -43,6 +44,7 @@ sub process_commandline {
     die "Couldn't open $trailfile" if $trailfile && ! -e $trailfile;
     die "Couldn't open $short_stopfile" if $short_stopfile && ! -e $short_stopfile;
     die "Couldn't open $short_trailfile" if $short_trailfile && ! -e $short_trailfile;
+    die "Couldn't open $slip_file" if $slip_file && ! -e $slip_file;
 
     process_period_count();
 }
@@ -71,6 +73,10 @@ sub cgi_handle { return $cgi_handle; }
 sub short_trail { return $short_trailfile; }
 sub long_trail { return $trailfile; }
 sub timer { return $use_timer; }
+
+sub slippage { 
+    return $slip_file if $slip_file;
+}
 
 sub short_stop { 
     return $short_stopfile if $short_stopfile;

@@ -5,6 +5,8 @@ use POSIX;
 use conf;
 
 my %positions;
+
+my @trade_slippage;
 my @trade_history;
 my @long_exits;
 my @short_exits;
@@ -45,7 +47,7 @@ sub init_long_portfolio {
     my $longtrail = shift;
     @long_trail = @$longtrail;
 
-    generic_init();
+    generic_init(shift);
 }
 
 sub init_short_portfolio {
@@ -59,7 +61,7 @@ sub init_short_portfolio {
     my $shorttrail = shift;
     @short_trail = @$shorttrail;
 
-    generic_init();
+    generic_init(shift);
 }
 
 sub generic_init {
@@ -67,6 +69,9 @@ sub generic_init {
     $risk_percent = conf::risk_percent();
     $starting_cash = conf::startwith();
     $current_cash = $starting_cash;
+
+    my $slip = shift;
+    @trade_slippage = @$slip;
 
     calculate_position_count();
     calculate_position_size($current_cash);
@@ -405,15 +410,17 @@ sub end_position {
     my $price = shift;
     my $edate = shift;
 
-    $amt = $positions{$target}{'shares'} * $price;
-#    $amt = adjust_for_slippage($amt, $positions{$target}{'shares'}, $price);
+    my $shares = $positions{$target}{'shares'};
+    $amt = $shares * $price;
+    $amt -= eval_expression(\@trade_slippage, $target) if @trade_slippage;
     $current_cash -= $amt if $positions{$target}{'short'};
     $current_cash += $amt if ! $positions{$target}{'short'};
 
     $positions{$target}{'end'} = $price;
     $positions{$target}{'edate'} = $edate;
 
-    $ret = ($positions{$target}{'end'} - $positions{$target}{'start'}) / $positions{$target}{'start'};
+    my $startval = $positions{$target}{'start'} * $shares;
+    my $ret = ($amt - $startval) / $startval;
     $ret = -($ret) if $positions{$target}{'short'};
     $ret *= 100;
 

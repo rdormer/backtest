@@ -11,13 +11,15 @@ init_data();
 eval "use portfolios::" . conf::portfolio();
 $SIG{INT} = \&salvage_interrupt;
 
+@slippage = parse_expression(conf::slippage()) if conf::slippage();
+
 if(conf::long_positions()) {
     @long_exit = parse_screen(conf::exit_sig());
     @long_actions = parse_screen(conf::enter_sig());
     @long_stop = parse_expression(conf::long_stop());
     @long_trail = parse_expression(conf::long_trail()) if conf::long_trail();
     @long_filter = parse_screen(conf::long_filter()) if conf::long_filter();
-    init_long_portfolio(\@long_exit, \@long_stop, \@long_trail);
+    init_long_portfolio(\@long_exit, \@long_stop, \@long_trail, \@slippage);
 }
 
 if(conf::short_positions()) {
@@ -26,7 +28,7 @@ if(conf::short_positions()) {
     @short_stop = parse_expression(conf::short_stop());
     @short_trail = parse_expression(conf::short_trail()) if conf::short_trail();
     @short_filter = parse_screen(conf::short_filter()) if conf::short_filter();
-    init_short_portfolio(\@short_exit, \@short_stop, \@short_trail);
+    init_short_portfolio(\@short_exit, \@short_stop, \@short_trail, \@slippage);
 }
 
 $tref = sub { return $_[0] >= positions_available(); };
