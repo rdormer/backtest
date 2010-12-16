@@ -13,6 +13,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
                 RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW TREND_INTENSITY PAYOUT_RATIO ULCER_INDEX RAVI
+                POSITION_DAYS_HELD POSITION_RETURN_PERCENT POSITION_RETURN_R
 );
 
 
@@ -58,7 +59,8 @@ my %noarg_macro_table = ( "=" => "==", "OR" => "||", "AND" => "&&", "BOP" => "co
 			  "CDL_INVERTED_HAMMER" => "candle_inverted_hammer", "CDL_SHOOTING_STAR" => "candle_shooting_star()",
 			  "TRENDSCORE" => "compute_trend_score()", "COPPOCK" => "compute_coppock()", 
 			  "DIVIDEND_YIELD" => "fundamental_div_yield()", "PRICE_EARNINGS" => "fundamental_price_earnings()",
-			  "PAYOUT_RATIO" => "fundamental_payout_ratio()"
+			  "PAYOUT_RATIO" => "fundamental_payout_ratio()", "POSITION_DAYS_HELD" => "position_time()", 
+			  "POSITION_RETURN_PERCENT" => "position_return_percent()", "POSITION_RETURN_R" => "position_return_r()"
 );
 
 my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWER" => "TA_ACCBANDS", 
@@ -340,6 +342,10 @@ sub lookback_custom {
 
     if($ctoken =~ /TRENDSCORE/) {
 	$pullval = 21;
+    }
+
+    if($ctoken =~ /POSITION*/) {
+	$pullval = 0;
     }
 
     set_pull($pullval + $complete_meta);

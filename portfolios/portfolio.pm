@@ -446,6 +446,28 @@ sub get_total_equity {
     return ($total_equity, $short_equity);
 }
 
+sub position_time {
+
+    my $ticker = current_ticker();
+    my ($start, $now) = parse_two_dates($positions{$ticker}{'sdate'}, get_date());
+    return ($now->diffb($start) + 1);
+}
+
+sub position_return_percent {
+
+    my $ticker = current_ticker();
+    my $start = $positions{$ticker}{'start'};
+    my $current = fetch_close_at(0);
+    my $ret = ($current - $start) / $start;
+    return $ret * 100;
+}
+
+sub position_return_r {
+
+    my $ticker = current_ticker();
+    my $cur = position_return_percent();
+    return $cur / $positions{$ticker}{'risk'};
+}
 
 sub bywhen { 
     return $$a{'sdate'} gt $$b{'sdate'};
