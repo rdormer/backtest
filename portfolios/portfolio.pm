@@ -411,13 +411,13 @@ sub end_position {
     my $edate = shift;
 
     my $shares = $positions{$target}{'shares'};
-    $amt = $shares * $price;
-    $amt -= eval_expression(\@trade_slippage, $target) if @trade_slippage;
-    $current_cash -= $amt if $positions{$target}{'short'};
-    $current_cash += $amt if ! $positions{$target}{'short'};
-
     $positions{$target}{'end'} = $price;
     $positions{$target}{'edate'} = $edate;
+
+    $amt = $shares * $price;
+    $amt -= eval_expression(\@trade_slippage, $target) if @trade_slippage;
+    $current_cash -= $amt if $positions{$target}{'short'};    #is this right?
+    $current_cash += $amt if ! $positions{$target}{'short'};
 
     my $startval = $positions{$target}{'start'} * $shares;
     my $ret = ($amt - $startval) / $startval;
@@ -474,6 +474,18 @@ sub position_return_r {
     my $ticker = current_ticker();
     my $cur = position_return_percent();
     return $cur / $positions{$ticker}{'risk'};
+}
+
+sub position_shares {
+    return $positions{current_ticker()}{'shares'};
+}
+
+sub position_buy_price {
+    return $positions{current_ticker()}{'start'};
+}
+
+sub position_sell_price {
+    return $positions{current_ticker()}{'end'};    
 }
 
 sub bywhen { 
