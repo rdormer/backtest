@@ -29,7 +29,7 @@ sub process_commandline {
 	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
 	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter, 'stop=s' => \$stopfile, 'trail=s' => \$trailfile,
 	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile, 'periods=s' => \$period_count,
-	'slip=s' => \$slip_file);
+	'slip=s' => \$slip_file, 'stop-equity' => \$stop_equity);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -73,6 +73,7 @@ sub cgi_handle { return $cgi_handle; }
 sub short_trail { return $short_trailfile; }
 sub long_trail { return $trailfile; }
 sub timer { return $use_timer; }
+sub stop_equity { return $stop_equity; }
 
 sub slippage { 
     return $slip_file if $slip_file;

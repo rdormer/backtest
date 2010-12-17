@@ -51,21 +51,21 @@ time  ./backtest.pl -tickers=ACAP -entry TESTS/200dayavg-byfive -exit TESTS/200d
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 4958.24842 (return -0.84%)
-Paid out 105.14842 in dividends
+total: 5029.82503 (return 0.60%)
+Paid out 102.51503 in dividends
 QQQQ buy and hold: 18.13%
-39 trades (6 wins / 33 losses)
-Win ratio 15.38%
-Average win 3.387% / 0.339 R
-Average loss -8.343% / -0.834 R
-Maximum drawdown 15.206%
-System quality number -3.2
-Ulcer Index 0.0976
-Standard deviation of returns 3.343
-Sharpe ratio -2.258
-Recovery factor 0.055
+43 trades (8 wins / 35 losses)
+Win ratio 18.60%
+Average win 3.970% / 0.397 R
+Average loss -8.021% / -0.802 R
+Maximum drawdown 14.652%
+System quality number -3.0
+Ulcer Index 0.0915
+Standard deviation of returns 3.236
+Sharpe ratio -2.133
+Recovery factor 0.041
 Max adverse excursion 4.630%
-Expectancy -6.5384% / -0.6535 R
+Expectancy -5.7899% / -0.5788 R
 "
 
 time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/200dayavg-byfive -exit TESTS/200dayout -start 2006-11-17 -finish 2007-12-09 --skip-progress --skip-trades
@@ -75,21 +75,21 @@ time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/200dayavg-byfive 
 echo "+++++++++++++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++++++++++++";
 echo "
-total: 4697.11 (return -6.06%)
+total: 4620.94 (return -7.58%)
 Paid out 66.15 in dividends
 QQQQ buy and hold: -1.35%
-16 trades (0 wins / 16 losses)
+19 trades (0 wins / 19 losses)
 Win ratio 0.00%
 Average win 0.000% / 0.000 R
-Average loss -6.376% / -0.638 R
-Maximum drawdown 7.657%
+Average loss -6.149% / -0.615 R
+Maximum drawdown 8.958%
 System quality number -6.8
-Ulcer Index 0.0437
-Standard deviation of returns 2.286
-Sharpe ratio -1.915
-Recovery factor 0.791
+Ulcer Index 0.0522
+Standard deviation of returns 2.699
+Sharpe ratio -1.893
+Recovery factor 0.846
 Max adverse excursion 0.000%
-Expectancy -6.3758% / -0.6376 R
+Expectancy -6.1488% / -0.6149 R
 "
 
 time ./backtest.pl -list TESTS/stock_universe.txt -entry TESTS/200dayavg-byfive -exit TESTS/200dayout -start 2007-07-09 -finish 2007-09-09 --skip-progress --skip-trades

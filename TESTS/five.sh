@@ -61,21 +61,21 @@ QQQQ buy and hold: 8.17%
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 5316.35691 (return 6.33%)
-Paid out 49.30691 in dividends
+total: 4952.33237 (return -0.95%)
+Paid out 50.86237 in dividends
 QQQQ buy and hold: 25.95%
-84 trades (22 wins / 61 losses)
-Win ratio 26.19%
-Average win 7.922% / 0.792 R
-Average loss -4.311% / -0.431 R
-Maximum drawdown 9.836%
-System quality number -1.4
-Ulcer Index 0.0473
-Standard deviation of returns 2.213
-Sharpe ratio 1.766
-Recovery factor 0.644
+81 trades (22 wins / 58 losses)
+Win ratio 27.16%
+Average win 8.070% / 0.807 R
+Average loss -4.914% / -0.491 R
+Maximum drawdown 13.064%
+System quality number -1.6
+Ulcer Index 0.0463
+Standard deviation of returns 2.449
+Sharpe ratio 1.213
+Recovery factor 0.073
 Max adverse excursion 7.597%
-Expectancy -1.1073% / -0.1106 R
+Expectancy -1.3876% / -0.1385 R
 "
 
 time ./backtest.pl -list=TESTS/stock_universe.txt -entry TESTS/tdsetup2 -exit TESTS/out -start 2006-09-01 -finish 2007-09-15 --skip-progress --skip-trades

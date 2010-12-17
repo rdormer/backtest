@@ -25,7 +25,6 @@ my @equity_curve;
 my $starting_cash;
 my $current_cash;
 my $position_count;
-my $position_size;
 my $risk_percent;
 
 my $max_equity;
@@ -74,17 +73,20 @@ sub generic_init {
     @trade_slippage = @$slip;
 
     calculate_position_count();
-    calculate_position_size($current_cash);
+    calculate_position_size();
 }
 
 sub positions_available {
 
-    return floor($current_cash / $position_size);
+    my $psize = calculate_position_size();
+    return floor($current_cash / $psize);
 }
 
 sub calculate_position_size {
-    $newcapital = shift;
-    $position_size += $newcapital / $position_count;
+
+    my $sflag = conf::stop_equity() ? 1 : 0;
+    my ($equity, $short) = get_sizing_equity($sflag);
+    return ($equity / $position_count);
 }
 
 sub calculate_position_count {
@@ -124,6 +126,7 @@ sub process_signals {
     my $longlen = scalar @long_signals;
     my $shortlen = scalar @short_signals;
     my $len = $longlen > $shortlen ? $longlen : $shortlen;
+    my $psize = calculate_position_size();
 
     #alternate between starting a long position and a short
     #position to give both sides a fair shake at getting trades
@@ -131,11 +134,11 @@ sub process_signals {
     for(my $i = 0; $i < $len; $i++) {
 
 	if($longlen > $i && positions_available() && ! exists $positions{$long_signals[$i]}) {
-	    start_long_position($long_signals[$i]);
+	    start_long_position($long_signals[$i], $psize);
 	}
 
 	if($shortlen > $i && positions_available() && ! exists $positions{$short_signals[$i]}) {
-	    start_short_position($short_signals[$i]);
+	    start_short_position($short_signals[$i], $psize);
 	}
     }
 
@@ -145,41 +148,44 @@ sub process_signals {
 
 sub start_long_position {
 
-    my $count = start_position($_[0]);
+    my $ticker = shift;
+    my $count = start_position($ticker, shift);
 
     if($count > 0) {
 
-	my $price = $positions{$_[0]}{'start'};
-	my $stop = compute_stop(\@long_stop, $_[0]);
+	my $price = $positions{$ticker}{'start'};
+	my $stop = compute_stop(\@long_stop, $ticker);
 
 	$current_cash -= $count * $price;
-	$positions{$_[0]}{'short'} = 0;
-	$positions{$_[0]}{'exit'} = \@long_exits;
-	$positions{$_[0]}{'stop'} = $stop;
-	$positions{$_[0]}{'risk'} = (($price - $stop) / $price) * 100;
+	$positions{$ticker}{'short'} = 0;
+	$positions{$ticker}{'exit'} = \@long_exits;
+	$positions{$ticker}{'stop'} = $stop;
+	$positions{$ticker}{'risk'} = (($price - $stop) / $price) * 100;
     }
 }
 
 sub start_short_position {
 
-    my $count = start_position($_[0]);
+    my $ticker = shift;
+    my $count = start_position($ticker, shift);
+
     if($current_cash >= 2000 && $count > 0) {
 
 	#we have to check to see if this new position takes us over the initial margin
 	#requirement, and if it does, back out the trade
 
 	if($current_cash < $total_short_equity + ($count * $price) * conf::initial_margin()) {
-	    delete $positions{$_[0]};
+	    delete $positions{$ticker};
 	} else {
 
-	    my $price = $positions{$_[0]}{'start'};
+	    my $price = $positions{$ticker}{'start'};
 	    my $stop = initial_stop($price, 1);
 
 	    $current_cash += $count * $price;
-	    $positions{$_[0]}{'short'} = 1;
-	    $positions{$_[0]}{'exit'} = \@short_exits;
-	    $positions{$_[0]}{'stop'} = $stop;
-	    $positions{$_[0]}{'risk'} = (($price - $stop) / $price) * -100;
+	    $positions{$ticker}{'short'} = 1;
+	    $positions{$ticker}{'exit'} = \@short_exits;
+	    $positions{$ticker}{'stop'} = $stop;
+	    $positions{$ticker}{'risk'} = (($price - $stop) / $price) * -100;
 	}
     }
 }
@@ -187,6 +193,7 @@ sub start_short_position {
 sub start_position {
 
     my $ticker = shift;
+    my $position_size = shift;
     my $sharecount = 0;
 
     return 0 if get_date() eq conf::finish();
@@ -433,6 +440,25 @@ sub end_position {
     delete $positions{$target};
 }
 
+sub get_sizing_equity {
+
+    my $temp = $current_prices;
+    my $equity = $current_cash;
+    my $stopflag = shift;
+
+    foreach (keys %positions) {
+
+	if($stopflag) {
+	    $equity += $positions{$_}{'stop'} * $positions{$_}{'shares'};
+	} else {
+	    $current_prices = pull_data($_, get_date(), 2);
+	    $equity += fetch_close_at(1) * $positions{$_}{'shares'};
+	}
+    }
+
+    $current_prices = $temp;
+    return $equity;
+}
 
 sub get_total_equity {
 
