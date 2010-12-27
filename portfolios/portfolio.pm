@@ -609,14 +609,8 @@ sub print_portfolio_state {
 	$summary .= "\nElapsed Time: " . conf::elapsed_time() . " seconds";
     }
 
-    if(conf::cgi_handle()) {
-
-	$output .= "$text ^^^^^ $summary";
-	write_cgi($output);
-
-    } else {
-	print "$text $summary";
-    }
+    $output .= "$text ^^^^^ $summary";
+    conf::output($output);
 
     if(conf::draw_curve()) {
 	charting::draw_line_chart(\@equity_curve, conf::draw_curve());

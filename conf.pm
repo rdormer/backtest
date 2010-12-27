@@ -7,6 +7,7 @@ use vars qw/@ISA @EXPORT $VERSION/;
 @EXPORT = qw/process_commandline/;
 $VERSION = 1.0;
 my $start_time;
+my $progress;
 
 $~ = 'HELPTEXT';
 
@@ -47,6 +48,7 @@ sub process_commandline {
     die "Couldn't open $slip_file" if $slip_file && ! -e $slip_file;
 
     process_period_count();
+    init_cgi() if $cgi_handle;
 }
 
 sub date { return $date; }
@@ -69,7 +71,6 @@ sub draw_curve { return $curve; }
 sub usecache { return not $disable_cache; }
 sub show_trades { return not $skip_trades; }
 sub ticker_list { return $tickerlist; }
-sub cgi_handle { return $cgi_handle; }
 sub short_trail { return $short_trailfile; }
 sub long_trail { return $trailfile; }
 sub timer { return $use_timer; }
@@ -192,6 +193,39 @@ sub process_from_end {
     substr $rval, 4, 0, "-";
     substr $rval, 7, 0, "-";  
     $startdate = $rval;
+}
+
+
+sub init_cgi {
+
+    $progress = shmget(IPC_PRIVATE, 1000000, IPC_CREAT | IPC_EXL | 0777 );
+	
+    open INFILE, ">", $cgi_handle;
+    print INFILE $progress;
+    close INFILE;
+}
+
+sub output {
+
+    my $data = shift;
+    my $dieflag = shift;
+
+    if($cgi_handle) {
+
+	if(length $data > 10 && ! $dieflag) {
+	    $data = "###$data###";
+	} else {
+	    $data = "$data===";
+	}
+
+	shmwrite($progress, $data, 0, length $data);
+
+    } else {
+	$data =~ tr/^/ /;
+	print "$data";
+    }
+
+    die if $dieflag;
 }
 
 format HELPTEXT =

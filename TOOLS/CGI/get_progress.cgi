@@ -18,6 +18,10 @@ if($data eq "###") {
     }
 
 } else {
-    shmread($handle, $data, 0, 10);
-    print $data;
+    
+    shmread($handle, $data, 0, 100);
+
+    if($data =~ /(.+)===/) {
+	print $1;
+    }
 }

@@ -45,7 +45,6 @@ my @ticker_list;
 
 my %data_cache;
 my %split_cache;
-my $progress;
 
 sub init_data {
 
@@ -63,15 +62,6 @@ sub init_data {
 
 	my $list = conf::ticker_list();
 	@ticker_list = split /,/, $list;
-    }
-
-    if(conf::cgi_handle()) {
-	
-	$progress = shmget(IPC_PRIVATE, 1000000, IPC_CREAT | IPC_EXL | 0777 );
-	
-	open INFILE, ">", conf::cgi_handle();
-	print INFILE $progress;
-	close INFILE;
     }
 
     set_date_range(conf::start(), conf::finish());
@@ -107,12 +97,12 @@ sub next_test_day {
     }
 
     if(! conf::noprogress()) {
-	print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
+	#print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
+#        conf::output("$current_date\n\b\b\b\b\b\b\b\b\b\b");
+	conf::output($current_date);
     }
 
-    if(conf::cgi_handle()) {
-	write_cgi($current_date);
-    }
+
 
     $d = $current_date;
     $d =~ s/-//g;
@@ -498,13 +488,6 @@ sub current_ticker {
 
 sub get_exit_date {
     return $date_range[$date_index + 1];
-}
-
-sub write_cgi {
-
-    my $data = shift;
-    $data = "###$data###" if length $data > 10;
-    shmwrite($progress, $data, 0, length $data);
 }
 
 sub change_over_period {

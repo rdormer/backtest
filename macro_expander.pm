@@ -113,7 +113,7 @@ sub tokenize {
 	    $raw_screen = "" if $raw_screen =~ /^[\s]+$/;
 	}
 
-	die "unrecognized token in $file" if $prev eq $raw_screen;
+	conf::output("unrecognized token in $prev", 1) if $prev eq $raw_screen;
     }
 }
 

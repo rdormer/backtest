@@ -12,10 +12,10 @@ sub make_command {
 
     my $handle_file = shift;
 
-    my $command = "./backtest.pl ";
+    my $command = "./backtest.pl --nocache ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
-    $command .= "--skip-progress --timer --cgi-handle=" . $handle_file . " ";
+    $command .= "--timer --cgi-handle=" . $handle_file . " ";
 
     if($cgi->param("tickers")) {
 	$command .= "-tickers=" . $cgi->param("tickers") . " ";
