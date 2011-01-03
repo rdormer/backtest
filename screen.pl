@@ -14,6 +14,7 @@ if(conf::date()) {
 
 init_data();
 @actions = parse_screen(conf::screen());
+check_runtime_errors(\@actions);
 
 $tref = sub { return 0; };
 @results = run_screen_loop($tref, \@actions);

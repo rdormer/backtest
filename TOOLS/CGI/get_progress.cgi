@@ -19,7 +19,7 @@ if($data eq "###") {
 
 } else {
     
-    shmread($handle, $data, 0, 100);
+    shmread($handle, $data, 0, 500);
 
     if($data =~ /(.+)===/) {
 	print $1;

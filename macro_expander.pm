@@ -80,11 +80,14 @@ my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker, "[
     "RANK\\|" => \&process_rank);
 
 my @token_list;
+my $current_statement;
 my $current_action;
 my $current_limit;
 my $complete_meta;
 my $rank_pull;
 my $rank_flag;
+
+my %statement_map;
 
 sub tokenize {
 
@@ -118,7 +121,10 @@ sub tokenize {
 }
 
 sub next_token {
-    return shift @token_list;
+
+    my $token = shift @token_list;
+    $current_statement .= "$token ";
+    return $token;
 }
 
 sub parse_screen {
@@ -135,6 +141,7 @@ sub parse_expression {
     tokenize(shift);
     my $act = parse_statement();
     $current_action = "";
+    $statement_map{$act} = $current_statement;
     return [$act, $current_limit];
 }
 
@@ -156,12 +163,14 @@ sub parse_scan {
     my $actions = shift;
     parse_statement();
     my $act = "if($current_action) {return 1} else {return 0}";
+    $statement_map{$act} = $current_statement;
     push @$actions, [$act, $current_limit];
     $current_action = "";
 }
 
 sub parse_statement {
 
+    $current_statement = "";
     $token = next_token();
     $current_limit = 1;
 
@@ -241,7 +250,14 @@ sub capture_args {
 	lookback_custom($ltoken, $arglist, $max);
     }
 
+    #re-insert previous token and remove
+    #it from statement to prevent duplicates
+
     unshift @token_list, $arg;
+
+    if($current_statement =~ /(.* )$arg/) {
+	$current_statement = $1;
+    }
 }
 
 sub lookback_custom {
@@ -396,6 +412,12 @@ sub set_pull {
     my $t = shift;
     $rank_pull = $t;
     $current_limit = $t if $t > $current_limit;
+}
+
+sub statement_from_action {
+    
+    my $statement = shift;
+    return $statement_map{$statement};
 }
 
 1;

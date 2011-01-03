@@ -19,6 +19,7 @@ if(conf::long_positions()) {
     @long_stop = parse_expression(conf::long_stop());
     @long_trail = parse_expression(conf::long_trail()) if conf::long_trail();
     @long_filter = parse_screen(conf::long_filter()) if conf::long_filter();
+    check_runtime_errors(\@long_actions, \@long_exit, \@long_stop, \@long_trail, \@long_filter);
     init_long_portfolio(\@long_exit, \@long_stop, \@long_trail, \@slippage);
 }
 
@@ -28,6 +29,7 @@ if(conf::short_positions()) {
     @short_stop = parse_expression(conf::short_stop());
     @short_trail = parse_expression(conf::short_trail()) if conf::short_trail();
     @short_filter = parse_screen(conf::short_filter()) if conf::short_filter();
+    check_runtime_errors(\@short_actions, \@short_exit, \@short_stop, \@short_trail, \@short_filter);
     init_short_portfolio(\@short_exit, \@short_stop, \@short_trail, \@slippage);
 }
 

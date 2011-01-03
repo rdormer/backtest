@@ -527,6 +527,41 @@ sub get_date_image {
     return $rval;
 }
 
+#checks validity of statements by trying to evaluate them
+#and inspecting the flag for eval.  We have to do this
+#since statements are executed dynamically, so we can't 
+#know if they have errors until we try to run them.
+
+sub check_runtime_errors {
+
+    my $t = $current_prices;
+
+    my @row;
+    $row[OPEN_IND] = 1;
+    $row[HIGH_IND] = 3;
+    $row[LOW_IND] = 0.5;
+    $row[CLOSE_IND] = 2;
+
+    foreach $statements (@_) {
+
+	next if scalar @$statements == 0;
+
+	$current_prices = ();
+	my $len = $statements->[scalar @$statements - 1][1];
+
+	for(0..$len) {
+	    push @$current_prices, \@row;
+	}
+
+	foreach(@$statements) {
+	    eval($_->[0]);
+	    conf::output("syntax error on statement '" . statement_from_action($_->[0]) . "'", 1) if $@;
+	}
+    }
+
+    $current_prices = $t;
+}
+
 sub show {
 
    my $ref = shift;
