@@ -345,7 +345,7 @@ sub pull_data {
 	    shift @$remain;
 	    push @$fromcache, @$remain;
 
-	} elsif ($cachelen > $max_limit && $needpull) {
+	} elsif ($cachelen > $max_limit) {
 	    pop @$fromcache;
 	}
 
