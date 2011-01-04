@@ -346,7 +346,8 @@ sub pull_data {
 	    push @$fromcache, @$remain;
 
 	} elsif ($cachelen > $max_limit) {
-	    pop @$fromcache;
+	    my $trim = $cachelen - $max_limit;
+	    splice @$fromcache, -($trim), $trim;
 	}
 
 	#store back to the cache, and return data
