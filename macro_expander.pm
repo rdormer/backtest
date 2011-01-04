@@ -254,10 +254,7 @@ sub capture_args {
     #it from statement to prevent duplicates
 
     unshift @token_list, $arg;
-
-    if($current_statement =~ /(.* )$arg/) {
-	$current_statement = $1;
-    }
+    $current_statement = substr $current_statement, 0, -(length $arg - 1);
 }
 
 sub lookback_custom {
