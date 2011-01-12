@@ -131,7 +131,7 @@ sub process_signals {
     #alternate between starting a long position and a short
     #position to give both sides a fair shake at getting trades
 
-    for(my $i = 0; $i < $len; $i++) {
+    for(my $i = 0; $i < $len && $current_cash >= $psize; $i++) {
 
 	if($longlen > $i && positions_available() && ! exists $positions{$long_signals[$i]}) {
 	    start_long_position($long_signals[$i], $psize);
