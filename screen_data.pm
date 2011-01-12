@@ -219,21 +219,34 @@ sub trade_filter {
     }
 }
 
+sub run_filter {
+
+    my $filter = shift;
+
+    if(@$filter > 0 ) {
+	$max_limit = $filter->[scalar @$filter - 1][1];
+	return trade_filter($filter);
+    }
+
+    return 1;
+}
+
 sub run_screen_loop {
 
     my $stop = shift;
     my $criteria = shift;
-    my $filter = shift;
     my @results;
 
-    return if @$filter > 0 && ! trade_filter($filter);
-    $max_limit = $criteria->[scalar @$criteria - 1][1];
+    if(run_filter(shift)) {
 
-    foreach $ticker (@ticker_list) {
+	$max_limit = $criteria->[scalar @$criteria - 1][1];
 
-	if(filter_results($ticker, $criteria)) {
-	    push @results, $ticker;
-	    last if &$stop(scalar @results);
+	foreach $ticker (@ticker_list) {
+
+	    if(filter_results($ticker, $criteria)) {
+		push @results, $ticker;
+		last if &$stop(scalar @results);
+	    }
 	}
     }
 
@@ -279,7 +292,7 @@ sub filter_results {
 	    $date = $data->[$last][DATE_IND] if $last >= 0;
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
-	    return 0 if not eval($criteria->[$i][0]);
+	    return 0 unless eval($criteria->[$i][0]);
 
 	} else {
 	    return 0;
