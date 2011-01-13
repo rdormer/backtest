@@ -286,8 +286,8 @@ sub filter_results {
 
 	if(($last >= 0 && ($i > 0 ? 1 : $data->[0][VOL_IND] > 0)) || 
 	   ($maximum > 1 && $count == 1)) {
-
-	    process_splits($current_ticker, $data);
+	    
+	    $data = process_splits($current_ticker, $data);
 
 	    $date = $data->[$last][DATE_IND] if $last >= 0;
 	    shift @$data if $i > 0;
@@ -402,10 +402,9 @@ sub trim_data_array {
 	$end = $start + $count - 1;
     }
 
-    #copy data so we don't corrupt cache
     my @rval = ();
     foreach $i ($start..$end) {
-	push @rval, [@{$data->[$i]}] if $data->[$i];
+	push @rval, $data->[$i] if $data->[$i];
     }
 
     return \@rval;
@@ -433,6 +432,19 @@ sub process_splits {
 
     return if $histlen < 0;
 
+    #if we're using cached data we need to 
+    #copy it first to avoid corrupting the cache
+
+    if(exists $data_cache{$ticker}) {
+
+	my @rval;
+	foreach (@$hist) {
+	    push @rval, [@$_];
+	}
+
+	$hist = \@rval;
+    }
+
     foreach $split (@$splitlist) {
 
 	#if the current split is before the 
@@ -457,6 +469,8 @@ sub process_splits {
 	    }
 	}
     }
+
+    return $hist;
 }
 
 sub search_array_date {

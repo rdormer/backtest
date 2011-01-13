@@ -1,0 +1,93 @@
+#! /bin/sh
+
+cd ../
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 3988.17 (return -20.24%)
+Paid out 2.07 in dividends
+QQQQ buy and hold: -28.40%
+348 trades (58 wins / 207 losses)
+Win ratio 16.67%
+Average win 14.456% / 1.449 R
+Average loss -5.255% / -0.529 R
+Maximum drawdown 33.210%
+System quality number -3.9
+Ulcer Index 0.1487
+Standard deviation of returns 8.716
+Sharpe ratio -0.262
+Recovery factor 0.609
+Max adverse excursion 9.639%
+Expectancy -1.9694% / -0.1991 R
+"
+
+time ./backtest.pl -start 2008-03-15 -finish 2009-03-19 -list TESTS/short-t.txt -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-trades --skip-progress
+time ./backtest.pl -start 2008-03-15 -finish 2009-03-19 -list TESTS/short-t.txt -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-trades --skip-progress --nocache
+
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 4979 (return -0.42%)
+QQQQ buy and hold: 14.39%
+4 trades (0 wins / 1 losses)
+Win ratio 0.00%
+Average win 0.000% / 0.000 R
+Average loss -2.074% / -0.209 R
+Maximum drawdown 0.420%
+System quality number -4.6
+Ulcer Index 0.0012
+Standard deviation of returns 0.000
+Sharpe ratio 0.000
+Recovery factor 1.000
+Max adverse excursion 0.000%
+Expectancy -2.0741% / -0.2090 R
+"
+
+./backtest.pl -start 2008-03-31 -finish 2008-06-01 -tickers ADGF -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress --skip-trades
+./backtest.pl -start 2008-03-31 -finish 2008-06-01 -tickers ADGF -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 4946 (return -1.08%)
+QQQQ buy and hold: 5.49%
+11 trades (1 wins / 4 losses)
+Win ratio 9.09%
+Average win 1.344% / 0.135 R
+Average loss -3.060% / -0.306 R
+Maximum drawdown 1.775%
+System quality number -5.2
+Ulcer Index 0.0109
+Standard deviation of returns 0.514
+Sharpe ratio -2.014
+Recovery factor 0.608
+Max adverse excursion 0.192%
+Expectancy -2.6594% / -0.2660 R
+"
+
+./backtest.pl -start 2008-03-31 -finish 2008-09-01 -tickers ADGF -entry TESTS/306873 -exit TESTS/909050 -trail TESTS/550138 --skip-progress --skip-trades
+./backtest.pl -start 2008-03-31 -finish 2008-09-01 -tickers ADGF -entry TESTS/306873 -exit TESTS/909050 -trail TESTS/550138 --skip-progress --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo " 
+total: 4976.96 (return -0.46%)
+QQQQ buy and hold: 5.40%
+1 trades (0 wins / 1 losses)
+Win ratio 0.00%
+Average win 0.000% / 0.000 R
+Average loss -4.624% / -0.462 R
+Maximum drawdown 0.461%
+System quality number 0.0
+Ulcer Index 0.0037
+Standard deviation of returns 0.000
+Sharpe ratio 0.000
+Recovery factor 0.998
+Max adverse excursion 0.000%
+Expectancy -4.6243% / -0.4615 R
+"
+
+./backtest.pl -start 2008-03-15 -finish 2008-04-01 -tickers ABVA -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress
+./backtest.pl -start 2008-03-15 -finish 2008-04-01 -tickers ABVA -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress --nocache
