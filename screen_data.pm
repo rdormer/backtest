@@ -30,6 +30,7 @@ use constant {
 };
 
 my $max_limit;
+my $cache_size = 0;
 
 my @fundamental_list;
 my $sweep_statement;
@@ -313,7 +314,7 @@ sub pull_data {
 
     if(exists $data_cache{$ticker} && conf::usecache()) {
 
-	my $fromcache = $data_cache{$ticker};
+	my $fromcache = from_cache($ticker);
 	my $needpull = $fromcache->[0][DATE_IND] lt $sdate;
 
 	#add data to the front of the cache if we need to
@@ -366,7 +367,7 @@ sub pull_data {
 	#store back to the cache, and return data
 	#trimmed down to match the size of our request
 
-	$data_cache{$ticker} = $fromcache;
+	to_cache($ticker, $fromcache);
 	return trim_data_array($fromcache, $sdate, $count);
     }
 
@@ -376,7 +377,7 @@ sub pull_data {
     my $cdata = pull_history_by_limit($ticker, $sdate, $count);
 
     if(conf::usecache() && scalar @$cdata > 0) {
-	$data_cache{$ticker} = $cdata;
+	to_cache($ticker, $cdata);
     }
 
     return $cdata;
@@ -602,6 +603,29 @@ sub show {
    }
 
    print "\n======";
+}
+
+sub to_cache {
+
+    my $ticker = shift;
+    my $data = shift;
+    my $rowc = scalar @$data;
+
+    if(exists $data_cache{$ticker}) {
+	my $t = $data_cache{$ticker};
+	$cache_size -= scalar @$t;
+	$cache_size += $rowc;
+	$data_cache{$ticker} = $data;
+    
+    } elsif($cache_size < conf::cache_size()) {
+	$data_cache{$ticker} = $data;
+	$cache_size += $rowc;
+    }
+}
+
+sub from_cache {
+    my $ticker = shift;
+    return $data_cache{$ticker};
 }
 
 1;

@@ -9,6 +9,9 @@ $VERSION = 1.0;
 my $start_time;
 my $progress;
 
+my $ROW_SIZE = 470; #for sql rows
+#my $ROW_SIZE = 420; #for tokyo cabinet rows
+
 $~ = 'HELPTEXT';
 
 sub process_commandline {
@@ -30,7 +33,7 @@ sub process_commandline {
 	'tickers=s' => \$tickerlist, 'cgi-handle=s' => \$cgi_handle, 'timer' => \$use_timer, 
 	'filter=s' => \$long_filter, 'short-filter=s' => \$short_filter, 'stop=s' => \$stopfile, 'trail=s' => \$trailfile,
 	'short-stop=s' => \$short_stopfile, 'short-trail=s' => \$short_trailfile, 'periods=s' => \$period_count,
-	'slip=s' => \$slip_file, 'stop-equity' => \$stop_equity);
+	'slip=s' => \$slip_file, 'stop-equity' => \$stop_equity, 'cachemax=s' => \$cache_max);
 
     die "Couldn't open $tickers" if (! $tickerlist && ! -e $tickers);
     die "Couldn't open $screenfile" if $screenfile && ! -e $screenfile;
@@ -49,6 +52,7 @@ sub process_commandline {
 
     process_period_count();
     init_cgi() if $cgi_handle;
+    compute_cache_size() if not $disable_cache;
 }
 
 sub date { return $date; }
@@ -75,6 +79,10 @@ sub short_trail { return $short_trailfile; }
 sub long_trail { return $trailfile; }
 sub timer { return $use_timer; }
 sub stop_equity { return $stop_equity; }
+
+sub cache_size {
+    return $row_count;
+}
 
 sub slippage { 
     return $slip_file if $slip_file;
@@ -226,6 +234,13 @@ sub output {
     }
 
     die if $dieflag;
+}
+
+sub compute_cache_size {
+
+    my $msize = $cache_max ? $cache_max : 40;
+    $msize *= 1000000;
+    $row_count = int($msize / $ROW_SIZE);
 }
 
 format HELPTEXT =
