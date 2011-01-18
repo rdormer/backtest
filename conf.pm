@@ -9,8 +9,8 @@ $VERSION = 1.0;
 my $start_time;
 my $progress;
 
-my $ROW_SIZE = 470; #for sql rows
-#my $ROW_SIZE = 420; #for tokyo cabinet rows
+#my $ROW_SIZE = 470; #for sql rows
+my $ROW_SIZE = 420; #for tokyo cabinet rows
 
 $~ = 'HELPTEXT';
 
@@ -142,10 +142,7 @@ sub risk_percent {
 
 sub check_backtest_args {
 
-    die "Are you trying to go short, or long?  Arguments are inconclusive" if $exitfile and $short_entry;
-    die "Are you trying to go short, or long?  Arguments are inconclusive" if $entryfile and $short_exit;
-    die "You are using the same entry and exit" if $exitfile eq $entryfile;
-
+    die "You are using the same entry and exit" if $exitfile eq $entryfile && $exitfile;
     die "missing -list (ticker list file)" if not $tickers and not $tickerlist;
     die "missing -start (start date)" if not $startdate;
     die "missing -entry (entry signal)" if not $entryfile and long_positions();
