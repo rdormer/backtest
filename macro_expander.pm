@@ -339,8 +339,8 @@ sub lookback_custom {
 	$pullval = $alist + 1;
     }
 
-    if($ctoken =~ /TREND_INTENSITY/ && $alist =~ /([0-9]+),[0-9]+/) {
-	$pullval = $1;
+    if($ctoken =~ /TREND_INTENSITY/ && $alist =~ /([0-9]+),([0-9]+)/) {
+	$pullval = ($1 > $2 ? $1 : $2);
     }
 
     if($ctoken =~ /RAVI/ && $alist =~ /[0-9]+,([0-9]+)/) {

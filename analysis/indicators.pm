@@ -187,10 +187,11 @@ sub compute_trend_intensity {
 	}
 
 	if($close < $average) {
-	    $down += abs($average - $close);
+	    $down += ($average - $close);
 	}
     }
 
+    return 50 if ($up + $down) == 0;
     return ($up / ($up + $down)) * 100;
 }
 
