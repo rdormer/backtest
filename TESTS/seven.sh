@@ -91,3 +91,13 @@ Expectancy -4.6243% / -0.4615 R
 
 ./backtest.pl -start 2008-03-15 -finish 2008-04-01 -tickers ABVA -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress
 ./backtest.pl -start 2008-03-15 -finish 2008-04-01 -tickers ABVA -entry TESTS/306873 -exit TESTS/909050 -filter TESTS/166156 -trail TESTS/550138 --skip-progress --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo " 
+total: 5000 (return 0.00%)
+QQQQ buy and hold: -100.00%
+"
+
+./backtest.pl -skip-progress -list /home/rdormer/AUTO/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress
+./backtest.pl -skip-progress -list /home/rdormer/AUTO/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress --nocache

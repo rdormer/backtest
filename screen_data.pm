@@ -207,8 +207,9 @@ sub force_data_load {
 sub trade_filter {
 
     my $filter = shift;
+    my $len = scalar @$filter - 1;
 
-    for(my $i = 0; $i <= scalar @$filter; $i++) {
+    for(my $i = 0; $i <= $len; $i++) {
 
 	if($filter->[$i][1] == 0) {
 	    eval($filter->[$i][0]);
