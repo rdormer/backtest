@@ -8,6 +8,10 @@ my $command = "./screen.pl -nocache ";
 $command .= "-list TESTS/stock_universe.txt ";
 $command .= "-screen " . dump_file($cgi->param("screen")) . " ";
 
+if($cgi->param("screendate")) {
+    $command .= "-date " . $cgi->param("screendate") . " ";
+}
+
 my $handle = "/tmp/" . int(rand(100000)) . ".txt";
 $command .= "--cgi-handle=$handle ";
 

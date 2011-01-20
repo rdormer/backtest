@@ -12,7 +12,7 @@ sub make_command {
 
     my $handle_file = shift;
 
-    my $command = "./backtest.pl --nocache ";
+    my $command = "./backtest.pl --cachemax=100 ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
     $command .= "--timer --cgi-handle=" . $handle_file . " ";
@@ -49,6 +49,18 @@ sub make_command {
 
     if($cgi->param("trailstop")) {
 	$command .= "-trail " . dump_file($cgi->param("trailstop")) . " ";
+    }
+
+    if($cgi->param("shortfilter")) {
+	$command .= "-short-filter " . dump_file($cgi->param("shortfilter")) . " ";
+    }
+
+    if($cgi->param("shortinitstop")) {
+	$command .= "-short-stop " . dump_file($cgi->param("shortinitstop")) . " ";
+    }
+
+    if($cgi->param("shorttrailstop")) {
+	$command .= "-short-trail " . dump_file($cgi->param("shorttrailstop")) . " ";
     }
 
     return $command;
