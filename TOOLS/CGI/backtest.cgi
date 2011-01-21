@@ -63,6 +63,30 @@ sub make_command {
 	$command .= "-short-trail " . dump_file($cgi->param("shorttrailstop")) . " ";
     }
 
+    if($cgi->param("risk")) {
+	$command .= "-risk " . $cgi->param("risk") . " ";
+    }
+
+    if($cgi->param("startcash")) {
+	$command .= "-start-with " . $cgi->param("startcash") . " ";
+    }
+
+    if($cgi->param("startmargin")) {
+	$command .= "-init-margin " . $cgi->param("startmargin") . " ";
+    }
+
+    if($cgi->param("maintmargin")) {
+	$command .= "-maint-margin " . $cgi->param("maintmargin") . " ";
+    }
+
+    if($cgi->param("benchmark")) {
+	$command .= "-benchmark " . $cgi->param("benchmark") . " ";
+    }
+
+    if($cgi->param("slip")) {
+	$command .= "-slip " . dump_file($cgi->param("slip")) . " ";
+    }
+
     return $command;
 }
 
