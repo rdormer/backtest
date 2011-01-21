@@ -147,13 +147,15 @@ sub parse_expression {
 
 sub screen_from_file {
 
-    tokenize(shift);
+    my $f = shift;
+    tokenize($f);
     my @rlist;
     
     while(@token_list > 0) {
 	parse_scan(\@rlist);
     }
 
+    conf::output("Empty file $f", 1) if scalar @rlist == 0;
     @rlist = sort {$a->[1] <=> $b->[1]} @rlist;
     return \@rlist;
 }
