@@ -179,7 +179,7 @@ sub start_short_position {
 	} else {
 
 	    my $price = $positions{$ticker}{'start'};
-	    my $stop = initial_stop($price, 1);
+	    my $stop = compute_stop(\@short_stop, $ticker);
 
 	    $current_cash += $count * $price;
 	    $positions{$ticker}{'short'} = 1;
@@ -609,13 +609,25 @@ sub print_portfolio_state {
 	$summary .= "\nElapsed Time: " . conf::elapsed_time() . " seconds";
     }
 
-    $output .= "$text ^^^^^ $summary";
-    conf::output($output);
+    $output .= "$text ^^^^^ $summary ^^^^^ " . output_data(\@equity_curve);
 
     if(conf::draw_curve()) {
 	charting::draw_line_chart(\@equity_curve, conf::draw_curve());
     }
+
+    conf::output($output);
 }
 
+sub output_data {
+
+    my $arr = shift;
+    my $rval = "";
+
+    foreach (@$arr) {
+	$rval .= "$_->[0], ";
+    }
+    
+    return $rval;
+}
 
 1;

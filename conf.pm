@@ -226,6 +226,9 @@ sub output {
 	shmwrite($progress, $data, 0, length $data);
 
     } else {
+	
+	my $slen = rindex($data, "^^^^^");
+	$data = substr $data, 0, $slen;
 	$data =~ tr/^/ /;
 	print "$data";
     }
