@@ -626,6 +626,10 @@ sub output_data {
     foreach (@$arr) {
 	$rval .= "$_->[0], ";
     }
+
+    foreach (@$arr) {
+	$rval .= "$_->[1], ";
+    }
     
     return $rval;
 }
