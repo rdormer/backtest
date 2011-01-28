@@ -1,0 +1,214 @@
+#! /usr/bin/perl
+
+use HTML::TreeBuilder;
+use Getopt::Long;
+use DBI;
+
+my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
+GetOptions("list=s" => \$filename, "exchange=s" => \$exchange, "pause=s" => \$sleepval);
+open LIST, $filename;
+
+$cikcom = $database->prepare("select cik from cikmap where ticker=?");
+$startq = $database->prepare("select count(*) from fundamentals where ticker=?");
+$fcommand = $database->prepare("insert into fundamentals (ticker, filed_date, quarter_date, sec_file, 
+sec_name, sec_industry, sic_code, cik, total_assets, current_assets, total_debt, current_debt, cash, 
+equity, net_income, revenue, avg_shares_basic, avg_shares_diluted, eps_basic, eps_diluted, shares_authorized,
+shares_issued, shares_outstanding) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+
+
+
+foreach $ticker (<LIST>) {
+
+    chomp $ticker;
+
+    $startq->execute($ticker);
+    my @s = $startq->fetchrow_array();
+    my $index = ($s[0] == 0 ? 0 : $s[0] - 1);
+    my $qtrct = 0;
+    
+    do {
+
+	$qtrct = do_page_get($ticker, "&istart_date=$index");
+	$index += 5;
+
+    } while($qtrct == 5);
+}
+
+sub do_page_get {
+
+    my $ticker = shift;
+    my $suffix = shift;
+
+    my $rawpage = fetch_page($ticker, $suffix);
+    my $pagetxt = get_page_text($rawpage);
+
+    #pull out list of quarters
+    my ($q, $o) = get_quarters($pagetxt);
+
+    #get rid of any spaces
+    for(my $i = 0; $i < scalar @$q; $i++) {
+	splice @$q, $i, 1 if $q->[$i] eq "";
+    }
+
+    for(my $i = 0; $i < scalar @$o; $i++) {
+	splice @$o, $i, 1 if $o->[$i] eq "";
+    }
+
+    #scrape
+    my @done = scrape_page_text($ticker, $pagetxt, $o);
+    print "\n$ticker: " . join " ", @done;
+    return scalar @done;
+}
+
+sub scrape_page_text {
+
+    my $ticker = shift;
+    my $text = shift;
+    my $targets = shift;
+
+    $cikcom->execute($ticker);
+    my @ciks = $cikcom->fetchrow_array();
+    my $mult = get_multiplier($text);
+
+    my @loaddates = get_line_item("Date Preliminary Data Loaded", $text);
+    my @enddates = get_line_item("Quarter End Date", $text);
+    @enddates = map { $_ =~ tr/\//-/; $_ . "-01" } @enddates;
+
+    my @cur_debts = get_line_item("total current liabilities", $text, $mult);
+    my @cur_assets = get_line_item("total current assets", $text, $mult);
+    my @shares = get_line_item("Total Common Shares Out", $text, $mult);
+    my @debts = get_line_item("Total Liabilities [^&]", $text, $mult);
+    my @d_eps = get_line_item("Diluted EPS - Total", $text);
+    my @b_eps = get_line_item("Basic EPS - Total", $text);
+    my @income = get_line_item("Total Net Income", $text, $mult);
+    my @cash = get_line_item("Assets Cash & Equivalents", $text, $mult);
+    my @revenue = get_line_item("total revenue", $text, $mult);
+    my @assets = get_line_item("[0-9] total assets [0-9]", $text, $mult);
+    my @equity = get_line_item("total equity", $text, $mult);
+
+    shift @assets;
+
+    for(my $q = 0; $q < scalar @loaddates; $q++) {
+
+	$fcommand->execute($ticker, $loaddates[$q], $enddates[$q], '', '', '', '', $ciks[0], 
+			   $assets[$q], $cur_assets[$q], $debts[$q], $cur_debs[$q], $cash[$q], 
+			   $equity[$q], $income[$q], $revenue[$q], $shares[$q], $shares[$q], 
+			   $b_eps[$q], $d_eps[$q], $shares[$q], $shares[$q], $shares[$q]);
+    }
+
+    return @$targets;
+}
+
+sub get_line_item {
+
+    my $item = shift;
+    my $pagetxt = shift;
+    my $mult = shift;
+
+    if($pagetxt =~ /.*($item[0-9\.\, \/-]+).*/i) {
+
+	my $line = $1;
+	$line =~ s/,//g;
+	$line =~ s/[a-zA-Z]//g;
+	my @t = split / /, $line;
+	my @vals = ();
+
+	foreach (@t) {
+
+	    if($_ =~ /[0-9]/) {
+		my $val = ($mult ? ($_ * $mult) : $_);
+		push @vals, $val;
+	    }
+	}
+
+	return @vals;
+    }
+}
+
+sub get_multiplier {
+
+    my $pagetxt = shift;
+    my %multtable = ("Millions" => 1000000, "millions" => 1000000, "Billions" => 1000000000, 
+		     "billions" => 1000000000, "Thousands" => 1000, "thousands" => 1000);
+
+    if($pagetxt =~ /.*All amounts in (.+) of US Dollars.*/i) {
+	return $multtable{$1};
+    }
+}
+
+sub get_page_text {
+
+    my $raw = shift;  
+    my $parser = HTML::TreeBuilder->new;
+    $parser->parse_content($raw);
+    $parser->elementify();
+    my $ptext = extract_text($parser);
+
+    $parser->delete;
+    return $ptext;
+}
+
+#recursive extraction of text from HTML parse tree
+
+sub extract_text {
+
+    my $parse_tree = shift;
+    my $page_text;
+
+    foreach my $c ($parse_tree->content_list) {
+
+	if(!ref $c) {
+	    $page_text .= " $c";
+	} else {
+	    $page_text .= extract_text($c);
+	}
+    }
+
+    return $page_text;
+}
+
+sub fetch_page {
+
+    my $ticker = shift;
+    my $suffix = shift;
+
+    my $url = "http://www.advfn.com/p.php?pid=financials&btn=quarterly_reports&mode=&symbol=$exchange:" . $ticker;
+    $url .= $suffix if $suffix;
+    my $raw = `wget -q "$url" -O -`;
+    return $raw;
+}
+
+sub delete_quarters {
+
+    my $original = shift;
+    my $targets = shift;
+
+    foreach $target (@$targets) {
+
+	for(my $idx = 0; $idx < scalar @$original; $idx++) {
+	    
+	    if($original->[$idx] eq $target) {
+		splice @$original, $idx, 1;
+		last;
+	    }
+	}
+    }
+}
+
+sub get_quarters {
+
+    my $pagetxt = shift;
+
+    if($pagetxt =~ /.*start date for quarterly reports([0-9\/ ]+).*Quarter End Date([0-9\/ ]+).*/i) {
+
+	my @quarters = split / /, $1;
+	my @onpage = split / /, $2;
+	my @goaway = (" ");
+
+	delete_quarters(\@quarters, \@goaway);
+	delete_quarters(\@onpage, \@goaway);
+
+	return (\@quarters, \@onpage);
+    }
+}
