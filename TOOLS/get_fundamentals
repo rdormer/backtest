@@ -29,6 +29,7 @@ foreach $ticker (<LIST>) {
     
     do {
 
+	sleep($sleepval) if $sleepval;
 	$qtrct = do_page_get($ticker, "&istart_date=$index");
 	$index += 5;
 
@@ -58,6 +59,8 @@ sub do_page_get {
     #scrape
     my @done = scrape_page_text($ticker, $pagetxt, $o);
     print "\n$ticker: " . join " ", @done;
+
+    return -1 if $done[$#done] eq $q->[scalar @$q - 1];
     return scalar @done;
 }
 
