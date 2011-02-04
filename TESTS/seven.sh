@@ -99,5 +99,28 @@ total: 5000 (return 0.00%)
 QQQQ buy and hold: -100.00%
 "
 
-./backtest.pl -skip-progress -list /home/rdormer/AUTO/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress
-./backtest.pl -skip-progress -list /home/rdormer/AUTO/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress --nocache
+./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress
+./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1998-07-06 -finish 2000-02-04 -entry TESTS/361437 -exit TESTS/604929 -filter TESTS/811740 -trail TESTS/671281 --skip-progress --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo " 
+total: 19447.245 (return 288.94%)
+Margin calls: 17915.4231333333
+QQQQ buy and hold: -100.00%
+863 trades (201 wins / 422 losses)
+Win ratio 23.29%
+Average win 9.137% / 0.922 R
+Average loss -7.388% / -0.736 R
+Maximum drawdown 95.029%
+System quality number -12.9
+Ulcer Index 0.7059
+Standard deviation of returns 131.780
+Sharpe ratio 0.745
+Recovery factor 3.041
+Max adverse excursion 0.000%
+Expectancy -3.5392% / -0.3555 R
+"
+
+./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades
+./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades --nocache

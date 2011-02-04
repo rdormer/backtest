@@ -174,11 +174,12 @@ sub start_short_position {
 	#we have to check to see if this new position takes us over the initial margin
 	#requirement, and if it does, back out the trade
 
+	my $price = $positions{$ticker}{'start'};
+
 	if($current_cash < $total_short_equity + ($count * $price) * conf::initial_margin()) {
 	    delete $positions{$ticker};
 	} else {
 
-	    my $price = $positions{$ticker}{'start'};
 	    my $stop = compute_stop(\@short_stop, $ticker);
 
 	    $current_cash += $count * $price;
@@ -329,8 +330,8 @@ sub update_positions {
     $total_short_equity = $sequity;
     push @equity_curve, [ $equity, get_date() ];
 
-    #if we're over our maintenance margin for shorts,
-    #add cash and note how much we'd be called for
+    #if we have less cash in our account than required by
+    #maintenance margin, add cash and note how much we'd be called for
 
     if(($total_short_equity * conf::maint_margin()) > $current_cash) {
 	my $val = $total_short_equity * conf::maint_margin() - $current_cash;

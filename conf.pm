@@ -109,13 +109,13 @@ sub connect_user {
 }
 
 sub initial_margin {
-    return $initial_margin if $initial_margin;
-    return 0.5;
+    return (1 + $initial_margin) if $initial_margin;
+    return 1.5;
 }
 
 sub maint_margin {
-    return $maint_margin if $maint_margin;
-    return 0.3;
+    return (1 + $maint_margin) if $maint_margin;
+    return 1.25;
 }
 
 sub portfolio { 
