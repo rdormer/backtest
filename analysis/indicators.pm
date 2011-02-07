@@ -132,6 +132,15 @@ sub statistical_volatility {
     return ($num / $dnm);
 }
 
+sub closing_price_change {
+
+    if(fetch_close_at(1) > 0) {
+	return (((fetch_close_at(0) - fetch_close_at(1)) / fetch_close_at(1)) * 100);
+    } else {
+	return 0;
+    }
+}
+
 sub compute_trend_score {
 
     my $score = 0;
