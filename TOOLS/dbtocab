@@ -10,9 +10,10 @@ $d1 = new Date::Business(DATE => "19700101");
 $d1->subb(5218);
 
 $dbh = DBI->connect("DBI:mysql:finance", "perldb");
-$sh = $dbh->prepare("select * from historical where ticker = ? and date >= $ARGV[2]");
-$si = $dbh->prepare("select date,bef,after from splits where ticker = ? and date >= $ARGV[2]");
-$di = $dbh->prepare("select date,divamt from dividends where ticker = ? and date >= $ARGV[2]");
+$sh = $dbh->prepare("select * from historical where ticker = ? and date >= '$ARGV[2]'");
+$si = $dbh->prepare("select date,bef,after from splits where ticker = ? and date >= '$ARGV[2]'");
+$di = $dbh->prepare("select date,divamt from dividends where ticker = ? and date >= '$ARGV[2]'");
+$fp = $dbh->prepare("select * from fundamentals where ticker = ? and quarter_date >= '$ARGV[2]'");
 
 open INFILE, $ARGV[0];
 chdir $ARGV[1];
@@ -26,6 +27,13 @@ $splits->open("splits", $splits->OWRITER | $splits->OCREAT);
 my $dividends = TokyoCabinet::HDB->new();
 $dividends->open("dividends", $dividends->OWRITER | $dividends->OCREAT);
 
+my $fdates = TokyoCabinet::HDB->new();
+$fdates->open("fund-dates", $fdates->OWRITER | $fdates->OCREAT);
+
+my $fdata = TokyoCabinet::FDB->new();
+$fdata->tune(80);
+$fdata->open("fund-data", $fdata->OWRITER | $fdata->OCREAT);
+
 foreach(<INFILE>) {
     
     chomp;
@@ -33,11 +41,14 @@ foreach(<INFILE>) {
     my $basedate = save_history_tocab($_);
     save_splits_tocab($_, $basedate);
     save_dividends_tocab($_, $basedate);
+    save_fundamentals_tocab($_);
 }
 
-$index->close();
-$splits->close();
 $dividends->close();
+$splits->close();
+$fdates->close();
+$fdata->close();
+$index->close();
 
 sub save_history_tocab {
 
@@ -100,6 +111,32 @@ sub save_dividends_tocab {
     }   
 
     $dividends->putcat($ticker, $divdata);
+}
+
+sub save_fundamentals_tocab {
+
+    my $ticker = shift;
+    my $keydata = "";
+
+    $fp->execute($ticker);
+    my $data = $fp->fetchall_hashref('quarter_date');
+
+    foreach $date (reverse sort keys %$data) {
+       
+       my $day = get_epoch_date($date);
+       my $idx = $fdata->rnum() + 1;
+       my $d = $data->{$date};
+
+       $keydata .= pack("LL", $day, $idx);
+       my $fundrow = pack("QQQQQQQQLLF", $d->{'total_assets'}, $d->{'current_assets'},
+       	  	     $d->{'total_debt'}, $d->{'current_debt'}, $d->{'cash'}, $d->{'revenue'},
+		     $d->{'avg_shares_diluted'}, $d->{'shares_outstanding'}, $d->{'equity'},
+		     $d->{'net_income'}, $d->{'eps_diluted'});
+
+       $fdata->put($idx, $fundrow);       
+    }
+
+    $fdates->putcat($ticker, $keydata);
 }
 
 sub get_epoch_date {

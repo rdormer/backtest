@@ -4,6 +4,8 @@ use DBI;
 
 my %base_dates;
 my %date_lookup;
+my $datehandle;
+my $fundhandle;
 my $splithandle;
 my $divhandle;
 my $d1;
@@ -19,6 +21,12 @@ sub init_mod {
 
     $divhandle = TokyoCabinet::HDB->new();
     $divhandle->open("./CABS/dividends", $divhandle->OREADER);
+
+    $datehandle = TokyoCabinet::HDB->new();
+    $datehandle->open("./CABS/fund-dates", $datehandle->OREADER);
+
+    $fundhandle = TokyoCabinet::FDB->new();
+    $fundhandle->open("./CABS/fund-data", $fundhandle->OREADER);
 
     my $index = TokyoCabinet::HDB->new();
     $index->open("./CABS/epoch-index", $index->OREADER);
@@ -214,9 +222,36 @@ sub pull_fundamentals {
     my $ticker = shift;
     my $sdate = shift;
     my $count = shift;
+    my %funds;
 
-#    $fund_sql->execute($ticker, $sdate, $count);
-#    return $fund_sql->fetchall_hashref('quarter_date');
+    my $dateblock = $datehandle->get($ticker);
+    my $startdate = get_epoch_date($sdate);
+    my $index = 0;
+
+    do {
+
+	my $keyblock = substr($dateblock, $index, 8);
+	my ($day, $key) = unpack("LL", $keyblock);
+
+	if($day <= $startdate) {
+
+	    my $d = {};
+	    my $row = $fundhandle->get($key);
+	    my @data = unpack("QQQQQQQQLLF", $row);
+
+	    ($d->{'total_assets'}, $d->{'current_assets'}, $d->{'total_debt'}, $d->{'current_debt'}, 
+	     $d->{'cash'}, $d->{'revenue'}, $d->{'avg_shares_diluted'}, $d->{'shares_outstanding'}, 
+	     $d->{'equity'}, $d->{'net_income'}, $d->{'eps_diluted'}) = @data;
+
+	    my $qtrdate = $date_lookup{$day};
+	    $funds{$qtrdate} = $d;
+	}
+
+	$index += 8;
+
+    } while ($index < length $dateblock && keys %funds < $count);
+
+    return \%funds;
 }
 
 sub get_epoch_date {

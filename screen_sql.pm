@@ -8,7 +8,7 @@ my $fundamental_table = "fundamentals";
 
 my $pull_cmd = "select date,open,high,low,close,volume from $history_table where ticker=? and date <= ? order by date desc limit ?";
 my $cache_cmd = "select date,open,high,low,close,volume from $history_table where ticker=? and date >= ? and date <= ? order by date desc";
-my $fund_cmd = "select * from fundamentals where ticker=? and quarter_date <= ? limit ?;";
+my $fund_cmd = "select * from fundamentals where ticker=? and quarter_date <= ? order by quarter_date desc limit ?;";
 my $div_cmd = "select ticker,date,divamt from dividends where ticker=? and date >= ? and date <= ?";
 my $split_cmd = "select date,bef,after from splits where ticker=?";
 my $ondate_cmd = "select close from historical where ticker=? and date=?";
