@@ -10,13 +10,49 @@ sub fundamental_egrowth { return $current_fundamentals{'qtrly_earnings_growth'};
 sub load_precheck {
 
     my $ticker = shift;
-    return if $current_ticker eq current_ticker();
-
     my $count = shift;
-    $current_ticker = current_ticker();
-    my $temp = pull_fundamentals($current_ticker, get_date(), $count + 1);
-    %current_fundamentals = %$temp;
-    @date_list = reverse sort keys %current_fundamentals;
+
+    return if $ticker eq "";
+
+    $count++;
+
+    if($current_ticker ne current_ticker()) {
+	%current_fundamentals = ();
+	@date_list = ();
+    }
+
+    my $qtr_count = scalar keys %current_fundamentals;
+
+    if($count > $qtr_count) {
+
+	my $fdate = get_date();
+
+	if($qtr_count > 0) {
+	    $fdate = subtract_day($date_list[$#date_list]);
+	    $count -= $qtr_count;
+	}
+
+	$current_ticker = current_ticker();
+	my $temp = pull_fundamentals($current_ticker, $fdate, $count);
+    
+	%current_fundamentals = %$temp;
+	push @date_list, reverse sort keys %current_fundamentals;
+    }
+}
+
+sub subtract_day {
+
+    my $day = shift;
+
+    $day =~ s/-//g;
+    $date = new Date::Business(DATE => $day);
+    $date->subb(1);
+
+    my $rval = $date->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";
+
+    return $rval;
 }
 
 sub get_basic {
