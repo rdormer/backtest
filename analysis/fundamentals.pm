@@ -35,8 +35,10 @@ sub load_precheck {
 	$current_ticker = current_ticker();
 	my $temp = pull_fundamentals($current_ticker, $fdate, $count);
     
-	%current_fundamentals = %$temp;
-	push @date_list, reverse sort keys %current_fundamentals;
+	foreach $day (reverse sort keys %$temp) {
+	    $current_fundamentals{$day} = $temp->{$day};
+	    push @date_list, $day;
+	}
     }
 }
 
@@ -248,6 +250,24 @@ sub fundamental_dcf {
     }
 
     return sprintf("%.2f", $dcf);
+}
+
+sub generate_bogus_fundamentals {
+
+    $current_ticker = "";
+    my $udate = shift;
+    my $d = {};
+
+    ($d->{'total_assets'}, $d->{'current_assets'}, $d->{'total_debt'}, $d->{'current_debt'}, 
+     $d->{'cash'}, $d->{'revenue'}, $d->{'avg_shares_diluted'}, $d->{'shares_outstanding'}, 
+     $d->{'equity'}, $d->{'net_income'}, $d->{'eps_diluted'}) = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+    foreach(1..20) {
+
+	push @date_list, $udate;
+	$current_fundamentals{$udate} = $d;
+	$udate = subtract_day($udate);
+    }
 }
 
 1;

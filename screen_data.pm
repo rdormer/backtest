@@ -564,6 +564,8 @@ sub get_date_image {
 
 sub check_runtime_errors {
 
+    my $day = ($current_date ? $current_date : $date_range[0]);
+    generate_bogus_fundamentals($day);
     my $t = $current_prices;
 
     my @row;
@@ -592,20 +594,6 @@ sub check_runtime_errors {
     $current_prices = $t;
 }
 
-sub show {
-
-   my $ref = shift;
-   
-   print "\narray length is " . scalar @$ref;
-   print " for $current_ticker";
-
-   foreach(@$ref) {
-       print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
-   }
-
-   print "\n======";
-}
-
 sub to_cache {
 
     my $ticker = shift;
@@ -627,6 +615,20 @@ sub to_cache {
 sub from_cache {
     my $ticker = shift;
     return $data_cache{$ticker};
+}
+
+sub show {
+
+   my $ref = shift;
+   
+   print "\narray length is " . scalar @$ref;
+   print " for $current_ticker";
+
+   foreach(@$ref) {
+       print "\n$_->[0]\t$_->[1]\t$_->[2]\t$_->[3]\t$_->[4]\t$_->[5]";
+   }
+
+   print "\n======";
 }
 
 1;
