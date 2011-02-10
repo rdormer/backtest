@@ -255,12 +255,14 @@ sub array_exponential_avg {
     my $n = "ema$index$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
+    my $len = 4 * ($period + 1);
     my @series = reverse map $_->[$index], @$current_prices;
+    @series = splice @series, -($len);
 
     my ($rcode, $start, $ema) = TA_EMA(0, $#series, \@series, $period);
-    $value_cache{$n} = $ema->[@$ema - 1];
-    
-    return $ema->[@$ema - 1];
+    $value_cache{$n} = sprintf("%.3f", $ema->[@$ema - 1]);
+
+    return $value_cache{$n};
 }
 
 sub array_weighted_avg {
@@ -271,10 +273,12 @@ sub array_weighted_avg {
     my $n = "wma$index$period";
     return $value_cache{$n} if exists $value_cache{$n};
 
+    my $len = TA_Lookback($period);
     my @series = reverse map $_->[$index], @$current_prices;
+    @series = splice @series, -($len);
 
     my ($rcode, $start, $wma) = TA_WMA(0, $#series, \@series, $period);
-    $value_cache{$n} = $wma->[@$wma - 1];
+    $value_cache{$n} = sprintf("%.3f", $wma->[@$wma - 1]);
 
     return $value_cache{$n};
 }

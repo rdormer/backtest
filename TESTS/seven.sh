@@ -124,3 +124,12 @@ Expectancy -3.5392% / -0.3555 R
 
 ./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades
 ./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo " 
+[No Results]
+"
+
+./screen.pl -nocache -tickers FISI,WMG -screen TESTS/425803 -date 2011-02-01
+./screen.pl -nocache -tickers FISI,WMG -screen TESTS/746722 -date 2011-02-01
