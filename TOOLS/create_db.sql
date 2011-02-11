@@ -19,7 +19,7 @@ shares_outstanding bigint unsigned, ticker varchar(5));
 create unique index histindex on historical (ticker, date);
 create unique index divindex on dividends (ticker, date);
 create unique index splitindex on splits (ticker, date);
-create unique index qtr_index_t on fundamentals (quarter_date, ticker);
+create unique index qtr_index_t on fundamentals (ticker, quarter_date);
 --create unique index qtr_index on fundamentals (quarter_date, sec_name);
 --create unique index filed_index on fundamentals (filed_date, sec_name);
 create unique index cik_index on fundamentals (cik, filed_date);
