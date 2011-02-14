@@ -1,0 +1,211 @@
+#! /usr/bin/perl
+use Date::Business;
+use grinder;
+
+my @date_range;
+
+gen_date_range();
+$test = random_system();
+run_test($test);
+
+sub run_test {
+
+    my $base = shift;
+
+    chdir("../");
+    print "\ntesting: $base\n\n";
+
+    my $master = `$base --nocache`;
+    my $t = `$base`;
+
+    if($master eq $t) {
+	print "\n..OK";
+    } else {
+	print "\n..FAIL!";
+    }
+
+    foreach(1..3) {
+
+	my $size = int(rand(110));
+	$t = `$base --cachemax $size`;
+
+	if($master eq $t) {
+	    print "\n..OK";
+	} else {
+	    print "\n..FAIL!";
+	}	
+    }
+
+    print "\n$master";
+}
+
+sub random_system {
+
+    my $test = "./backtest.pl -skip-progress -list $ARGV[0]";
+    my $type = int(rand(3));
+
+    my ($d1, $d2) = pick_two_dates();
+    $test .= " -start $d1 -finish $d2";
+
+    my $type = int(rand(3));
+
+    if($type == 0) {
+	$test .= " " . long_args();
+    } elsif($type == 1) {
+	$test .= " " . short_args();
+    } else {
+	$test .= " " . long_args();
+	$test .= " " . short_args();
+    }
+
+    return $test;
+}
+
+
+sub long_args {
+
+    my ($infile, $outfile, $filter, $trail) = generate_fileset();
+    my $sys = "-entry $infile -exit $outfile";
+    $sys .= " -filter $filter" if $filter;
+    $sys .= " -trail $trail" if $trail;
+    return $sys;
+}
+
+sub short_args {
+
+    my ($infile, $outfile, $filter, $trail) = generate_fileset();
+    my $sys = "-short-entry $infile -short-exit $outfile";
+    $sys .= " -short-filter $filter" if $filter;
+    $sys .= " -short-trail $trail" if $trail;
+    return $sys;
+}
+
+sub generate_fileset {
+
+    my $infile = generate_file();
+    my $outfile = generate_file();
+    my $filter = "";
+    my $trail = "";
+
+    if(flip_coin()) {
+	$filter = generate_file("FOR_TICKER QQQQ;");
+    }
+
+    if(flip_coin()) {
+	$trail = dump_file(generate_term());
+    }
+
+    return ($infile, $outfile, $filter, $trail);
+}
+
+sub generate_file {
+
+    my $pretext = shift;
+    my $count = int(rand(6));
+    my $lines = ($pretext ? $pretext : "");
+
+    for(1..$count) {
+    	   $lines = $lines . generate_statement() . "\n";
+    }
+    
+    return dump_file($lines);    
+}
+
+
+sub generate_statement {
+
+    my @comps = qw(< > <= >= != ==);
+    my $idx = int(rand(5));
+
+    my $rval = generate_term();
+    $rval .= " $comps[$idx] ";
+    $rval .= generate_term();
+    $rval .= ";";
+
+    return $rval;
+}
+
+sub generate_term {
+
+    my $rval;
+
+    if(flip_coin()) {
+
+	$rval .= generate_value() . " ";
+	$rval .= generate_operator() . " ";
+	$rval .= generate_value();
+
+    } else {
+
+	$rval = generate_value();
+    }
+
+    return $rval;
+}
+
+sub generate_value {
+
+    my $idx = int(rand(scalar @value_generators));
+    return $value_generators[$idx]->();
+}
+
+sub generate_operator {
+
+    my @choices = qw(+ - * /);
+    my $idx = int(rand(3));
+    return $choices[$idx];
+}
+
+sub flip_coin {
+    return (int(rand(100)) < 50);
+}
+
+sub dump_file {
+
+    my $str = shift;
+
+    my $fname = "/tmp/" . int(rand(1000000));
+    open OUTFILE, "+>$fname";
+    print OUTFILE $str;
+    close OUTFILE;
+
+    return $fname;
+}
+
+
+sub gen_date_range {
+
+    ($date, $end_date) = parse_two_dates('1990-01-01', '2011-01-01');
+
+  DATELOOP:
+    while($date->lt($end_date)) {
+
+	$d = $date->image();
+
+	substr $d, 4, 0, "-";
+	substr $d, 7, 0, "-";
+	push @date_range, $d;
+	$date->nextb();
+    }
+}
+
+sub pick_two_dates {
+
+    my $idx1 = int(rand(scalar @date_range));
+    my $idx2 = int(rand($idx1 - 1));
+    return ($date_range[$idx2], $date_range[$idx1]);
+}
+
+sub parse_two_dates {
+
+    my $d1 = shift;
+    my $d2 = shift;
+
+    $d1 =~ s/-//g;
+    $d2 =~ s/-//g;
+
+    $date1 = new Date::Business(DATE => $d1);
+    $date2 = new Date::Business(DATE => $d2);
+
+    return ($date1, $date2);
+}
