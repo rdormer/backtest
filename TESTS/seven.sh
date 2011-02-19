@@ -128,8 +128,30 @@ Expectancy -3.5392% / -0.3555 R
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo " 
-[No Results]
+FISI
 "
 
 ./screen.pl -nocache -tickers FISI,WMG -screen TESTS/425803 -date 2011-02-01
 ./screen.pl -nocache -tickers FISI,WMG -screen TESTS/746722 -date 2011-02-01
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo " 
+total: 5381.7 (return 7.63%)
+QQQQ buy and hold: -100.00%
+43 trades (12 wins / 21 losses)
+Win ratio 27.91%
+Average win 20.946% / 2.090 R
+Average loss -9.147% / -0.901 R
+Maximum drawdown 9.077%
+System quality number -0.2
+Ulcer Index 0.0217
+Standard deviation of returns 3.377
+Sharpe ratio 0.326
+Recovery factor 0.841
+Max adverse excursion 0.000%
+Expectancy -0.7488% / -0.0665 R 
+"
+
+./backtest.pl -skip-progress -tickers TDSC -start 1991-12-12 -finish 1994-03-21 -entry TESTS/867213 -exit TESTS/190780 -trail TESTS/213106 --skip-trades
+./backtest.pl -skip-progress -tickers TDSC -start 1991-12-12 -finish 1994-03-21 -entry TESTS/867213 -exit TESTS/190780 -trail TESTS/213106 --skip-trades --nocache

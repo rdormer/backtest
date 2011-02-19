@@ -391,15 +391,8 @@ sub trim_data_array {
     #don't have enough data
     return if scalar @$data < $count;
 
-    my $start = 0;
-    my $end = $#{$data};
-
-    #if we actually need to trim...
-    if(scalar @$data > $count) {
-
-	$start = search_array_date($date, $data);
-	$end = $start + $count - 1;
-    }
+    $start = search_array_date($date, $data);
+    $end = $start + $count - 1;
 
     my @rval = ();
     foreach $i ($start..$end) {
