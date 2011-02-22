@@ -399,7 +399,9 @@ sub trim_data_array {
 	push @rval, $data->[$i] if $data->[$i];
     }
 
-    return \@rval;
+    if(scalar @rval == $count) {
+	return \@rval;
+    }
 }
 
 #grab split data and apply it to the price data we've pulled.

@@ -155,3 +155,25 @@ Expectancy -0.7488% / -0.0665 R
 
 ./backtest.pl -skip-progress -tickers TDSC -start 1991-12-12 -finish 1994-03-21 -entry TESTS/867213 -exit TESTS/190780 -trail TESTS/213106 --skip-trades
 ./backtest.pl -skip-progress -tickers TDSC -start 1991-12-12 -finish 1994-03-21 -entry TESTS/867213 -exit TESTS/190780 -trail TESTS/213106 --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 5082.5 (return 1.65%)
+QQQQ buy and hold: -100.00%
+1 trades (1 wins / 0 losses)
+Win ratio 100.00%
+Average win 16.923% / 1.687 R
+Average loss 0.000% / 0.000 R
+Maximum drawdown 0.441%
+System quality number 0.0
+Ulcer Index 0.0015
+Standard deviation of returns 0.812
+Sharpe ratio 0.232
+Recovery factor 3.744
+Max adverse excursion 0.000%
+Expectancy 16.9231% / 1.6871 R
+"
+
+./backtest.pl -skip-progress -tickers ACMR -start 1998-02-22 -finish 1998-04-20 -entry TESTS/147952 -exit TESTS/861886 --skip-trades
+./backtest.pl -skip-progress -tickers ACMR -start 1998-02-22 -finish 1998-04-20 -entry TESTS/147952 -exit TESTS/861886 --skip-trades --nocache
