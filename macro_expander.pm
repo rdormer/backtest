@@ -13,7 +13,8 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
                 RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW TREND_INTENSITY PAYOUT_RATIO ULCER_INDEX RAVI
-                POSITION_DAYS_HELD POSITION_RETURN_PERCENT POSITION_RETURN_R POSITION_SHARE_COUNT POSITION_BUY_PRICE POSITION_SELL_PRICE DAYCHANGE
+                POSITION_DAYS_HELD POSITION_RETURN_PERCENT POSITION_RETURN_R POSITION_SHARE_COUNT POSITION_BUY_PRICE POSITION_SELL_PRICE DAYCHANGE 
+                SHARES_OUTSTANDING
 );
 
 
@@ -44,7 +45,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"CASH" => "fundamental_cash", "EQUITY" => "fundamental_equity", "NET_INCOME" => "fundamental_net_income",
 			"REVENUE" => "fundamental_revenue", "STRENGTH" => "relative_strength", "RWI_LOW" => "random_walk_low",
 			"RWI_HIGH" => "random_walk_high", "DISCOUNTED_CASH_FLOW" => "fundamental_dcf", 
-			"TREND_INTENSITY" => "compute_trend_intensity", "ULCER_INDEX" => "compute_ulcer_index", "RAVI" => "compute_ravi"
+			"TREND_INTENSITY" => "compute_trend_intensity", "ULCER_INDEX" => "compute_ulcer_index", "RAVI" => "compute_ravi",
+			"SHARES_OUTSTANDING" => "fundamental_shares_outstanding"
 );
 
 

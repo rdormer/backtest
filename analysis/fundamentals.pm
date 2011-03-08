@@ -112,11 +112,11 @@ sub fundamental_eps {
     return $current_fundamentals{$date_list[$index]}{'eps_diluted'};
 }
 
-sub fundamental_float { 
+sub fundamental_shares_outstanding {
 
     my $index = shift;
     load_precheck(current_ticker(), $index);
-    return $current_fundamentals{$date_list[$index]}{'total_float'}; 
+    return $current_fundamentals{$date_list[$index]}{'shares_outstanding'}; 
 }
 
 sub fundamental_current_ratio { 
