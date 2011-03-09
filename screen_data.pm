@@ -32,16 +32,11 @@ use constant {
 my $max_limit;
 my $cache_size = 0;
 
-my @fundamental_list;
-my $sweep_statement;
-
 my $current_date;
-my $today_obj;
 my $date_index;
 my @date_range;
-my $current_ticker;
 
-my $fund_pull_limit;
+my $current_ticker;
 my @ticker_list;
 
 my %data_cache;
@@ -102,12 +97,6 @@ sub next_test_day {
 #        conf::output("$current_date\n\b\b\b\b\b\b\b\b\b\b");
 	conf::output($current_date);
     }
-
-
-
-    $d = $current_date;
-    $d =~ s/-//g;
-    $today_obj = new Date::Business(DATE => $d);
 
     return $notdone;
 }
