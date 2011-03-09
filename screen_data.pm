@@ -11,8 +11,6 @@ use screen_sql;
 #as comments for documentation purposes
 
 #$current_prices;
-#%value_cache;
-#%current_fundamentals;
 
 use constant {
     DATE_IND => 0,
@@ -159,7 +157,7 @@ sub days_ago {
 
     my $daycount = shift;
     my $statement = shift;
-    %value_cache = ();
+    reset_indicators();
 
     my $save_date = $current_date;
     my $save_pull = $current_prices;
@@ -173,7 +171,7 @@ sub days_ago {
     my $rval = eval($statement);
     $current_date = $save_date;
     $current_prices = $save_pull;
-    %value_cache = ();
+    reset_indicators();
 
     return $rval;
 }
@@ -182,8 +180,8 @@ sub eval_expression {
 
     my $exp = shift;
     my $ticker = shift;
-    %value_cache = ();
 
+    reset_indicators();
     $current_prices = pull_data($ticker, $current_date, $exp->[0][1], $exp->[0][1]);
     return eval($exp->[0][0]);
 }
@@ -249,8 +247,8 @@ sub filter_results {
     $current_ticker = shift;
     my $criteria = shift;
     $current_prices = ();
-    %value_cache = ();
-    
+
+    reset_indicators();
     my $date = $current_date;
 
     for(my $i = 0; $i < scalar @$criteria; $i++) {

@@ -1,6 +1,7 @@
-#use rstrength;
 use screen_data;
 use Finance::TA;
+
+my %value_cache;
 
 sub fetch_strength { return relative_strength(current_ticker(), shift); }
 sub fetch_volatility { return statistical_volatility(shift); }
@@ -44,6 +45,10 @@ sub wma_volume { return array_weighted_avg(shift, VOL_IND); }
 
 sub init_indicators {
     TA_Initialize();
+}
+
+sub reset_indicators {
+    %value_cache = ();
 }
 
 sub truncate_current_prices {
