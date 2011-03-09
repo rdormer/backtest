@@ -122,8 +122,8 @@ Max adverse excursion 0.000%
 Expectancy -3.5392% / -0.3555 R
 "
 
-./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades
-./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades --nocache
+time ./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades
+time ./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades --nocache
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";

@@ -85,13 +85,12 @@ sub next_test_day {
 
     if($notdone) {
 	$date_index++;
-	$current_date = $date_range[$date_index];
+	set_date($date_range[$date_index]);
     } else {
-	$current_date = $date_range[$#date_range];
+	set_date($date_range[$#date_range]);
     }
 
     if(! conf::noprogress()) {
-	#print "$current_date\n\b\b\b\b\b\b\b\b\b\b";
 #        conf::output("$current_date\n\b\b\b\b\b\b\b\b\b\b");
 	conf::output($current_date);
     }
@@ -159,9 +158,10 @@ sub days_ago {
     my $statement = shift;
     reset_indicators();
 
-    my $save_date = $current_date;
+    my $save_date = get_date();
     my $save_pull = $current_prices;
-    $current_date = fetch_date_at($daycount);
+    my $day = fetch_date_at($daycount);
+    set_date($day);
 
     $current_prices = [];
     foreach($daycount..scalar @$save_pull) {
@@ -169,8 +169,8 @@ sub days_ago {
     }
 
     my $rval = eval($statement);
-    $current_date = $save_date;
     $current_prices = $save_pull;
+    set_date($save_date);
     reset_indicators();
 
     return $rval;
@@ -180,9 +180,10 @@ sub eval_expression {
 
     my $exp = shift;
     my $ticker = shift;
+    my $day = get_date();
 
     reset_indicators();
-    $current_prices = pull_data($ticker, $current_date, $exp->[0][1], $exp->[0][1]);
+    $current_prices = pull_data($ticker, $day, $exp->[0][1], $exp->[0][1]);
     return eval($exp->[0][0]);
 }
 
@@ -249,7 +250,7 @@ sub filter_results {
     $current_prices = ();
 
     reset_indicators();
-    my $date = $current_date;
+    my $date = get_date();
 
     for(my $i = 0; $i < scalar @$criteria; $i++) {
 
@@ -478,19 +479,6 @@ sub search_array_date {
     return $low;
 }
 
-sub current_index {
-
-    my $i = 0;
-
-    my $current = fetch_date_at($i);
-    while($current_date lt $current && $i < $#{$current_prices}) {
-	$i++;
-	$current = fetch_date_at($i);
-    }
-
-    return $i;
-}
-
 sub current_ticker {
     return $current_ticker;
 }
@@ -543,7 +531,7 @@ sub get_date_image {
 
 sub check_runtime_errors {
 
-    my $day = ($current_date ? $current_date : $date_range[0]);
+    my $day = (get_date() ? get_date() : $date_range[0]);
     generate_bogus_fundamentals($day);
     my $t = $current_prices;
 
