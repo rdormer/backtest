@@ -23,5 +23,7 @@ if($data eq "###") {
 
     if($data =~ /(.+)===/) {
 	print $1;
+    } else {
+	print "<img src='/images/ajax-loader.gif' />";
     }
 }
