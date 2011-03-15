@@ -200,27 +200,27 @@ sub fundamental_yearly_dividend {
     return $sum;
 }
 
+sub fundamental_revenue_ttm {
+    my $count = shift;
+    return tally_ttm($count, 'revenue');
+} 
+
+sub fundamental_net_income_ttm {
+    my $count = shift;
+    return tally_ttm($count, 'net_income');
+}
+
+sub fundamental_eps_ttm {
+    my $count = shift;
+    return tally_ttm($count, 'eps_diluted');
+}
+
 sub fundamental_div_yield {
     return (fundamental_yearly_dividend() / fetch_close_at(0)) * 100;
 }
 
 sub fundamental_price_earnings {
     return fetch_close_at(0) / fundamental_yearly_eps();
-}
-
-sub fundamental_yearly_eps {
-
-    #don't care about return value
-    #just forcing a load here
-
-    fundamental_eps(3);
-    my $eps = 0;
-
-    for(my $i = 0; $i < 4; $i++) {
-	$eps += $current_fundamentals{$date_list[$index]}{'eps_diluted'};
-    }
-
-    return $eps;
 }
 
 sub fundamental_payout_ratio {
@@ -268,6 +268,25 @@ sub generate_bogus_fundamentals {
 	$current_fundamentals{$udate} = $d;
 	$udate = subtract_day($udate);
     }
+}
+
+sub tally_ttm {
+
+    my $count = shift;
+    my $offset = ($count == 0 ? 3 : ($count * 4) + 3);
+    my $field = shift;
+    my $sum = 0;
+
+    #don't care about return value
+    #just forcing a load here
+
+    fundamental_eps($offset);
+
+    for(my $i = ($count * 4); $i <= ($count * 4) + 3; $i++) {
+	$sum += $current_fundamentals{$date_list[$i]}{$field};
+    }
+
+    return $sum;
 }
 
 1;
