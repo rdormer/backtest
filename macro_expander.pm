@@ -5,8 +5,8 @@ use analysis::demark;
 use analysis::rank;
 
 my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+[\.]{0,1}[\d]* , CURRENT_RATIO MIN[VOHLC] CDL_BULL_MARUBOZU CMO
-                COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY CDL_GRAVESTONE 
-                OBV CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] EPS_TTM 
+                MAX_UP_DAY MAX_DOWN_DAY COM_CHAN_INDEX CDL_BEAR_MARUBOZU CDL_BULL_SPINNING_TOP CDL_BEAR_SPINNING_TOP CDL_DOJI CDL_DRAGONFLY 
+                CDL_GRAVESTONE OBV CDL_HAMMER CDL_HANGMAN CDL_INVERTED_HAMMER CDL_SHOOTING_STAR MAX[VOHLC] AVG[VOHLC] EMA[VOHLC] [VOHLC] EPS_TTM 
                 REVENUE_TTM NET_INCOME_TTM ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR 
                 MACDS MACDH MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
@@ -47,7 +47,8 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"RWI_HIGH" => "random_walk_high", "DISCOUNTED_CASH_FLOW" => "fundamental_dcf", 
 			"TREND_INTENSITY" => "compute_trend_intensity", "ULCER_INDEX" => "compute_ulcer_index", "RAVI" => "compute_ravi",
 			"SHARES_OUTSTANDING" => "fundamental_shares_outstanding", "EPS_TTM" => "fundamental_eps_ttm",
-			"REVENUE_TTM" => "fundamental_revenue_ttm", "fundamental_net_income_ttm"
+			"REVENUE_TTM" => "fundamental_revenue_ttm", "NET_INCOME_TTM" => "fundamental_net_income_ttm", 
+			"MAX_UP_DAY" => "max_up_day", "MAX_DOWN_DAY" => "max_down_day"
 );
 
 

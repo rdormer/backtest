@@ -246,6 +246,47 @@ sub compute_ravi {
 
 }
 
+sub max_delta {
+
+    my $period = shift;
+    my $max = 0;
+    my $min = 0;
+
+    for($i = 0; $i < $period; $i++) {
+
+	my $delta = (((fetch_close_at($i) - fetch_open_at($i)) / fetch_close_at($i)) * 100);
+	$max = ($delta > $max ? $delta : $max);
+	$min = ($delta < $min ? $delta : $min);
+    }
+
+    $value_cache{"maxup$period"} = $max;
+    $value_cache{"maxdown$period"} = abs($min);
+}
+
+sub max_up_day {
+
+    my $period = shift;
+    my $n = "maxup$period";
+
+    if(! exists $value_cache{$n}) {
+	max_delta($period);
+    }
+
+    return $value_cache{$n};
+}
+
+sub max_down_day {
+
+    my $period = shift;
+    my $n = "maxdown$period";
+
+    if(! exists $value_cache{$n}) {
+	max_delta($period);
+    }
+
+    return $value_cache{$n};
+}
+
 ###########
 # All of the functions from here on are basically
 # wrappers for the TA-LIB calls
