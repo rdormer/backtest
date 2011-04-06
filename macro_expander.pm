@@ -199,7 +199,7 @@ sub parse_statement {
 
 	} elsif( ! probe_transform_table($token)) {
 	    
-	    handle_meta() if $token =~ /<|>|=|<=|>=|!=|AND|OR/;
+	    handle_meta() if $token =~ /<|>|=|<=|>=|!=|AND|OR|\)/;
 	    $current_action .= " $token";
 	} 
 

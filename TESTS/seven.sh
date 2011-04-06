@@ -177,3 +177,9 @@ Expectancy 16.9231% / 1.6871 R
 
 ./backtest.pl -skip-progress -tickers ACMR -start 1998-02-22 -finish 1998-04-20 -entry TESTS/147952 -exit TESTS/861886 --skip-trades
 ./backtest.pl -skip-progress -tickers ACMR -start 1998-02-22 -finish 1998-04-20 -entry TESTS/147952 -exit TESTS/861886 --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "[should run]"
+
+./screen.pl --list ~/AUTO/stock_universe.txt --screen TESTS/206681 --date 2008-01-01 | wc
