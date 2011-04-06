@@ -233,7 +233,7 @@ sub fundamental_dcf {
     my $perp_growth = shift;
     my $benchmark = shift;
 
-    my $eps = fundamental_yearly_eps();
+    my $eps = fundamental_eps_ttm();
     return 0 if $perp_growth >= $benchmark;
     return 0 if $eps <= 0;
 
