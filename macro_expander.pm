@@ -10,7 +10,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 REVENUE_TTM NET_INCOME_TTM ROE EPS SAR EARNINGS_GROWTH STRENGTH MCAP FLOAT BOLLINGER_UPPER BOLLINGER_LOWER RSI WILLIAMS_R ATR 
                 MACDS MACDH MACD MOMENTUM ROC BOP ADXR ADX ACCELERATION_UPPER ACCELERATION_LOWER ULTOSC ADXR ADX STOCH_FAST_[D|K] AROON_UP AROON_DOWN 
                 AROON_OSC EFFICIENCY_RATIO TD_COMBO_BUY TD_COMBO_SELL TD_SEQUENTIAL_BUY TD_SEQUENTIAL_SELL TD_SETUP_SELL TD_SETUP_BUY 
-                PPO FOR_TICKER[\s]+[A-Z]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
+                PPO FOR_TICKER[\s]+[\D]{1,5} KELTNER_LOWER KELTNER_UPPER MFI WMA[VOHLC] STD_DEV ROA REV_PERSHARE PROFIT_MARGIN
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
                 RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW TREND_INTENSITY PAYOUT_RATIO ULCER_INDEX RAVI
                 POSITION_DAYS_HELD POSITION_RETURN_PERCENT POSITION_RETURN_R POSITION_SHARE_COUNT POSITION_BUY_PRICE POSITION_SELL_PRICE DAYCHANGE 
@@ -80,7 +80,7 @@ my %lookback_table = ( "ACCELERATION_UPPER" => "TA_ACCBANDS", "ACCELERATION_LOWE
 		       "CDL_SHOOTING_STAR" => "TA_CDLSHOOTINGSTAR", "ULTOSC" => "TA_ULTOSC", "AROON_OSC" => "TA_AROONOSC", 
 );
 
-my %transform_table = ( "FOR_TICKER[\\s]+[A-Z]{1,5}" => \&process_for_ticker, "[0-9]+\\|" => \&process_days_ago,
+my %transform_table = ( "FOR_TICKER[\\s]+[\\D]{1,5}" => \&process_for_ticker, "[0-9]+\\|" => \&process_days_ago,
     "RANK\\|" => \&process_rank);
 
 my @token_list;
@@ -392,6 +392,8 @@ sub probe_transform_table {
 
 sub process_for_ticker {
     my $insymbol = shift;
+
+    print "\n$insymbol";
     if($insymbol =~ /FOR_TICKER[\s]+(.*)/) {
 	$current_action .= "force_data_load('$1')";
 	$current_limit = 0;
