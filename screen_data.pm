@@ -63,6 +63,11 @@ sub init_data {
 	@ticker_list = shuffle(@ticker_list);
     }
 
+    if(conf::blacklist()) {
+	my @list = split /,/, conf::blacklist();
+	remove_tickers(\@list);
+    }
+
     set_date_range(conf::start(), conf::finish());
 
     $date_index = -1;
@@ -564,6 +569,22 @@ sub check_runtime_errors {
     }
 
     $current_prices = $t;
+}
+
+sub remove_tickers {
+
+    my $blacklist = shift;
+
+    foreach $remove (@$blacklist) {
+
+	for(my $i = 0; $i < scalar @ticker_list; $i++) {
+	    
+	    if($ticker_list[$i] eq $remove) {
+		$foo = splice @ticker_list, $i, 1;
+		last;
+	    }
+	}
+    }
 }
 
 sub to_cache {
