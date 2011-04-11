@@ -1,3 +1,4 @@
+use List::Util 'shuffle';
 use Date::Business;
 use screen_sql;
 
@@ -56,6 +57,10 @@ sub init_data {
 
 	my $list = conf::ticker_list();
 	@ticker_list = split /,/, $list;
+    }
+
+    if(conf::randomize_list()) {
+	@ticker_list = shuffle(@ticker_list);
     }
 
     set_date_range(conf::start(), conf::finish());
