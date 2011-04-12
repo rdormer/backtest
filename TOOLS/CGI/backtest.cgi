@@ -12,7 +12,7 @@ sub make_command {
 
     my $handle_file = shift;
 
-    my $command = "./backtest.pl --cachemax=100 ";
+    my $command = "./backtest.pl ";
     $command .= "-start " . $cgi->param("start") . " ";
     $command .= "-finish " . $cgi->param("end") . " ";
     $command .= "--timer --cgi-handle=" . $handle_file . " ";
@@ -20,7 +20,12 @@ sub make_command {
     if($cgi->param("tickers")) {
 	$command .= "-tickers=" . $cgi->param("tickers") . " ";
     } else {
-	$command .= "-list /home/rdormer/AUTO/stock_universe.txt ";
+
+	if($cgi->param("universe")) {
+	    $command .= "-list /home/rdormer/AUTO/" . $cgi->param("universe") . ".txt ";
+	} else {
+	    $command .= "-list /home/rdormer/AUTO/completed.txt ";
+	}
     }
 
     if($cgi->param("entry")) {
@@ -85,6 +90,14 @@ sub make_command {
 
     if($cgi->param("slip")) {
 	$command .= "-slip " . dump_file($cgi->param("slip")) . " ";
+    }
+
+    if($cgi->param("randomize")) {
+	$command .= "-randomize ";
+    }
+
+    if($cgi->param("blacklist")) {
+	$command .= "-blacklist=" . $cgi->param("blacklist") . " ";
     }
 
     return $command;
