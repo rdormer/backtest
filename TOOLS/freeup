@@ -1,0 +1,20 @@
+#! /usr/bin/ruby
+
+require 'rubygems'
+require 'sys/proctable'
+
+include Sys
+
+ProcTable.ps do |p|
+  if p.comm.include?("backtest.pl") || p.comm.include?("screen.pl")
+    exit
+  end	    
+end
+
+segids = `ipcs | cut -f 2 -d ' '`
+segids.each_line do |id|
+  if id =~ /[0-9]+/
+    system("ipcrm -m #{id}")
+  end
+end
+
