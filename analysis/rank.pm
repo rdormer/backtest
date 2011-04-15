@@ -1,6 +1,7 @@
 use screen_data;
 
 my %rank_cache;
+my $previous_date;
 
 sub relative_strength {
 
@@ -14,6 +15,11 @@ sub rank_by {
     my $expr = shift;
     my $pull = shift;
     my @statement = ([$expr, $pull]);
+
+    if(get_date() ne $previous_date) {
+	$previous_date = get_date();
+	%rank_cache = ();
+    }
 
     if(not exists $rank_cache{$expr}) {
 	$rank_cache{$expr} = compute_rankings(\@statement);
