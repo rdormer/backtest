@@ -917,4 +917,10 @@ sub compute_standard_dev {
     return $value_cache{$n};
 }
 
+sub random_value {
+
+    my $ceil = shift;
+    return int rand($ceil);
+}
+
 1;

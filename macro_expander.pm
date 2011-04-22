@@ -14,7 +14,7 @@ my @tokens = qw(\+ - \* / <= >= < > ; = != [0-9]+\| RANK\| AND OR NOT [()] [\d]+
                 BOOK_PERSHARE TOTAL_ASSETS CURRENT_ASSETS TOTAL_DEBT CURRENT_DEBT CASH EQUITY NET_INCOME REVENUE STRENGTH TRENDSCORE
                 RWI_LOW RWI_HIGH DIVIDEND_YIELD PRICE_EARNINGS DISCOUNTED_CASH_FLOW TREND_INTENSITY PAYOUT_RATIO ULCER_INDEX RAVI
                 POSITION_DAYS_HELD POSITION_RETURN_PERCENT POSITION_RETURN_R POSITION_SHARE_COUNT POSITION_BUY_PRICE POSITION_SELL_PRICE DAYCHANGE 
-                SHARES_OUTSTANDING 
+                SHARES_OUTSTANDING RAND
 );
 
 
@@ -48,7 +48,7 @@ my %arg_macro_table = ( "V" => "fetch_volume_at", "L" => "fetch_low_at", "MAXO" 
 			"TREND_INTENSITY" => "compute_trend_intensity", "ULCER_INDEX" => "compute_ulcer_index", "RAVI" => "compute_ravi",
 			"SHARES_OUTSTANDING" => "fundamental_shares_outstanding", "EPS_TTM" => "fundamental_eps_ttm",
 			"REVENUE_TTM" => "fundamental_revenue_ttm", "NET_INCOME_TTM" => "fundamental_net_income_ttm", 
-			"MAX_UP_DAY" => "max_up_day", "MAX_DOWN_DAY" => "max_down_day"
+			"MAX_UP_DAY" => "max_up_day", "MAX_DOWN_DAY" => "max_down_day", "RAND" => "random_value"
 );
 
 
@@ -371,6 +371,10 @@ sub lookback_custom {
 
     if($ctoken =~ /DAYCHANGE/) {
 	$pullval = 2;
+    }
+
+    if($ctoken =~ /RAND/) {
+	$pullval = 0;
     }
 
     set_pull($pullval + $complete_meta);
