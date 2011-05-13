@@ -1,6 +1,9 @@
 use Date::Business;
 use TokyoCabinet;
+use Getopt::Long;
 use DBI;
+
+GetOptions('startdate=s' => \$sdate, 'list=s' => \$tickers, 'todir=s' => \$cabdir);
 
 #create epoch starting 1/2/1950
 #have to do it in stages because of Date::Business
@@ -10,13 +13,13 @@ $d1 = new Date::Business(DATE => "19700101");
 $d1->subb(5218);
 
 $dbh = DBI->connect("DBI:mysql:finance", "perldb");
-$sh = $dbh->prepare("select * from historical where ticker = ? and date >= '$ARGV[2]'");
-$si = $dbh->prepare("select date,bef,after from splits where ticker = ? and date >= '$ARGV[2]'");
-$di = $dbh->prepare("select date,divamt from dividends where ticker = ? and date >= '$ARGV[2]'");
-$fp = $dbh->prepare("select * from fundamentals where ticker = ? and quarter_date >= '$ARGV[2]'");
+$sh = $dbh->prepare("select * from historical where ticker = ? and date >= '$sdate'");
+$si = $dbh->prepare("select date,bef,after from splits where ticker = ? and date >= '$sdate'");
+$di = $dbh->prepare("select date,divamt from dividends where ticker = ? and date >= '$sdate'");
+$fp = $dbh->prepare("select * from fundamentals where ticker = ? and quarter_date >= '$sdate'");
 
-open INFILE, $ARGV[0];
-chdir $ARGV[1];
+open INFILE, $tickers;
+chdir $cabdir;
 
 my $index = TokyoCabinet::HDB->new();
 $index->open("epoch-index", $index->OWRITER | $index->OCREAT);
@@ -64,11 +67,11 @@ sub save_history_tocab {
     $fdb->open($ticker, $fdb->OWRITER | $fdb->OCREAT);
     
     foreach (@$res) {
-    	    
-	$day = get_epoch_date($_->[0]);
-	$id = $day - $baseday;	
-	@foo = ($_->[2],$_->[3],$_->[4],$_->[5],$_->[6]);
-	$fdb->put($id + 1, pack("FFFFL", @foo));
+    	        
+		$day = get_epoch_date($_->[0]);
+		$id = $day - $baseday;	
+		@foo = ($_->[2],$_->[3],$_->[4],$_->[5],$_->[6]);
+		$fdb->put($id + 1, pack("FFFFL", @foo));
     }
 
     $fdb->close();
@@ -87,8 +90,8 @@ sub save_splits_tocab {
     foreach(@$res) {
         my $splitdate = get_epoch_date(@$_[0]) - $baseday;
 	@$_[0] = $splitdate;
-	my $s =	pack("LSS", @$_);
-	$sdata .= $s;	
+	my $s =	 pack("LSS", @$_);
+	$sdata .= $s;	     
     } 
 
     $splits->putcat($ticker, $sdata);
@@ -129,9 +132,9 @@ sub save_fundamentals_tocab {
 
        $keydata .= pack("LL", $day, $idx);
        my $fundrow = pack("QQQQQQQQLLF", $d->{'total_assets'}, $d->{'current_assets'},
-       	  	     $d->{'total_debt'}, $d->{'current_debt'}, $d->{'cash'}, $d->{'revenue'},
-		     $d->{'avg_shares_diluted'}, $d->{'shares_outstanding'}, $d->{'equity'},
-		     $d->{'net_income'}, $d->{'eps_diluted'});
+       	    	        $d->{'total_debt'}, $d->{'current_debt'}, $d->{'cash'}, $d->{'revenue'},
+					         $d->{'avg_shares_diluted'}, $d->{'shares_outstanding'}, $d->{'equity'},
+						 			          $d->{'net_income'}, $d->{'eps_diluted'});
 
        $fdata->put($idx, $fundrow);       
     }
