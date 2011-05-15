@@ -3,10 +3,15 @@ use screen_data;
 my %rank_cache;
 my $previous_date;
 
+sub price_change_regardless {
+    my $last = scalar @$current_prices - 1;
+    return ((fetch_close_at(0) - fetch_close_at($last)) / fetch_close_at($last)) * 100;
+}
+
 sub relative_strength {
 
     my $period = shift;
-    my $rstrength = "((fetch_close_at(0) - fetch_close_at($period)) / fetch_close_at($period)) * 100";
+    my $rstrength = "price_change_regardless()";
     return rank_by($rstrength, $period + 1);
 }
 
