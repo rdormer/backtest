@@ -1,0 +1,12 @@
+use DBI;
+
+open INFILE, $ARGV[0];
+
+$dbhandle = DBI->connect("DBI:mysql:finance", "perldb");
+$insert = $dbhandle->prepare("insert into historical (ticker, date, open, high, low, close, volume) values (?, ?, ?, ?, ?, ?, ?);");
+
+foreach $line (<INFILE>) {
+
+	@parts = split /,/,$line;
+	$insert->execute($ARGV[1], @parts[0..5]);
+}
