@@ -419,7 +419,7 @@ sub process_splits {
 	$split_cache{$ticker} = $splitlist if conf::usecache();
     }
     
-    my $enddate = $date_range[$#date_range];
+    my $enddate = (scalar @$date_range > 0 ? $date_range[$#date_range] : $current_date);
     my $histlen = scalar @$hist - 1;
 
     return if $histlen < 0;
