@@ -288,11 +288,12 @@ sub filter_results {
 	   ($maximum > 1 && $count == 1)) {
 	    
 	    $data = process_splits($current_ticker, $data);
-
 	    $date = $data->[$last][DATE_IND] if $last >= 0;
 	    shift @$data if $i > 0;
 	    push @$current_prices, @$data;
-	    return 0 unless eval($criteria->[$i][0]);
+
+	    $result = eval($criteria->[$i][0]);
+	    return 0 unless $result;
 
 	} else {
 	    return 0;
@@ -439,17 +440,17 @@ sub process_splits {
 
     foreach $split (@$splitlist) {
 
-	#if the current split is before the 
-	#last day of our run and above current segment
+	#if split date is before the last day of the 
+	#simulation then try to process it
 
-	if($split->[SPLIT_DATE] le $enddate && $split->[SPLIT_DATE] gt $hist->[$histlen][DATE_IND]) {
+	if($split->[SPLIT_DATE] le $enddate) {
 
-	    my $ind = $histlen;
+	    my $ind = 0;
 
-	    #if the current split is before the last day of our run,
-	    #but the last date of our data is after it, it's in this segment
+	    #if the split date is less than the last day of 
+	    #pulled data, search for the split point within that data
 
-	    if($hist->[$0][DATE_IND] ge $split->[SPLIT_DATE]) {
+	    if($split->[SPLIT_DATE] le $hist->[0][DATE_IND]) {
 		$ind = search_array_date($split->[SPLIT_DATE], $hist);
 	    }
 
