@@ -425,25 +425,25 @@ sub process_splits {
 
     return if $histlen < 0;
 
-    #if we're using cached data we need to 
-    #copy it first to avoid corrupting the cache
-
-    if(exists $data_cache{$ticker}) {
-
-	my @rval;
-	foreach (@$hist) {
-	    push @rval, [@$_];
-	}
-
-	$hist = \@rval;
-    }
-
     foreach $split (@$splitlist) {
 
 	#if split date is before the last day of the 
 	#simulation then try to process it
 
 	if($split->[SPLIT_DATE] le $enddate) {
+
+	    #if we're using cached data we need to 
+	    #copy it first to avoid corrupting the cache
+
+	    if(exists $data_cache{$ticker}) {
+
+		my @rval;
+		foreach (@$hist) {
+		    push @rval, [@$_];
+		}
+		
+		$hist = \@rval;
+	    }
 
 	    my $ind = 0;
 
