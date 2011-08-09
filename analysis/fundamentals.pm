@@ -174,21 +174,7 @@ sub fundamental_price_sales {
 sub fundamental_yearly_dividend {
 
     my $today = get_date();
-
-    my $d = $today;
-    $d =~ s/-//g;
-    my $start = new Date::Business(DATE => $d);
-    $start->sub(365);
-
-    #reset to previous business day if 
-    #exactly one year ago was not a business day
-    if($start->day_of_week() == 0 || $start->day_of_week() == 6) {
-	$start->prevb() 
-    }
-
-    my $rval = $start->image();
-    substr $rval, 4, 0, "-";
-    substr $rval, 7, 0, "-";
+    my $rval = get_year_ago_date();
 
     my $divs = pull_dividends(current_ticker(), $rval, $today);
     my $sum = 0;
@@ -198,6 +184,22 @@ sub fundamental_yearly_dividend {
     }
 
     return $sum;
+}
+
+sub fundamental_yearly_eps {
+    
+    my $cutoff = get_year_ago_date();
+    load_precheck(current_ticker(), 5);
+    
+    my $eps = 0;
+
+    foreach $date (@date_list) {
+	if($date ge $cutoff) {
+	    $eps += $current_fundamentals{$date}->{'eps_diluted'};
+	}
+    }
+
+    return $eps;
 }
 
 sub fundamental_revenue_ttm {
@@ -287,6 +289,27 @@ sub tally_ttm {
     }
 
     return $sum;
+}
+
+sub get_year_ago_date {
+
+    my $d = get_date();
+
+    $d =~ s/-//g;
+    my $start = new Date::Business(DATE => $d);
+    $start->sub(365);
+
+    #reset to previous business day if 
+    #exactly one year ago was not a business day
+    if($start->day_of_week() == 0 || $start->day_of_week() == 6) {
+	$start->prevb() 
+    }
+
+    my $rval = $start->image();
+    substr $rval, 4, 0, "-";
+    substr $rval, 7, 0, "-";
+
+    return $rval;
 }
 
 1;
