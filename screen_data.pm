@@ -2,16 +2,10 @@ use List::Util 'shuffle';
 use Date::Business;
 use screen_sql;
 
-#these have to stay non-local for indicators.pm to work
 #a quick word about $current_prices - it's a reference to a multidimensional
 #array containing the price data for the current ticker - index 0 is the most
 #recent day, and incrementing the index decrements the day - in other words
 #going forward through the array goes backwards through time
-
-#apparently not actually needed - but i'm keeping them 
-#as comments for documentation purposes
-
-#$current_prices;
 
 use constant {
     DATE_IND => 0,
