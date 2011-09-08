@@ -183,3 +183,25 @@ echo "+++++++++++++++++++++++++";
 echo "[should run]"
 
 ./screen.pl --list ~/AUTO/stock_universe.txt --screen TESTS/206681 --date 2008-01-01 | wc
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 4308.952 (return -13.82%)
+Paid out 3.292 in dividends
+QQQQ buy and hold: -34.45%
+57 trades (13 wins / 43 losses)
+Win ratio 22.81%
+Average win 28.909% / 1.927 R
+Average loss -12.212% / -0.814 R
+Maximum drawdown 39.319%
+System quality number -0.8
+Ulcer Index 0.2198
+Standard deviation of returns 12.602
+Sharpe ratio 0.431
+Recovery factor 0.351
+Max adverse excursion 11.697%
+Expectancy -2.8333% / -0.1887 R"
+
+./backtest.pl -skip-progress -start 2008-01-28 -finish 2009-01-31 -list TESTS/stock_universe.txt -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431 --skip-trades
+./backtest.pl -skip-progress -start 2008-01-28 -finish 2009-01-31 -list TESTS/stock_universe.txt -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431 --skip-trades --nocache

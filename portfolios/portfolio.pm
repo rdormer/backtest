@@ -35,6 +35,21 @@ my $total_short_equity;
 my %dividend_cache;
 my $dividend_payout;
 
+BEGIN {
+
+    #generate test data for
+    #runtime error checking
+
+    $ticker = "";
+    $positions{$ticker}{'short'} = 0;
+    $positions{$ticker}{'stop'} = 1;
+    $positions{$ticker}{'risk'} = 5;
+    $positions{$ticker}{'sdate'} = get_date();
+    $positions{$ticker}{'shares'} =1;
+    $positions{$ticker}{'start'} = 1;
+    $positions{$ticker}{'mae'} = 1;
+}
+
 sub init_long_portfolio {
 
     my $longexits = shift;
@@ -78,6 +93,11 @@ sub generic_init {
 
 sub positions_available {
 
+    #delete any test data before computing 
+    #sizes, then make sure to round down so 
+    #we don't run out of money
+
+    delete $positions{""};
     my $psize = calculate_position_size();
     return floor($current_cash / $psize);
 }
