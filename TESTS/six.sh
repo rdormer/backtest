@@ -185,7 +185,7 @@ echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
 total: 5132.396595 (return 2.65%)
-QQQQ buy and hold: -100.00%
+QQQQ buy and hold: 65.00%
 6 trades (3 wins / 3 losses)
 Win ratio 50.00%
 Average win 18.304% / 1.830 R

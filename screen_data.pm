@@ -188,6 +188,7 @@ sub eval_expression {
 
     reset_indicators();
     $current_prices = pull_data($ticker, $day, $exp->[0][1], $exp->[0][1]);
+    $current_prices = process_splits($ticker, $current_prices);
     return eval($exp->[0][0]);
 }
 
