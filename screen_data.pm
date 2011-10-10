@@ -187,9 +187,13 @@ sub eval_expression {
     my $day = get_date();
 
     reset_indicators();
+    my $temp = $current_prices;
     $current_prices = pull_data($ticker, $day, $exp->[0][1], $exp->[0][1]);
     $current_prices = process_splits($ticker, $current_prices);
-    return eval($exp->[0][0]);
+
+    my $rval = eval($exp->[0][0]);
+    $current_prices = $temp;
+    return $rval;
 }
 
 sub force_data_load {

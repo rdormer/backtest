@@ -182,26 +182,49 @@ echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "[should run]"
 
-./screen.pl --list ~/AUTO/stock_universe.txt --screen TESTS/206681 --date 2008-01-01 | wc
+./screen.pl --list TESTS/stock_universe.txt --screen TESTS/206681 --date 2008-01-01 | wc
 
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 4308.952 (return -13.82%)
+total: 4141.052 (return -17.18%)
 Paid out 3.292 in dividends
 QQQQ buy and hold: -34.45%
-57 trades (13 wins / 43 losses)
-Win ratio 22.81%
-Average win 28.909% / 1.927 R
-Average loss -12.212% / -0.814 R
-Maximum drawdown 39.319%
-System quality number -0.8
-Ulcer Index 0.2198
-Standard deviation of returns 12.602
-Sharpe ratio 0.431
-Recovery factor 0.351
-Max adverse excursion 11.697%
-Expectancy -2.8333% / -0.1887 R"
+59 trades (12 wins / 46 losses)
+Win ratio 20.34%
+Average win 30.897% / 2.059 R
+Average loss -12.024% / -0.802 R
+Maximum drawdown 41.940%
+System quality number -1.0
+Ulcer Index 0.2347
+Standard deviation of returns 13.141
+Sharpe ratio 0.315
+Recovery factor 0.410
+Max adverse excursion 9.720%
+Expectancy -3.2946% / -0.2198 R
+"
 
 ./backtest.pl -skip-progress -start 2008-01-28 -finish 2009-01-31 -list TESTS/stock_universe.txt -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431 --skip-trades
 ./backtest.pl -skip-progress -start 2008-01-28 -finish 2009-01-31 -list TESTS/stock_universe.txt -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431 --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 4927.28 (return -1.45%)
+QQQQ buy and hold: -0.39%
+1 trades (0 wins / 1 losses)
+Win ratio 0.00%
+Average win 0.000% / 0.000 R
+Average loss -14.991% / -1.000 R
+Maximum drawdown 1.454%
+System quality number 0.0
+Ulcer Index 0.0120
+Standard deviation of returns 0.000
+Sharpe ratio 0.000
+Recovery factor 0.997
+Max adverse excursion 0.000%
+Expectancy -14.9907% / -1.0000 R
+"
+
+./backtest.pl -skip-progress -skip-trades -start 2008-05-20 -finish 2008-05-28 -tickers BWEN -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431
+./backtest.pl -skip-progress -skip-trades -start 2008-05-20 -finish 2008-05-28 -tickers BWEN -entry TESTS/501389 -exit TESTS/256814 -filter TESTS/543504 -stop TESTS/882547 -trail TESTS/827431 --nocache
