@@ -6,7 +6,7 @@ use DBI;
 
 my $database = DBI->connect("DBI:mysql:finance", "perldb") or die "couldn't open database";
 GetOptions("list=s" => \$filename, "exchange=s" => \$exchange, "pause=s" => \$sleepval);
-open LIST, $filename;
+open LIST, $filename or die "couldn't find $filename";
 
 $cikcom = $database->prepare("select cik from cikmap where ticker=?");
 $startq = $database->prepare("select count(*) from fundamentals where ticker=?");
@@ -16,8 +16,6 @@ equity, net_income, revenue, avg_shares_basic, avg_shares_diluted, eps_basic, ep
 shares_issued, shares_outstanding) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 
-
-
 foreach $ticker (<LIST>) {
 
     chomp $ticker;
@@ -25,26 +23,29 @@ foreach $ticker (<LIST>) {
     $startq->execute($ticker);
     my @s = $startq->fetchrow_array();
     my $index = ($s[0] == 0 ? 0 : $s[0] - 1);
+    my $dbct = $index;
     my $qtrct = 0;
-    
+
     do {
 
 	sleep($sleepval) if $sleepval;
-	$qtrct = do_page_get($ticker, "&istart_date=$index");
-	$index += 5;
+	($qtrct, $page_qtrs) = do_page_get($ticker, $index);
 
-    } while($qtrct == 5);
+	$index += ($dbct > $page_qtrs ? -5 : 5);
+
+    } while($qtrct == 5 && $index > 0);
 }
 
 sub do_page_get {
 
     my $ticker = shift;
-    my $suffix = shift;
+    my $offset = shift;
 
-    my $rawpage = fetch_page($ticker, $suffix);
+    my $rawpage = fetch_page($ticker, "&istart_date=$offset");
     my $pagetxt = get_page_text($rawpage);
 
     #pull out list of quarters
+    #all quarters, and quarters on page
     my ($q, $o) = get_quarters($pagetxt);
 
     #get rid of any spaces
@@ -56,19 +57,17 @@ sub do_page_get {
 	splice @$o, $i, 1 if $o->[$i] eq "";
     }
 
-    #scrape
-    my @done = scrape_page_text($ticker, $pagetxt, $o);
-    print "\n$ticker: " . join " ", @done;
 
-    return -1 if $done[$#done] eq $q->[scalar @$q - 1];
-    return scalar @done;
+    #scrape
+    scrape_page_text($ticker, $pagetxt);
+    return -1 if $o[scalar @$o - 1] eq $q->[scalar @$q - 1];
+    return (scalar @$o, scalar @$q);
 }
 
 sub scrape_page_text {
 
     my $ticker = shift;
     my $text = shift;
-    my $targets = shift;
 
     $cikcom->execute($ticker);
     my @ciks = $cikcom->fetchrow_array();
@@ -94,13 +93,12 @@ sub scrape_page_text {
 
     for(my $q = 0; $q < scalar @loaddates; $q++) {
 
+	next if $enddates[$q] == "-01";
 	$fcommand->execute($ticker, $loaddates[$q], $enddates[$q], '', '', '', '', $ciks[0], 
 			   $assets[$q], $cur_assets[$q], $debts[$q], $cur_debs[$q], $cash[$q], 
 			   $equity[$q], $income[$q], $revenue[$q], $shares[$q], $shares[$q], 
 			   $b_eps[$q], $d_eps[$q], $shares[$q], $shares[$q], $shares[$q]);
     }
-
-    return @$targets;
 }
 
 sub get_line_item {
@@ -203,7 +201,7 @@ sub get_quarters {
 
     my $pagetxt = shift;
 
-    if($pagetxt =~ /.*start date for quarterly reports([0-9\/ ]+).*Quarter End Date([0-9\/ ]+).*/i) {
+    if($pagetxt =~ /.*start date for quarterly reports([0-9\/ ]+).*INDICATORS Quarter End Date([0-9\/ ]+).*/i) {
 
 	my @quarters = split / /, $1;
 	my @onpage = split / /, $2;

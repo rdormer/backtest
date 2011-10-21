@@ -1,3 +1,4 @@
+#! /usr/bin/perl
 use DBI;
 
 my $filename = $ARGV[0];
