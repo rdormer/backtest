@@ -1,11 +1,10 @@
 #! /usr/bin/perl
 
 use CGI;
-
 my $cgi = new CGI;
 
 my $command = "./screen.pl -nocache ";
-$command .= "-list TESTS/stock_universe.txt ";
+$command .= "-list $ENV{TICKER_STATE_PATH}/stock_universe.txt ";
 $command .= "-screen " . dump_file($cgi->param("screen")) . " ";
 
 if($cgi->param("screendate")) {

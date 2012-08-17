@@ -22,9 +22,9 @@ sub make_command {
     } else {
 
 	if($cgi->param("universe")) {
-	    $command .= "-list /home/rdormer/AUTO/" . $cgi->param("universe") . ".txt ";
+	    $command .= "-list $ENV{TICKER_STATE_PATH}/" . $cgi->param("universe") . ".txt ";
 	} else {
-	    $command .= "-list /home/rdormer/AUTO/completed.txt ";
+	    $command .= "-list $ENV{TICKER_STATE_PATH}/completed.txt ";
 	}
     }
 
