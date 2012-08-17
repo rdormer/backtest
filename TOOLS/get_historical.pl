@@ -13,7 +13,8 @@ my %dvals = ("Jan" => "01", "Feb" => "02", "Mar" => "03", "Apr" => "04",
 
 GetOptions('tickerlist=s' => \$filename, 'startdate=s' => \$startdate,
 	   'enddate=s' => \$enddate, 'exchange=s' => \$exchange, 
-	   'yahoo' => \$useyahoo, 'google' => \$usegoogle);
+	   'yahoo' => \$useyahoo, 'fix-volume' => \$use_update,
+           'google' => \$usegoogle);
 
 if($usegoogle) {
     $startdate = unformat_date($startdate);
@@ -22,8 +23,12 @@ if($usegoogle) {
 
 open(TICKERS, $filename) || die "could'nt open file $filename\n";
 $dbh = DBI->connect("DBI:mysql:finance", "perldb");
-$ch = $dbh->prepare("insert into historical (ticker, date, open, high, low, close, volume) values (?, ?, ?, ?, ?, ?, ?);");
 
+if($use_update) {
+    $ch = $dbh->prepare("update historical set volume=? where ticker=? and date=?;");
+} else {
+    $ch = $dbh->prepare("insert into historical (ticker, date, open, high, low, close, volume) values (?, ?, ?, ?, ?, ?, ?);");
+}
 
 foreach $ticker (<TICKERS>) {
 
@@ -41,7 +46,13 @@ foreach $ticker (<TICKERS>) {
 	my @vals = split /,/, $lines[$i];
         ($date, $open, $high, $low, $close, $volume) = @vals;
 	$date = format_date($date);
-        $ch->execute($ticker, $date, $open, $high, $low, $close, $volume);	
+
+	if($use_update) {
+
+
+	} else {
+	    $ch->execute($ticker, $date, $open, $high, $low, $close, $volume);
+	}
     }
 }
 
