@@ -80,3 +80,42 @@ Expectancy 0.2348% / -0.0028 R
 
 ./backtest.pl -start 2009-05-02 -finish 2009-12-01 --tickers FNSR -entry TESTS/883112 -exit TESTS/525880 -filter TESTS/667330 -stop TESTS/636502 --skip-trades --skip-progress
 ./backtest.pl -start 2009-05-02 -finish 2009-12-01 --tickers FNSR -entry TESTS/883112 -exit TESTS/525880 -filter TESTS/667330 -stop TESTS/636502 --skip-trades --skip-progress --nocache
+
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+"
+./backtest.pl --list TESTS/strength_list.txt --start=2006-01-01 --finish=2008-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades
+./backtest.pl --list TESTS/strength_list.txt --start=2006-01-01 --finish=2008-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades --nocache
+
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+"
+
+./backtest.pl --list TESTS/strength_list2.txt --start=2007-03-01 --finish=2008-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades
+./backtest.pl --list TESTS/strength_list2.txt --start=2007-03-01 --finish=2008-01-01  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades --nocache
+
+echo "+++++++++++++++++++++++++";
+echo "+++++++++++++++++++++++++";
+echo "
+total: 4990.99 (return -0.18%)
+QQQQ buy and hold: 3.06%
+2 trades (0 wins / 2 losses)
+Win ratio 0.00%
+Average win 0.000% / 0.000 R
+Average loss -7.560% / -0.767 R
+Maximum drawdown 0.978%
+System quality number -4.6
+Ulcer Index 0.0057
+Standard deviation of returns 0.160
+Sharpe ratio -4.915
+Recovery factor 0.184
+Max adverse excursion 0.000%
+Expectancy -7.5598% / -0.7667 R 
+"
+
+./backtest.pl --list TESTS/strength_list2.txt --start=2007-03-01 --finish=2007-04-10  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades
+./backtest.pl --list TESTS/strength_list2.txt --start=2007-03-01 --finish=2007-04-10  -entry TESTS/strength --exit TESTS/out --skip-progress --skip-trades --nocache

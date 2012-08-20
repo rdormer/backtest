@@ -472,7 +472,7 @@ sub get_sizing_equity {
 	if($stopflag) {
 	    $equity += $positions{$_}{'stop'} * $positions{$_}{'shares'};
 	} else {
-	    $current_prices = pull_data($_, get_date(), 2);
+	    $current_prices = pull_data($_, get_date(), 2, 2);
 	    $equity += fetch_close_at(1) * $positions{$_}{'shares'};
 	}
     }
