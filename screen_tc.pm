@@ -2,6 +2,7 @@ use TokyoCabinet;
 use conf;
 use DBI;
 
+my $cab_directory;
 my %base_dates;
 my %date_lookup;
 my $datehandle;
@@ -15,21 +16,24 @@ my %epoch_date_cache;
 sub init_mod {    
 
     init_date_handling();
+    
+    my $cabs = $ENV{TICKER_CAB_PATH};
+    $cab_directory = ($cabs ? $cabs : "./CABS");
 
     $splithandle = TokyoCabinet::HDB->new();
-    $splithandle->open("./CABS/splits", $splithandle->OREADER);
+    $splithandle->open("$cab_directory/splits", $splithandle->OREADER);
 
     $divhandle = TokyoCabinet::HDB->new();
-    $divhandle->open("./CABS/dividends", $divhandle->OREADER);
+    $divhandle->open("$cab_directory/dividends", $divhandle->OREADER);
 
     $datehandle = TokyoCabinet::HDB->new();
-    $datehandle->open("./CABS/fund-dates", $datehandle->OREADER);
+    $datehandle->open("$cab_directory/fund-dates", $datehandle->OREADER);
 
     $fundhandle = TokyoCabinet::FDB->new();
-    $fundhandle->open("./CABS/fund-data", $fundhandle->OREADER);
+    $fundhandle->open("$cab_directory/fund-data", $fundhandle->OREADER);
 
     my $index = TokyoCabinet::HDB->new();
-    $index->open("./CABS/epoch-index", $index->OREADER);
+    $index->open("$cab_directory/epoch-index", $index->OREADER);
 
     $index->iterinit();
     while(defined(my $key = $index->iternext())){
@@ -38,6 +42,15 @@ sub init_mod {
 	    $base_dates{$key} = $value;
       	}
     }
+}
+
+sub open_history_file {
+  
+  my $filename = shift;
+  $filename =~ tr/\//:/;
+  my $tchandle = TokyoCabinet::FDB->new();
+  $tchandle->open("$cab_directory/$filename", $tchandle->OREADER);
+  return $tchandle;
 }
 
 sub init_date_handling {
@@ -73,9 +86,7 @@ sub pull_history_by_limit {
     my $limit = shift;
     my @rval;
 
-    my $tchandle = TokyoCabinet::FDB->new();
-    $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
-    
+    my $tchandle = open_history_file($ticker);
     my $last = get_epoch_date($date) - $base_dates{$ticker};
     my $first = $last;
     
@@ -134,9 +145,8 @@ sub pull_history_by_dates {
     my $end = get_epoch_date($edate) - $base_dates{$ticker};
     $start = 0 if $start < 0;
 
-    my $tchandle = TokyoCabinet::FDB->new();
-    $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
-
+    my $tchandle = open_history_file($ticker);
+    
     foreach $curdate ($start..$end) {
 	
 	my @row = unpack("FFFFL", $tchandle->get($curdate + 1));
@@ -157,9 +167,8 @@ sub pull_close_on_date {
     my $ticker = shift;
     my @closes;
 
-    my $tchandle = TokyoCabinet::FDB->new();
-    $tchandle->open("./CABS/$ticker", $tchandle->OREADER);
-
+    my $tchandle = open_history_file($ticker);
+    
     foreach $day (@_) {
 	my $index = get_epoch_date($day) - $base_dates{$ticker};
 	my @temp = unpack("FFFFL", $tchandle->get($index + 1));

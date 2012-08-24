@@ -1,3 +1,5 @@
+#! /usr/bin/perl
+
 use Date::Business;
 use TokyoCabinet;
 use Getopt::Long;
@@ -64,7 +66,10 @@ sub save_history_tocab {
 
     my $fdb = TokyoCabinet::FDB->new();
     $fdb->tune(36);
-    $fdb->open($ticker, $fdb->OWRITER | $fdb->OCREAT);
+    
+    my $fname = $ticker;
+    $fname =~ tr/\//:/;
+    $fdb->open($fname, $fdb->OWRITER | $fdb->OCREAT);
     
     foreach (@$res) {
     	        
