@@ -161,21 +161,21 @@ Expectancy 5.2303% / 0.5231 R
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo "
-total: 3723.6566 (return -25.53%)
-Paid out 16.33 in dividends
+total: 3858.71 (return -22.83%)
+Paid out 16.69 in dividends
 QQQQ buy and hold: -22.06%
-346 trades (122 wins / 223 losses)
-Win ratio 35.26%
-Average win 8.217% / 0.822 R
-Average loss -5.791% / -0.579 R
-Maximum drawdown 49.114%
-System quality number -1.5
-Ulcer Index 0.2927
-Standard deviation of returns 16.735
-Sharpe ratio -1.446
-Recovery factor 0.520
+347 trades (120 wins / 226 losses)
+Win ratio 34.58%
+Average win 8.583% / 0.859 R
+Average loss -5.660% / -0.566 R
+Maximum drawdown 46.980%
+System quality number -1.3
+Ulcer Index 0.2759
+Standard deviation of returns 16.202
+Sharpe ratio -1.389
+Recovery factor 0.486
 Max adverse excursion 9.556%
-Expectancy -0.8516% / -0.0850 R
+Expectancy -0.7342% / -0.0733 R 
 "
 
 ./backtest.pl --entry TESTS/macd_in --exit TESTS/macd_out --start 2007-11-01 --finish 2009-10-30 --list TESTS/n100.txt --skip-trades --skip-progress

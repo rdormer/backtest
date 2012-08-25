@@ -472,8 +472,8 @@ sub get_sizing_equity {
 	if($stopflag) {
 	    $equity += $positions{$_}{'stop'} * $positions{$_}{'shares'};
 	} else {
-	    $current_prices = pull_data($_, get_date(), 2, 2);
-	    $equity += fetch_close_at(1) * $positions{$_}{'shares'};
+	    $current_prices = pull_data($_, get_date(), 1);
+	    $equity += fetch_open_at(0) * $positions{$_}{'shares'};
 	}
     }
 
@@ -574,6 +574,8 @@ sub print_portfolio_state {
 
     my ($total, $xx) = get_total_equity();
     $ret = (($total - $starting_cash) / $starting_cash) * 100;
+    $dividend_payout = sprintf("%.2f", $dividend_payout);
+    $total = sprintf("%.2f", $total);
     $ret = sprintf("%.2f", $ret);
 
     $summary .= "\n\ntotal: $total (return $ret%)";
