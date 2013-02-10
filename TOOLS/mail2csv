@@ -1,0 +1,55 @@
+#! /usr/bin/perl
+use Date::Business;
+
+print "I hope for your sake these files are in M/D/YYYY\n";
+
+chdir $ARGV[0] or die "$ARGV[0] does not exist!";
+@part_one;
+@part_two;
+@part_three;
+$" = ",";
+
+foreach(<*.txt>) {
+  
+  open(DATA, $_);
+  @lines = grep(/[a-z]+/, <DATA>);
+  @values = map { @p = split /\W/, $_; $p[-1] } @lines;
+
+  $date = substr $_, 0, -4;  
+  $date =~ tr/\-/\//;
+
+  unshift @part_one, "$date,@values[0..1]\n";
+  unshift @part_two, "$date,@values[2..5],,,@values[6..9]\n";
+  unshift @part_three, "$date,@values[10..15]\n";
+}
+
+sorted_print(@part_one);
+sorted_print(@part_two);
+sorted_print(@part_three);
+
+sub sorted_print {
+  print sort mycmp @_;
+  print "\n\n";
+}
+
+sub mycmp {
+  my $aa = substr $a, 0, index($a, ',');
+  my $bb = substr $b, 0, index($b, ',');
+  return convert($bb) <=> convert($aa);
+}
+
+sub convert {
+  my $orig = shift;
+  my @parts = split /\//, $orig;
+ 
+  if(length $parts[0] == 1) {
+    $parts[0] = "0$parts[0]";
+  }
+
+  if(length $parts[1] == 1) {
+    $parts[1] = "0$parts[1]";
+  }
+
+  my $val = new Date::Business(DATE => "$parts[2]$parts[0]$parts[1]");
+  return $val->value() + 1;
+}
