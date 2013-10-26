@@ -1,4 +1,6 @@
 package conf;
+
+use Cache::Memcached::Fast;
 require Exporter;
 use Getopt::Long;
 
@@ -206,11 +208,7 @@ sub process_from_end {
 
 sub init_cgi {
 
-    $progress = shmget(IPC_PRIVATE, 1000000, IPC_CREAT | IPC_EXL | 0777 );
-	
-    open INFILE, ">", $cgi_handle;
-    print INFILE $progress;
-    close INFILE;
+    $cache_handle = new Cache::Memcached::Fast({servers => [{address => '/tmp/mcd.sock', noreply => 1}]});
 }
 
 sub output {
@@ -226,7 +224,7 @@ sub output {
 	    $data = "$data===";
 	}
 
-	shmwrite($progress, $data, 0, length $data);
+	$cache_handle->set($cgi_handle, $data);
 
     } else {
 	
