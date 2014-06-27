@@ -105,21 +105,21 @@ QQQQ buy and hold: -100.00%
 echo "+++++++++++++++++++++++++";
 echo "+++++++++++++++++++++++++";
 echo " 
-total: 20522.52 (return 310.45%)
-Margin calls: 44631.40309
+total: 24680.19 (return 393.60%)
+Margin calls: 36510.4749233333
 QQQQ buy and hold: -100.00%
-746 trades (196 wins / 390 losses)
-Win ratio 26.27%
-Average win 8.849% / 0.883 R
-Average loss -7.439% / -0.742 R
-Maximum drawdown 90.828%
-System quality number -10.4
-Ulcer Index 0.5634
-Standard deviation of returns 235.804
-Sharpe ratio 1.499
-Recovery factor 3.418
+752 trades (196 wins / 387 losses)
+Win ratio 26.06%
+Average win 9.135% / 0.912 R
+Average loss -7.478% / -0.747 R
+Maximum drawdown 86.451%
+System quality number -10.3
+Ulcer Index 0.5194
+Standard deviation of returns 179.633
+Sharpe ratio 1.697
+Recovery factor 4.553
 Max adverse excursion 0.000%
-Expectancy -3.1591% / -0.3153 R 
+Expectancy -3.1481% / -0.3143 R
 "
 
 time ./backtest.pl -skip-progress -list TESTS/stock_universe.txt -start 1991-10-01 -finish 1996-11-15 -short-entry TESTS/261550 -short-exit TESTS/301156 -short-trail TESTS/335091 --skip-trades

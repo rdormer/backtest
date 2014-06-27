@@ -299,7 +299,7 @@ sub filter_results {
 	}
     }
 
-    return 1;
+    return check_for_gaps();
 }
 
 sub pull_data {
@@ -608,6 +608,25 @@ sub to_cache {
 sub from_cache {
     my $ticker = shift;
     return $data_cache{$ticker};
+}
+
+sub check_for_gaps {
+ 
+    my $len = scalar @$current_prices;
+    my $d1 = fetch_date_at(0);
+    
+    $d1 =~ s/-//g;
+    my $date1 = new Date::Business(DATE => $d1);
+    
+    for($i = 1; $i < $len; $i++) {
+      $d2 = fetch_date_at($i);
+      $d2 =~ s/-//g;
+      $date2 = new Date::Business(DATE => $d2);
+      return 0 if $date1->diffb($date2) > 5;
+      $date1 = $date2;
+    }
+
+    return 1;
 }
 
 sub show {
