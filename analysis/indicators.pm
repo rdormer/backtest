@@ -43,6 +43,9 @@ sub wma_low { return array_weighted_avg(shift, LOW_IND); }
 sub wma_close { return array_weighted_avg(shift, CLOSE_IND); }
 sub wma_volume { return array_weighted_avg(shift, VOL_IND); }
 
+sub max_close_date { return date_array_max(shift, CLOSE_IND); }
+sub min_close_date { return date_array_min(shift, CLOSE_IND); }
+
 sub init_indicators {
     TA_Initialize();
 }
@@ -60,6 +63,34 @@ sub truncate_current_prices {
     my @cur = @$saved[$start..$end];
     $current_prices = \@cur;
     return $saved;
+}
+
+sub date_array_max {
+    my $total = shift;
+    my $in = shift;
+
+    my $n = "$in$total" . "maxdate";
+
+    if(!exists $value_cache{$n}) {
+	my @sorted = sort { $b->[$in] <=> $a->[$in] } @$current_prices[0..$total];
+	$value_cache{$n} = $sorted[0][DATE_IND];
+    }
+
+    return $value_cache{$n};
+}
+
+sub date_array_min {
+    my $total = shift;
+    my $in = shift;
+
+    my $n = "$in$total" . "mindate";
+
+    if(!exists $value_cache{$n}) {
+	my @sorted = sort { $b->[$in] <=> $a->[$in] } @$current_prices[0..$total];
+	$value_cache{$n} = $sorted[$#sorted][DATE_IND];
+    }
+
+    return $value_cache{$n};
 }
 
 sub array_max {
